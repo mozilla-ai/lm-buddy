@@ -1,6 +1,6 @@
 import pytest
 import torch
-from tuner.integrations.huggingface import QuantizationConfig
+from flamingo.integrations.huggingface import QuantizationConfig
 
 
 @pytest.fixture

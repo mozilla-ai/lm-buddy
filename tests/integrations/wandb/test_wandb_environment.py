@@ -1,6 +1,6 @@
 import pytest
+from flamingo.integrations.wandb import WandbEnvironment
 from pydantic import ValidationError
-from tuner.integrations.wandb import WandbEnvironment
 
 
 def test_env_vars(mock_wandb_env):

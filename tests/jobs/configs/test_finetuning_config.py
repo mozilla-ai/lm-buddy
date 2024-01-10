@@ -1,9 +1,8 @@
+from flamingo.integrations.huggingface import QuantizationConfig
+from flamingo.integrations.wandb import WandbEnvironment
+from flamingo.jobs.configs import FinetuningJobConfig
 from peft import LoraConfig
 from ray.train import ScalingConfig
-from tuner.datasets.dataset_choice import DatasetChoice
-from tuner.integrations.huggingface import QuantizationConfig
-from tuner.integrations.wandb import WandbEnvironment
-from tuner.jobs import FinetuningJobConfig
 
 
 def test_serde_round_trip():
@@ -13,7 +12,7 @@ def test_serde_round_trip():
     scaling_config = ScalingConfig(num_workers=2, use_gpu=True)
     config = FinetuningJobConfig(
         model="test-model",
-        dataset=DatasetChoice.Dolly,
+        dataset="test-dataset",
         torch_dtype="bfloat16",
         wandb_env=wandb_env,
         lora_config=lora_config,

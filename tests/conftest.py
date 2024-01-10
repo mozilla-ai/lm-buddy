@@ -1,6 +1,7 @@
 """
-Tests for the LLM tuner. This file is used to provide fixtures for the test session 
-that are accessible to all submodules.
+Tests for the Flamingo. 
+
+This file is used to provide fixtures for the test session that are accessible to all submodules.
 """
 import dataclasses
 import os
@@ -8,10 +9,9 @@ from collections.abc import Generator
 from unittest import mock
 
 import pytest
-import tuner
 import wandb
-from tuner.integrations.wandb import WandbEnvironment
-from tuner.jobs.evaluation_config import EvaluationJobConfig
+from flamingo.integrations.wandb import WandbEnvironment
+from flamingo.jobs.configs import LMHarnessJobConfig
 from wandb.sdk.lib.runid import generate_id
 
 
@@ -23,7 +23,7 @@ class Project:
 @pytest.fixture(autouse=True, scope="function")
 def mock_wandb_api_call():
     with mock.patch(
-        "tuner.integrations.wandb.utils.wandb.Api.projects", return_value=[Project("my-project")]
+        "flamingo.integrations.wandb.utils.wandb.Api.projects", return_value=[Project("my-project")]
     ) as p:
         yield p
 
@@ -89,7 +89,7 @@ def mock_valid_run(mock_run):
     taken from wandb to generate a valid run.
     """
     run = mock_run()
-    with mock.patch("tuner.integrations.wandb.utils._resolve_wandb_run", return_value=run) as r:
+    with mock.patch("flamingo.integrations.wandb.utils._resolve_wandb_run", return_value=run) as r:
         yield r
 
 
@@ -113,7 +113,7 @@ def mock_wandb_env(mock_run, test_settings) -> Generator[WandbEnvironment, None,
     Sets up a mock wandb_env object.
     """
 
-    def mock_env_func(**kwargs) -> "tuner.integrations.wandb.WandbEnvironment":
+    def mock_env_func(**kwargs) -> WandbEnvironment:
         mine = {
             "name": "my-run",
             "project": "my-project",
@@ -134,12 +134,12 @@ def checkpoint_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="function")
-def default_eval_config(mock_run, test_settings):
+def default_lm_harness_config(mock_run, test_settings):
     """
     Sets up a default
     """
 
-    def default_eval_config(**kwargs) -> "tuner.integrations.wandb.WandbEnvironment":
+    def default_harness_config(**kwargs) -> LMHarnessJobConfig:
         mine = {
             "tasks": ["task1", "task2"],
             "model_name_or_path": None,
@@ -150,6 +150,6 @@ def default_eval_config(mock_run, test_settings):
             "quantization_config": None,
             "timeout": 3600,
         }
-        return EvaluationJobConfig(**{**mine, **kwargs})
+        return LMHarnessJobConfig(**{**mine, **kwargs})
 
-    yield default_eval_config
+    yield default_harness_config
