@@ -1,40 +1,43 @@
 import click
 
-from flamingo.jobs import run_finetuning, run_lm_harness, run_simple
 from flamingo.jobs.configs import FinetuningJobConfig, LMHarnessJobConfig, SimpleJobConfig
+from flamingo.jobs.entrypoints import (
+    finetuning_entrypoint,
+    lm_harness_entrypoint,
+    simple_entrypoint,
+)
 
 
 @click.group()
-def cli():
+def main():
     pass
 
 
-@click.group("simple")
+@main.group(name="run")
+def run():
+    pass
+
+
+@run.command("simple")
 @click.option("--config", type=str)
-def run_simple_cli(config: str) -> None:
+def run_simple(config: str) -> None:
     config = SimpleJobConfig.from_yaml_file(config)
-    run_simple.main(config)
+    simple_entrypoint.main(config)
 
 
-@click.group("finetune")
+@run.command("finetuning")
 @click.option("--config", type=str)
-def run_finetuning_cli(config: str) -> None:
+def run_finetuning(config: str) -> None:
     config = FinetuningJobConfig.from_yaml_file(config)
-    run_finetuning.main(config)
+    finetuning_entrypoint.main(config)
 
 
-@click.group("finetune")
+@run.command("lm-harness")
 @click.option("--config", type=str)
-def run_finetuning_cli(config: str) -> None:
-    config = FinetuningJobConfig.from_yaml_file(config)
-    run_finetuning.main(config)
-
-
-# need to add the group / command function itself, not the module
-cli.add_command(run_simple.main)
-cli.add_command(run_finetuning.main)
-cli.add_command(run_lm_harness.main)
+def run_lm_harness(config: str) -> None:
+    config = LMHarnessJobConfig.from_yaml_file(config)
+    lm_harness_entrypoint.main(config)
 
 
 if __name__ == "__main__":
-    cli()
+    main()

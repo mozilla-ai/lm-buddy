@@ -35,6 +35,9 @@ test = ["ruff==0.1.4", "pytest==7.4.3", "pytest-cov==4.1.0"]
 
 all = ["flamingo[finetune,evaluate,test]"]
 
+[project.scripts]
+flamingo = "flamingo.cli:main"
+
 
 [tool.pytest.ini_options]
 addopts = "-v --cov src --no-cov-on-fail --disable-warnings"

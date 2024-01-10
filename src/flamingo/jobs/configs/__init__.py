@@ -1,6 +1,6 @@
 from .base_config import BaseJobConfig
 from .finetuning_config import FinetuningJobConfig
-from .lm_harness_config import LMHarnessJobConfig
+from .lm_harness_config import LMHarnessJobConfig, ModelNameOrCheckpointPath
 from .simple_config import SimpleJobConfig
 
 __all__ = [
@@ -8,4 +8,5 @@ __all__ = [
     "SimpleJobConfig",
     "FinetuningJobConfig",
     "LMHarnessJobConfig",
+    "ModelNameOrCheckpointPath",
 ]

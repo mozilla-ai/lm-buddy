@@ -9,7 +9,7 @@ from pydantic.dataclasses import dataclass
 from flamingo.integrations.huggingface import QuantizationConfig
 from flamingo.integrations.huggingface.utils import is_valid_huggingface_model_name
 from flamingo.integrations.wandb import WandbEnvironment
-from flamingo.jobs import BaseJobConfig
+from flamingo.jobs.configs import BaseJobConfig
 from flamingo.types import SerializableTorchDtype
 
 

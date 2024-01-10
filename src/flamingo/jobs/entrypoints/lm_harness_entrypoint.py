@@ -4,9 +4,9 @@ import lm_eval
 import ray
 from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
-from tuner.integrations.wandb import get_wandb_summary, update_wandb_summary
 
-from flamingo.jobs import LMHarnessJobConfig, ModelNameOrCheckpointPath
+from flamingo.integrations.wandb import get_wandb_summary, update_wandb_summary
+from flamingo.jobs.configs import LMHarnessJobConfig, ModelNameOrCheckpointPath
 
 
 def resolve_model_or_path(config: LMHarnessJobConfig) -> str:

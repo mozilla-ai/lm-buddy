@@ -12,7 +12,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, T
 from trl import SFTTrainer
 
 from flamingo.integrations.wandb import update_wandb_summary
-from flamingo.jobs import FinetuningJobConfig
+from flamingo.jobs.configs import FinetuningJobConfig
 
 
 def is_wandb_enabled(config: FinetuningJobConfig):
