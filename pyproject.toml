@@ -11,12 +11,12 @@ requires-python = ">=3.10,<3.11"
 
 dependencies = [
     "click==8.1.7",
-    "ray[default]==2.7.0",
     "torch==2.1.0",
     "scipy==1.10.1",
     "wandb==0.16.1",
     "pydantic-yaml==1.2.0",
     "pydantic==1.10.8",
+    "ray[default]==2.7.0",
 ]
 
 [project.optional-dependencies]

@@ -8,7 +8,7 @@ from pydantic.dataclasses import dataclass
 
 from flamingo.integrations.huggingface import QuantizationConfig
 from flamingo.integrations.huggingface.utils import is_valid_huggingface_model_name
-from flamingo.integrations.wandb import WandbEnvironment, WandbEnvironmentMixin
+from flamingo.integrations.wandb import WandbEnvironment
 from flamingo.jobs import BaseJobConfig
 from flamingo.types import SerializableTorchDtype
 
@@ -42,7 +42,7 @@ class ModelNameOrCheckpointPath:
             raise (ValueError(f"{self.name} is not a valid checkpoint path or HF model name"))
 
 
-class EvaluationJobConfig(WandbEnvironmentMixin, BaseJobConfig):
+class LMHarnessJobConfig(BaseJobConfig):
     """Configuration to run an lm-evaluation-harness evaluation job.
 
     This job loads an existing checkpoint path
@@ -66,6 +66,7 @@ class EvaluationJobConfig(WandbEnvironmentMixin, BaseJobConfig):
     trust_remote_code: bool = False
     torch_dtype: SerializableTorchDtype = None
     quantization_config: QuantizationConfig | None = None
+    wandb_env: WandbEnvironment | None = None
     num_cpus: int = 1
     num_gpus: int = 1
     timeout: datetime.timedelta | None = None
@@ -112,7 +113,3 @@ class EvaluationJobConfig(WandbEnvironmentMixin, BaseJobConfig):
                 raise (ValueError(f"{mnp} is not a valid HuggingFaceModel or checkpoint path."))
 
         return values
-
-    @property
-    def entrypoint_command(self) -> str:
-        return f"python run_evaluation.py --config_json '{self.json()}'"

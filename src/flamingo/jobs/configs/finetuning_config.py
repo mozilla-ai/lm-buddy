@@ -4,12 +4,12 @@ from ray.train import ScalingConfig
 
 from flamingo.integrations.huggingface import QuantizationConfig
 from flamingo.integrations.huggingface.utils import is_valid_huggingface_model_name
-from flamingo.integrations.wandb import WandbEnvironmentMixin
+from flamingo.integrations.wandb import WandbEnvironment
 from flamingo.jobs import BaseJobConfig
 from flamingo.types import SerializableTorchDtype
 
 
-class FinetuningJobConfig(WandbEnvironmentMixin, BaseJobConfig):
+class FinetuningJobConfig(BaseJobConfig):
     """Configuration to submit an LLM finetuning job."""
 
     model: str
@@ -32,6 +32,7 @@ class FinetuningJobConfig(WandbEnvironmentMixin, BaseJobConfig):
     logging_steps: float = 100
     save_strategy: str = "steps"
     save_steps: int = 500
+    wandb_env: WandbEnvironment | None = None
     # Lora/quantization
     lora_config: LoraConfig | None = None  # TODO: Create our own config type
     quantization_config: QuantizationConfig | None = None
@@ -45,7 +46,3 @@ class FinetuningJobConfig(WandbEnvironmentMixin, BaseJobConfig):
             return v
         else:
             raise (ValueError(f"`{v}` is not a valid HuggingFace model name."))
-
-    @property
-    def entrypoint_command(self) -> str:
-        return f"python run_finetuning.py --config_json '{self.json()}'"
