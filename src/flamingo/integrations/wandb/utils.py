@@ -1,9 +1,9 @@
 from typing import Any
 
-from flamingo.integrations.wandb import WandbEnvironment
-
 import wandb
 from wandb.apis.public import Run
+
+from flamingo.integrations.wandb import WandbEnvironment
 
 
 def get_wandb_summary(env: WandbEnvironment) -> dict[str, Any]:

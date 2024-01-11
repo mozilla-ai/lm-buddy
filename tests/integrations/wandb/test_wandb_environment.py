@@ -3,16 +3,16 @@ from flamingo.integrations.wandb import WandbEnvironment
 from pydantic import ValidationError
 
 
-def test_env_vars(mock_wandb_env):
-    env_vars = mock_wandb_env().env_vars
+def test_env_vars(default_wandb_env):
+    env_vars = default_wandb_env().env_vars
     expected = ["WANDB_NAME", "WANDB_PROJECT", "WANDB_ENTITY", "WANDB_RUN_ID"]
     for key in expected:
         assert key in env_vars
     assert "WANDB_RUN_GROUP" not in env_vars
 
 
-def test_serde_round_trip(mock_wandb_env):
-    assert WandbEnvironment.parse_raw(mock_wandb_env().json()) == mock_wandb_env()
+def test_serde_round_trip(default_wandb_env):
+    assert WandbEnvironment.parse_raw(default_wandb_env().json()) == default_wandb_env()
 
 
 def test_disallowed_kwargs():

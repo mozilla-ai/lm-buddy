@@ -1,10 +1,10 @@
 import os
 import warnings
 
-from flamingo.types import BaseFlamingoConfig
 from pydantic import Extra, root_validator
-
 from wandb.apis.public import Run
+
+from flamingo.types import BaseFlamingoConfig
 
 
 class WandbEnvironment(BaseFlamingoConfig):
@@ -25,8 +25,8 @@ class WandbEnvironment(BaseFlamingoConfig):
 
     __match_args__ = ("name", "project", "run_id", "run_group", "entity")
 
-    name: str
-    project: str
+    name: str | None = None
+    project: str | None = None
     run_id: str | None = None
     run_group: str | None = None
     entity: str | None = None
@@ -53,17 +53,6 @@ class WandbEnvironment(BaseFlamingoConfig):
             "WANDB_API_KEY": os.environ.get("WANDB_API_KEY", None),
         }
         return {k: v for k, v in env_vars.items() if v is not None}
-
-    @classmethod
-    def from_env(cls) -> "WandbEnvironment":
-        """Extract W&B settings from the runtime environment."""
-        return cls(
-            name=os.environ.get("WANDB_NAME"),
-            project=os.environ.get("WANDB_PROJECT"),
-            entity=os.environ.get("WANDB_ENTITY"),
-            run_id=os.environ.get("WANDB_RUN_ID"),
-            run_group=os.environ.get("WANDB_RUN_GROUP"),
-        )
 
     @classmethod
     def from_run(cls, run: Run) -> "WandbEnvironment":
