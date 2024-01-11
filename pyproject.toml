@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flamingo"
+version = "0.1.0"
+description = "Ray-centric job library for training and evaluation"
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+
+dependencies = [
+    "click==8.1.7",
+    "torch==2.1.0",
+    "scipy==1.10.1",
+    "wandb==0.16.1",
+    "pydantic-yaml==1.2.0",
+    "pydantic==1.10.8",
+    "ray[default]==2.7.0",
+]
+
+[project.optional-dependencies]
+finetune = [
+    "datasets==2.15.0",
+    "transformers==4.36.2",
+    "accelerate==0.25.0",
+    "peft==0.7.1",
+    "trl==0.7.4",
+    "bitsandbytes==0.40.2",
+]
+
+ludwig = ["ludwig==0.9.1"]
+
+evaluate = ["lm-eval==0.4.0", "einops"]
+
+test = ["ruff==0.1.4", "pytest==7.4.3", "pytest-cov==4.1.0"]
+
+all = ["flamingo[finetune,ludwig,evaluate,test]"]
+
+[project.scripts]
+flamingo = "flamingo.cli:main"
+
+
+[tool.pytest.ini_options]
+addopts = "-v --cov src --no-cov-on-fail --disable-warnings"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+line-length = 100
+
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "UP",  # pyupgrade
+    "I",   # import sorting
+    "N",   # pep8 naming
+    "ISC", # flake8 implicit string concat
+    "PTH", # flake8-use-pathlib use Path library
+    "PD",  # pandas-vet
+]
+
+ignore = [
+    "D417", # documentation for every function parameter.
+    "N806", # ignore uppercased variables
+    "N812", # import as uppercased
+    "N803", # lowercased args
+    "N817", # imported as acryonym
+    "B023", # doesn't bind loop var, we do this a lot in torch
+    "D100", # module-level docstrings
+    "N805", # first param needs to be self; pydantic breaks this sometimes
+]
+
+# Avoid trying to fix some violations
+unfixable = ["B", "SIM", "TRY", "RUF"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+skip-magic-trailing-comma = false
