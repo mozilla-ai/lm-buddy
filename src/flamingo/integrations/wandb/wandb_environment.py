@@ -55,6 +55,17 @@ class WandbEnvironment(BaseFlamingoConfig):
         return {k: v for k, v in env_vars.items() if v is not None}
 
     @classmethod
+    def from_env(cls) -> "WandbEnvironment":
+        """Extract W&B settings from the runtime environment."""
+        return cls(
+            name=os.environ.get("WANDB_NAME"),
+            project=os.environ.get("WANDB_PROJECT"),
+            entity=os.environ.get("WANDB_ENTITY"),
+            run_id=os.environ.get("WANDB_RUN_ID"),
+            run_group=os.environ.get("WANDB_RUN_GROUP"),
+        )
+
+    @classmethod
     def from_run(cls, run: Run) -> "WandbEnvironment":
         """Extract environment settings from a W&B Run object.
 

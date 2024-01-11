@@ -111,7 +111,7 @@ def train_func(config_data: dict):
         wandb.finish()
 
 
-def main(config: FinetuningJobConfig):
+def run(config: FinetuningJobConfig):
     print(f"Received job configuration: {config}")
 
     run_config = RunConfig(

@@ -18,7 +18,7 @@ def run_simple(config: str) -> None:
     from flamingo.jobs.entrypoints import simple_entrypoint
 
     config = SimpleJobConfig.from_yaml_file(config)
-    simple_entrypoint.main(config)
+    simple_entrypoint.run(config)
 
 
 @run.command("finetuning")
@@ -28,7 +28,7 @@ def run_finetuning(config: str) -> None:
     from flamingo.jobs.entrypoints import finetuning_entrypoint
 
     config = FinetuningJobConfig.from_yaml_file(config)
-    finetuning_entrypoint.main(config)
+    finetuning_entrypoint.run(config)
 
 
 @run.command("ludwig")
@@ -37,7 +37,7 @@ def run_finetuning(config: str) -> None:
 def run_ludwig(config: str, dataset: str) -> None:
     from flamingo.jobs.entrypoints import ludwig_entrypoint
 
-    ludwig_entrypoint.main(config, dataset)
+    ludwig_entrypoint.run(config, dataset)
 
 
 @run.command("lm-harness")
@@ -47,7 +47,7 @@ def run_lm_harness(config: str) -> None:
     from flamingo.jobs.entrypoints import lm_harness_entrypoint
 
     config = LMHarnessJobConfig.from_yaml_file(config)
-    lm_harness_entrypoint.main(config)
+    lm_harness_entrypoint.run(config)
 
 
 if __name__ == "__main__":

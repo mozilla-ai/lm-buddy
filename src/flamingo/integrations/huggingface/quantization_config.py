@@ -1,5 +1,6 @@
-from flamingo.types import BaseFlamingoConfig, SerializableTorchDtype
 from transformers import BitsAndBytesConfig
+
+from flamingo.types import BaseFlamingoConfig, SerializableTorchDtype
 
 
 class QuantizationConfig(BaseFlamingoConfig):

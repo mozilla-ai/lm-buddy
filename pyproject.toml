@@ -26,7 +26,7 @@ finetune = [
     "accelerate==0.25.0",
     "peft==0.7.1",
     "trl==0.7.4",
-    "bitsandbytes==0.41.3",
+    "bitsandbytes==0.40.2",
 ]
 
 ludwig = ["ludwig==0.9.1"]

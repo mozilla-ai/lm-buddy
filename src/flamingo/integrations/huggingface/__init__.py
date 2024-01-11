@@ -1,4 +1,9 @@
+from .model_name_or_path import ModelNameOrCheckpointPath
 from .quantization_config import QuantizationConfig
-from .utils import is_valid_huggingface_model_name
+from .trainer_config import TrainerConfig
 
-__all__ = ["QuantizationConfig", "is_valid_huggingface_model_name"]
+__all__ = [
+    "ModelNameOrCheckpointPath",
+    "QuantizationConfig",
+    "TrainerConfig",
+]

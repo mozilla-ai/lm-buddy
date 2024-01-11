@@ -94,7 +94,7 @@ def run_evaluation(config: LMHarnessJobConfig, model_to_load: str) -> None:
         update_wandb_summary(config.wandb_env, formatted_results)
 
 
-def main(config: LMHarnessJobConfig):
+def run(config: LMHarnessJobConfig):
     print(f"Received job configuration: {config}")
 
     # Resolve path and ensure exists
