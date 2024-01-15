@@ -1,5 +1,6 @@
 import pytest
 import torch
+
 from flamingo.integrations.huggingface import QuantizationConfig
 
 

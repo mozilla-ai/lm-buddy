@@ -99,6 +99,9 @@ ignore = [
 # Avoid trying to fix some violations
 unfixable = ["B", "SIM", "TRY", "RUF"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["flamingo"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

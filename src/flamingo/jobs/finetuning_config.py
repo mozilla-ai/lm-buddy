@@ -5,7 +5,7 @@ from ray.train import ScalingConfig
 from flamingo.integrations.huggingface import QuantizationConfig
 from flamingo.integrations.huggingface.trainer_config import TrainerConfig
 from flamingo.integrations.huggingface.utils import is_valid_huggingface_model_name
-from flamingo.jobs.configs import BaseJobConfig
+from flamingo.jobs import BaseJobConfig
 
 
 class FinetuningJobConfig(BaseJobConfig):

@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import pytest
-from flamingo.jobs.configs import LMHarnessJobConfig
 from pydantic import ValidationError
+
+from flamingo.jobs import LMHarnessJobConfig
 
 
 def test_bad_hf_name(default_lm_harness_config):

@@ -1,4 +1,4 @@
-from flamingo.jobs.configs import BaseJobConfig
+from flamingo.jobs import BaseJobConfig
 
 
 class SimpleJobConfig(BaseJobConfig):

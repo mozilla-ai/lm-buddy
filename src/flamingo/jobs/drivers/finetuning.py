@@ -12,7 +12,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, T
 from trl import SFTTrainer
 
 from flamingo.integrations.wandb import update_wandb_summary
-from flamingo.jobs.configs import FinetuningJobConfig
+from flamingo.jobs import FinetuningJobConfig
 
 
 def is_wandb_enabled(config: FinetuningJobConfig):
@@ -111,7 +111,7 @@ def train_func(config_data: dict):
         wandb.finish()
 
 
-def run(config: FinetuningJobConfig):
+def run_finetuning(config: FinetuningJobConfig):
     print(f"Received job configuration: {config}")
 
     run_config = RunConfig(
