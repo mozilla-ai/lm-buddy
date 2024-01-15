@@ -7,8 +7,9 @@ import os
 from unittest import mock
 
 import pytest
-from flamingo.integrations.wandb.wandb_environment import WandbEnvironment
-from flamingo.jobs.configs import LMHarnessJobConfig
+
+from flamingo.integrations.wandb import WandbEnvironment
+from flamingo.jobs import LMHarnessJobConfig
 
 
 @pytest.fixture(autouse=True, scope="function")

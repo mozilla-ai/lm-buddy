@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import validator
 
 from flamingo.integrations.huggingface import ModelNameOrCheckpointPath, QuantizationConfig
-from flamingo.jobs.configs import BaseJobConfig
+from flamingo.jobs import BaseJobConfig
 from flamingo.types import SerializableTorchDtype
 
 

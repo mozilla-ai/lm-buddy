@@ -5,8 +5,8 @@ import ray
 from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
+from flamingo.configs import LMHarnessJobConfig, ModelNameOrCheckpointPath
 from flamingo.integrations.wandb import get_wandb_summary, update_wandb_summary
-from flamingo.jobs.configs import LMHarnessJobConfig, ModelNameOrCheckpointPath
 
 
 def resolve_model_or_path(config: LMHarnessJobConfig) -> str:
@@ -65,7 +65,7 @@ def load_harness_model(config: LMHarnessJobConfig, model_to_load: str) -> HFLM:
 
 
 @ray.remote
-def run_evaluation(config: LMHarnessJobConfig, model_to_load: str) -> None:
+def evaluation_task(config: LMHarnessJobConfig, model_to_load: str) -> None:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
@@ -94,14 +94,14 @@ def run_evaluation(config: LMHarnessJobConfig, model_to_load: str) -> None:
         update_wandb_summary(config.wandb_env, formatted_results)
 
 
-def run(config: LMHarnessJobConfig):
+def run_lm_harness(config: LMHarnessJobConfig):
     print(f"Received job configuration: {config}")
 
     # Resolve path and ensure exists
     model_to_load = resolve_model_or_path(config)
 
     # Using .options() to dynamically specify resource requirements
-    eval_func = run_evaluation.options(num_cpus=config.num_cpus, num_gpus=config.num_gpus)
+    eval_func = evaluation_task.options(num_cpus=config.num_cpus, num_gpus=config.num_gpus)
     eval_future = eval_func.remote(config, model_to_load)
 
     timeout_seconds = config.timeout.seconds if config.timeout else None

@@ -1,8 +1,8 @@
-from flamingo.integrations.huggingface import QuantizationConfig
-from flamingo.integrations.huggingface.trainer_config import TrainerConfig
-from flamingo.jobs.configs import FinetuningJobConfig
 from peft import LoraConfig
 from ray.train import ScalingConfig
+
+from flamingo.integrations.huggingface import QuantizationConfig, TrainerConfig
+from flamingo.jobs import FinetuningJobConfig
 
 
 def test_serde_round_trip():

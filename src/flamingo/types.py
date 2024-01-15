@@ -10,7 +10,7 @@ SerializableTorchDtype = str | torch.dtype | None
 
 
 class BaseFlamingoConfig(BaseModel):
-    """Base class for all Pydnatic configs in the library.
+    """Base class for all Pydantic configs in the library.
 
     Defines some common settings used by all subclasses.
     """
@@ -28,9 +28,6 @@ class BaseFlamingoConfig(BaseModel):
     @validator("*", pre=True)
     def validate_serializable_dtype(cls, x: Any, field: ModelField) -> Any:  # noqa: N805
         """Extract the torch.dtype corresponding to a string value, else return the value.
-
-        This is a Pydantic-specific construct that is run on all fields
-        before other default validations.
 
         Inspired by the HuggingFace `BitsAndBytesConfig` logic.
         """
