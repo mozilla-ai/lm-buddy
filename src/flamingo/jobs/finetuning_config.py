@@ -1,7 +1,7 @@
 from typing import Any
 
 from peft import LoraConfig
-from pydantic import Field, validator
+from pydantic import Field, root_validator, validator
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
@@ -14,15 +14,15 @@ from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
 
-class RayTrainConfig(BaseFlamingoConfig):
-    """Misc settings passed to Ray train.
+class FinetuningRayConfig(BaseFlamingoConfig):
+    """Misc settings passed to Ray train for finetuning.
 
     Includes information for scaling, checkpointing, and runtime storage.
     """
 
     use_gpu: bool = True
     num_workers: int | None = None
-    storage_path: str | None = None
+    storage_path: str | None = None  # TODO: This should be set globally somehow
 
     def get_scaling_args(self) -> dict[str, Any]:
         args = dict(use_gpu=self.use_gpu, num_workers=self.num_workers)
@@ -34,12 +34,26 @@ class FinetuningJobConfig(BaseFlamingoConfig):
 
     model: AutoModelConfig
     dataset: DatasetConfig
-    tokenizer: AutoTokenizerConfig | None = None
+    tokenizer: AutoTokenizerConfig
     quantization: QuantizationConfig | None = None
     adapter: LoraConfig | None = None  # TODO: Create own dataclass here
     tracking: WandbRunConfig | None = None
     trainer: TrainerConfig = Field(default_factory=TrainerConfig)
-    ray: RayTrainConfig = Field(default_factory=RayTrainConfig)
+    ray: FinetuningRayConfig = Field(default_factory=FinetuningRayConfig)
+
+    @root_validator(pre=True)
+    def ensure_tokenizer_config(cls, values):
+        """Set the tokenizer to the model path when not explicitly provided."""
+        if values.get("tokenizer", None) is None:
+            match values["model"]:
+                case str() as model_path:
+                    values["tokenizer"] = model_path
+                case dict() as model_data:
+                    values["tokenizer"] = model_data["path"]
+                case AutoModelConfig() as model_config:
+                    values["tokenizer"] = model_config.path
+                # No fallback necessary, downstream validation will flag invalid model types
+        return values
 
     @validator("model", pre=True, always=True)
     def validate_model_arg(cls, x):

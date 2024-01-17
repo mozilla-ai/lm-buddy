@@ -1,13 +1,13 @@
 import datetime
 
-from pydantic import Field
+from pydantic import Field, validator
 
 from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
 from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
 
-class RayComputeSettings(BaseFlamingoConfig):
+class LMHarnessRayConfig(BaseFlamingoConfig):
     """Misc settings for Ray compute in the LM harness job."""
 
     use_gpu: bool = True
@@ -15,7 +15,7 @@ class RayComputeSettings(BaseFlamingoConfig):
     timeout: datetime.timedelta | None = None
 
 
-class LMHarnessEvaluatorSettings(BaseFlamingoConfig):
+class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     """Misc settings provided to an lm-harness evaluation job."""
 
     tasks: list[str]
@@ -28,7 +28,14 @@ class LMHarnessJobConfig(BaseFlamingoConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
     model: AutoModelConfig
-    evaluator: LMHarnessEvaluatorSettings
+    evaluator: LMHarnessEvaluatorConfig
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None
-    ray: RayComputeSettings = Field(default_factory=RayComputeSettings)
+    ray: LMHarnessRayConfig = Field(default_factory=LMHarnessRayConfig)
+
+    @validator("model", pre=True, always=True)
+    def validate_model_arg(cls, x):
+        """Allow for passing just a path string as the model argument."""
+        if isinstance(x, str):
+            return AutoModelConfig(path=x)
+        return x
