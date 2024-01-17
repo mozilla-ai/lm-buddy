@@ -44,7 +44,7 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
     return TrainingArguments(
         output_dir="out",  # Local checkpoint path on a worker
         report_to="wandb" if is_tracking_enabled(config) else "none",
-        no_cuda=not config.scaling.use_gpu,
+        no_cuda=not config.ray.use_gpu,
         push_to_hub=False,
         disable_tqdm=True,
         logging_dir=None,
