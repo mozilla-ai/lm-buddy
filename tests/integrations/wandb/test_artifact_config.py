@@ -8,8 +8,8 @@ def wandb_artifact_config():
     return WandbArtifactConfig(
         name="artifact-name",
         version="latest",
-        project="cortex-research",
-        entity="twitter.com",
+        project="cortex",
+        entity="twitter",
     )
 
 
@@ -18,4 +18,4 @@ def test_serde_round_trip(wandb_artifact_config):
 
 
 def test_wandb_path(wandb_artifact_config):
-    assert wandb_artifact_config.wandb_path == "twitter.com/cortex-research/artifact-name:latest"
+    assert wandb_artifact_config.get_wandb_path() == "twitter/cortex/artifact-name:latest"

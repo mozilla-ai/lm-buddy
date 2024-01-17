@@ -59,8 +59,7 @@ class WandbRunConfig(BaseFlamingoConfig):
             run_id=run.id,
         )
 
-    @property
-    def wandb_path(self) -> str:
+    def get_wandb_path(self) -> str:
         """String identifier for the asset on the W&B platform."""
         path = "/".join(x for x in [self.entity, self.project, self.run_id] if x is not None)
         return path
