@@ -1,28 +1,63 @@
+from typing import Any
+
 from peft import LoraConfig
-from pydantic import validator
-from ray.train import ScalingConfig
+from pydantic import Field, validator
 
-from flamingo.integrations.huggingface import QuantizationConfig
-from flamingo.integrations.huggingface.trainer_config import TrainerConfig
-from flamingo.integrations.huggingface.utils import is_valid_huggingface_model_name
-from flamingo.jobs import BaseJobConfig
+from flamingo.integrations.huggingface import (
+    AutoModelConfig,
+    AutoTokenizerConfig,
+    DatasetConfig,
+    QuantizationConfig,
+    TrainerConfig,
+)
+from flamingo.integrations.wandb import WandbRunLink
+from flamingo.types import BaseFlamingoConfig
 
 
-class FinetuningJobConfig(BaseJobConfig):
-    """Configuration to submit an LLM finetuning job."""
+class RayTrainConfig(BaseFlamingoConfig):
+    """Misc settings passed to Ray train.
 
-    model: str
-    dataset: str
-    tokenizer: str | None = None
-    trainer: TrainerConfig | None = None
-    lora: LoraConfig | None = None  # TODO: Create our own config type
-    quantization: QuantizationConfig | None = None
-    scaling: ScalingConfig | None = None  # TODO: Create our own config type
+    Includes information for scaling, checkpointing, and runtime storage.
+    """
+
+    use_gpu: bool = True
+    num_workers: int | None = None
     storage_path: str | None = None
 
-    @validator("model")
-    def _validate_model_name(cls, v):
-        if is_valid_huggingface_model_name(v):
-            return v
-        else:
-            raise ValueError(f"`{v}` is not a valid HuggingFace model name.")
+    def get_scaling_args(self) -> dict[str, Any]:
+        args = dict(use_gpu=self.use_gpu, num_workers=self.num_workers)
+        return {k: v for k, v in args.items() if v is not None}
+
+
+class FinetuningJobConfig(BaseFlamingoConfig):
+    """Configuration to submit an LLM finetuning job."""
+
+    model: AutoModelConfig
+    dataset: DatasetConfig
+    tokenizer: AutoTokenizerConfig | None = None
+    quantization: QuantizationConfig | None = None
+    adapter: LoraConfig | None = None  # TODO: Create own dataclass here
+    tracking: WandbRunLink | None = None
+    trainer: TrainerConfig = Field(default_factory=TrainerConfig)
+    ray: RayTrainConfig = Field(default_factory=RayTrainConfig)
+
+    @validator("model", pre=True, always=True)
+    def validate_model_arg(cls, x):
+        """Allow for passing just a path string as the model argument."""
+        if isinstance(x, str):
+            return AutoModelConfig(path=x)
+        return x
+
+    @validator("dataset", pre=True, always=True)
+    def validate_dataset_arg(cls, x):
+        """Allow for passing just a path string as the dataset argument."""
+        if isinstance(x, str):
+            return DatasetConfig(path=x)
+        return x
+
+    @validator("tokenizer", pre=True, always=True)
+    def validate_tokenizer_arg(cls, x):
+        """Allow for passing just a path string as the tokenizer argument."""
+        if isinstance(x, str):
+            return AutoTokenizerConfig(name_or_artifact=x)
+        return x

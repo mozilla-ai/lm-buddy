@@ -8,7 +8,7 @@ from unittest import mock
 
 import pytest
 
-from flamingo.integrations.wandb import WandbEnvironment
+from flamingo.integrations.wandb import WandbRunLink
 from flamingo.jobs import LMHarnessJobConfig
 
 
@@ -28,14 +28,14 @@ def mock_environment_without_keys():
 
 @pytest.fixture(scope="function")
 def default_wandb_env():
-    def generator(**kwargs) -> WandbEnvironment:
+    def generator(**kwargs) -> WandbRunLink:
         mine = {
             "name": "my-run",
             "project": "my-project",
             "entity": "mozilla-ai",
             "run_id": "gabbagool-123",
         }
-        return WandbEnvironment(**{**mine, **kwargs})
+        return WandbRunLink(**{**mine, **kwargs})
 
     yield generator
 
