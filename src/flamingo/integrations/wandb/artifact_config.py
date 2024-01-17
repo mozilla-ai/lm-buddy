@@ -9,8 +9,7 @@ class WandbArtifactConfig(BaseFlamingoConfig):
     project: str | None = None
     entity: str | None = None
 
-    @property
-    def wandb_path(self) -> str:
+    def get_wandb_path(self) -> str:
         """String identifier for the asset on the W&B platform."""
         path = "/".join(x for x in [self.entity, self.project, self.name] if x is not None)
         path = f"{path}:{self.version}"

@@ -9,7 +9,7 @@ from flamingo.integrations.wandb import WandbRunConfig
 def get_wandb_api_run(run_config: WandbRunConfig) -> ApiRun:
     """Retrieve a run from the W&B API."""
     api = wandb.Api()
-    return api.run(run_config.wandb_path)
+    return api.run(run_config.get_wandb_path())
 
 
 def get_wandb_summary(run_config: WandbRunConfig) -> dict[str, Any]:
