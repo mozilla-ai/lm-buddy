@@ -1,5 +1,3 @@
-from typing import Any
-
 from peft import LoraConfig
 from pydantic import Field, root_validator, validator
 
@@ -23,10 +21,6 @@ class FinetuningRayConfig(BaseFlamingoConfig):
     use_gpu: bool = True
     num_workers: int | None = None
     storage_path: str | None = None  # TODO: This should be set globally somehow
-
-    def get_scaling_args(self) -> dict[str, Any]:
-        args = dict(use_gpu=self.use_gpu, num_workers=self.num_workers)
-        return {k: v for k, v in args.items() if v is not None}
 
 
 class FinetuningJobConfig(BaseFlamingoConfig):

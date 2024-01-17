@@ -10,6 +10,7 @@ class DatasetConfig(BaseFlamingoConfig):
 
     path: str | WandbArtifactConfig
     split: str | None = None
+    text_field: str = "text"
     test_size: float | None = None
     seed: int | None = None
 

@@ -64,6 +64,16 @@ class WandbRunConfig(BaseFlamingoConfig):
         path = "/".join(x for x in [self.entity, self.project, self.run_id] if x is not None)
         return path
 
+    def get_wandb_init_args(self) -> dict[str, str]:
+        """Return the kwargs passed to `wandb.init` with proper naming."""
+        return dict(
+            id=self.run_id,
+            name=self.name,
+            project=self.project,
+            entity=self.entity,
+            group=self.run_group,
+        )
+
     def get_env_vars(self) -> dict[str, str]:
         env_vars = {
             "WANDB_RUN_ID": self.run_id,

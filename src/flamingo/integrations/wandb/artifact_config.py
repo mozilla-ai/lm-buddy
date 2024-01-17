@@ -21,7 +21,7 @@ class WandbArtifactConfig(BaseFlamingoConfig):
 class WandbArtifactLoader:
     """Helper class for loading W&B artifacts and linking them to runs."""
 
-    def __init__(self, run: wandb.run | None = None):
+    def __init__(self, run: wandb.run):
         self._run = run
 
     def load_artifact(self, link: WandbArtifactConfig) -> wandb.Artifact:

@@ -12,8 +12,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, T
 from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
-from flamingo.integrations.wandb import WandbArtifactConfig, WandbArtifactLoader
-from flamingo.integrations.wandb.utils import get_reference_filesystem_path
+from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbArtifactLoader
+from flamingo.integrations.wandb.utils import get_artifact_filesystem_path
 from flamingo.jobs import FinetuningJobConfig
 
 
@@ -33,14 +33,13 @@ def resolve_artifact_path(path: str | WandbArtifactConfig, loader: WandbArtifact
             return path
         case WandbArtifactConfig() as artifact_config:
             artifact = loader.load_artifact(artifact_config)
-            return get_reference_filesystem_path(artifact)
+            return get_artifact_filesystem_path(artifact)
         case _:
             raise ValueError(f"Invalid artifact path: {path}")
 
 
 def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
     """Get TrainingArguments appropriate for the worker rank and job config."""
-    provided_args = config.trainer.get_training_args()
     return TrainingArguments(
         output_dir="out",  # Local checkpoint path on a worker
         report_to="wandb" if is_tracking_enabled(config) else "none",
@@ -48,7 +47,7 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
         push_to_hub=False,
         disable_tqdm=True,
         logging_dir=None,
-        **provided_args,
+        **config.trainer.get_training_args(),
     )
 
 
@@ -60,7 +59,7 @@ def load_datasets(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> D
     # TODO: Get rid of this logic once data loading occurs once outside of the workers
     split_seed = config.dataset.seed or 0
     return load_and_split_dataset(
-        dataset_path,
+        path=dataset_path,
         split=config.dataset.split,
         test_size=config.dataset.test_size,
         seed=split_seed,
@@ -108,14 +107,7 @@ def train_func(config_data: dict):
     # Manually initialize run in order to set the run ID and link artifacts
     wandb_run = None
     if is_tracking_enabled(config):
-        env = config.tracking
-        wandb_run = wandb.init(
-            id=env.run_id,
-            name=env.name,
-            project=env.project,
-            entity=env.entity,
-            group=env.run_group,
-        )
+        wandb_run = wandb.init(**config.tracking.get_wandb_init_args(), resume="never")
 
     # Load the input artifacts, potentially linking them to the active W&B run
     artifact_loader = WandbArtifactLoader(wandb_run)
@@ -131,7 +123,7 @@ def train_func(config_data: dict):
         max_seq_length=config.trainer.max_seq_length,
         train_dataset=datasets["train"],
         eval_dataset=datasets.get("test"),
-        dataset_text_field="text",
+        dataset_text_field=config.dataset.text_field,
     )
     trainer.add_callback(RayTrainReportCallback())
     trainer = prepare_trainer(trainer)
@@ -145,7 +137,10 @@ def train_func(config_data: dict):
 def run_finetuning(config: FinetuningJobConfig):
     print(f"Received job configuration: {config}")
 
-    scaling_config = ScalingConfig(**config.ray.get_scaling_args())
+    scaling_config = ScalingConfig(
+        use_gpu=config.ray.use_gpu,
+        num_workers=config.ray.num_workers,
+    )
     run_config = RunConfig(
         name=config.tracking.name if config.tracking else None,
         storage_path=config.ray.storage_path,
@@ -160,6 +155,11 @@ def run_finetuning(config: FinetuningJobConfig):
     result = trainer.fit()
     print(f"Training result: {result}")
 
-    if config.tracking:
-        # TODO: Add ref artifact here
-        pass
+    if config.tracking and result.checkpoint:
+        # Must resume from the just-completed training run
+        with wandb.init(config.tracking.get_wandb_init_args(), resume="must") as run:
+            artifact_type = ArtifactType.MODEL.value
+            artifact_name = f"{config.tracking.name or config.tracking.run_id}-{artifact_type}"
+            artifact = wandb.Artifact(artifact_name, type=artifact_type)
+            artifact.add_reference(f"file://{result.checkpoint.path}/checkpoint")
+            run.log_artifact(artifact)
