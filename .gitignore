@@ -161,8 +161,3 @@ cython_debug/
 
 # Ruff
 .ruff_cache
-
-
-# ignore local wandb cache files. Not perfect
-**/wandb/*.log
-**/wandb/*run*
