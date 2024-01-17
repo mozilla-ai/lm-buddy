@@ -19,9 +19,6 @@ class RagasEvaluationConfig(BaseJobConfig):
     This job loads a dataset from an existing path on our cluster.
     The dataset must be formatted in the RAG context, with the question, generated answer,
     the contexts (retrieved), and optionally a ground truth field.
-
-    This can be manually overwritten by specifying the `model_name_or_path` variable
-    which will take prescedence over the W&B checkpoint path.
     """
 
     data_path: str | Path | None = None
