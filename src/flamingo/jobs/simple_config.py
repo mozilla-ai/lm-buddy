@@ -1,5 +1,5 @@
-from flamingo.jobs import BaseJobConfig
+from flamingo.types import BaseFlamingoConfig
 
 
-class SimpleJobConfig(BaseJobConfig):
+class SimpleJobConfig(BaseFlamingoConfig):
     magic_number: int

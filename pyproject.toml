@@ -33,9 +33,9 @@ ludwig = ["ludwig==0.9.1"]
 
 evaluate = ["lm-eval==0.4.0", "einops"]
 
-test = ["ruff==0.1.4", "pytest==7.4.3", "pytest-cov==4.1.0"]
+test = ["ruff==0.1.7", "pytest==7.4.3", "pytest-cov==4.1.0"]
 
-all = ["flamingo[finetune,ludwig,evaluate,test]"]
+all = ["flamingo[finetune,evaluate,test]"]
 
 [project.scripts]
 flamingo = "flamingo.cli:main"

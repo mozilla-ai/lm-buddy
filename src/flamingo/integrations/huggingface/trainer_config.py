@@ -1,21 +1,24 @@
-from flamingo.types import BaseFlamingoConfig, SerializableTorchDtype
+from flamingo.types import BaseFlamingoConfig
 
 
 class TrainerConfig(BaseFlamingoConfig):
-    """Configuration for a HuggingFace trainer/training arguments."""
+    """Configuration for a HuggingFace trainer/training arguments.
+
+    This mainly encompasses arguments passed to the HuggingFace `TrainingArguments` class,
+    but also contains some additional parameters for the `Trainer` or `SFTTrainer` classes.
+    """
 
     max_seq_length: int | None = None
-    num_train_epochs: int = 1
-    batch_size: int = 16
-    learning_rate: float = 1e-5
-    weight_decay: float = 1e-3
-    gradient_accumulation_steps: int = 1
-    gradient_checkpointing: bool = False
-    trust_remote_code: bool = False
-    torch_dtype: SerializableTorchDtype = None
-    evaluation_strategy: str = "epoch"
+    num_train_epochs: int | None = None
+    per_device_train_batch_size: int | None = None
+    per_device_eval_batch_size: int | None = None
+    learning_rate: float | None = None
+    weight_decay: float | None = None
+    gradient_accumulation_steps: int | None = None
+    gradient_checkpointing: bool | None = None
+    evaluation_strategy: str | None = None
     eval_steps: float | None = None
-    logging_strategy: str = "steps"
-    logging_steps: float = 100
-    save_strategy: str = "steps"
-    save_steps: int = 500
+    logging_strategy: str | None = None
+    logging_steps: float | None = None
+    save_strategy: str | None = None
+    save_steps: int | None = None
