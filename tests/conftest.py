@@ -4,12 +4,9 @@ Tests for the Flamingo.
 This file is used to provide fixtures for the test session that are accessible to all submodules.
 """
 import os
-from pathlib import Path
 from unittest import mock
 
 import pytest
-
-TEST_RESOURCES = Path(__file__) / "resources"
 
 
 @pytest.fixture(autouse=True, scope="function")

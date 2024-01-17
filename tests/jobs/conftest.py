@@ -12,35 +12,35 @@ from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
 @pytest.fixture
 def model_config_with_path():
-    return AutoModelConfig("mistral-ai/mistral-7", trust_remote_code=True)
+    return AutoModelConfig(path="mistral-ai/mistral-7", trust_remote_code=True)
 
 
 @pytest.fixture
 def model_config_with_artifact():
     artifact = WandbArtifactConfig(name="model")
-    return AutoModelConfig(artifact, trust_remote_code=True)
+    return AutoModelConfig(path=artifact, trust_remote_code=True)
 
 
 @pytest.fixture
 def tokenizer_config_with_path():
-    return AutoTokenizerConfig("mistral-ai/mistral-7", trust_remote_code=True)
+    return AutoTokenizerConfig(path="mistral-ai/mistral-7", trust_remote_code=True)
 
 
 @pytest.fixture
 def tokenizer_config_with_artifact():
     artifact = WandbArtifactConfig(name="tokenizer")
-    return AutoTokenizerConfig(artifact, trust_remote_code=True)
+    return AutoTokenizerConfig(path=artifact, trust_remote_code=True)
 
 
 @pytest.fixture
 def dataset_config_with_path():
-    return DatasetConfig("databricks/dolly7b", split="train")
+    return DatasetConfig(path="databricks/dolly15k", split="train")
 
 
 @pytest.fixture
 def dataset_config_with_artifact():
     artifact = WandbArtifactConfig(name="dataset")
-    return DatasetConfig(artifact, split="train")
+    return DatasetConfig(path=artifact, split="train")
 
 
 @pytest.fixture
