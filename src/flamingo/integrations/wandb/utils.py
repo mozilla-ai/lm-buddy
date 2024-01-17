@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 import wandb
@@ -23,3 +24,12 @@ def update_wandb_summary(run_config: WandbRunConfig, metrics: dict[str, Any]) ->
     run = get_wandb_api_run(run_config)
     run.summary.update(metrics)
     run.update()
+
+
+def get_reference_filesystem_path(artifact: wandb.Artifact) -> str:
+    for entry in artifact.manifest.entries.values():
+        if entry.ref.startswith("file://"):
+            # TODO: What if there are entries with different base paths in the artifact manifest?
+            entry_path = Path(entry.ref.replace("file://", ""))
+            return str(entry_path.parent.absolute())
+    raise ValueError("Artifact does not contain a filesystem reference.")
