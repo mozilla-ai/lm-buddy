@@ -49,6 +49,13 @@ def test_parse_yaml_file(lm_harness_job_config, tmp_path_factory):
     assert lm_harness_job_config == LMHarnessJobConfig.from_yaml_file(config_path)
 
 
+def test_load_example_config(examples_folder):
+    """Load the example configs to make sure they stay up to date."""
+    config_file = examples_folder / "configs" / "lm_harness_config.yaml"
+    config = LMHarnessJobConfig.from_yaml_file(config_file)
+    assert LMHarnessJobConfig.parse_raw(config.json()) == config
+
+
 def test_model_validation(lm_harness_evaluator_config):
     allowed_config = LMHarnessJobConfig(model="hf_repo_id", evaluator=lm_harness_evaluator_config)
     assert allowed_config.model == AutoModelConfig(path="hf_repo_id")
