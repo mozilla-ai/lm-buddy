@@ -1,10 +1,10 @@
-from .artifact_link import WandbArtifactLink
-from .run_link import WandbRunLink
+from .artifact_config import WandbArtifactConfig
+from .run_config import WandbRunConfig
 from .utils import get_wandb_summary, update_wandb_summary
 
 __all__ = [
-    "WandbArtifactLink",
-    "WandbRunLink",
+    "WandbArtifactConfig",
+    "WandbRunConfig",
     "get_wandb_summary",
     "update_wandb_summary",
 ]

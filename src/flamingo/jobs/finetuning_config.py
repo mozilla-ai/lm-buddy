@@ -10,7 +10,7 @@ from flamingo.integrations.huggingface import (
     QuantizationConfig,
     TrainerConfig,
 )
-from flamingo.integrations.wandb import WandbRunLink
+from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -37,7 +37,7 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     tokenizer: AutoTokenizerConfig | None = None
     quantization: QuantizationConfig | None = None
     adapter: LoraConfig | None = None  # TODO: Create own dataclass here
-    tracking: WandbRunLink | None = None
+    tracking: WandbRunConfig | None = None
     trainer: TrainerConfig = Field(default_factory=TrainerConfig)
     ray: RayTrainConfig = Field(default_factory=RayTrainConfig)
 
@@ -59,5 +59,5 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     def validate_tokenizer_arg(cls, x):
         """Allow for passing just a path string as the tokenizer argument."""
         if isinstance(x, str):
-            return AutoTokenizerConfig(name_or_artifact=x)
+            return AutoTokenizerConfig(path=x)
         return x

@@ -1,8 +1,8 @@
 from flamingo.types import BaseFlamingoConfig
 
 
-class WandbArtifactLink(BaseFlamingoConfig):
-    """Data required to retrieve an artifact from W&B."""
+class WandbArtifactConfig(BaseFlamingoConfig):
+    """Configuration required to retrieve an artifact from W&B."""
 
     name: str
     version: str = "latest"

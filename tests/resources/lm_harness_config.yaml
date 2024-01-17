@@ -1,0 +1,31 @@
+# Model to evaluate, specified as a W&B artifact
+model:
+  path:
+    name: "training-run-model-artifact"
+    version: "v4"
+    project: "research-project"
+    entity: "twitter.com"
+  trust_remote_code: True
+  torch_dtype: "float16"
+
+# Settings specific to lm_harness.evaluate
+evaluator:
+  tasks: ["task1", "task2", "...", "taskN"]
+  num_fewshot: 5
+
+# HuggingFace quantization settings
+quantization:
+  load_in_4bit: True
+  bnb_4bit_quant_type: "fp4"
+
+# W&B run for logging results
+tracking:
+  name: "location-to-log-results"
+  project: "another-project"
+  entity: "another-entity"
+
+# Ray compute settings
+ray:
+  use_gpu: True
+  num_workers: 4
+  timeout: 3600

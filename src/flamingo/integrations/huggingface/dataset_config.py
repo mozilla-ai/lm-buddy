@@ -1,14 +1,14 @@
 from pydantic import validator
 
 from flamingo.integrations.huggingface.utils import repo_id_validator
-from flamingo.integrations.wandb import WandbArtifactLink
+from flamingo.integrations.wandb import WandbArtifactConfig
 from flamingo.types import BaseFlamingoConfig
 
 
 class DatasetConfig(BaseFlamingoConfig):
     """Settings passed to load a HuggingFace dataset."""
 
-    path: str | WandbArtifactLink
+    path: str | WandbArtifactConfig
     split: str | None = None
     test_size: float | None = None
     seed: int | None = None

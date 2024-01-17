@@ -8,11 +8,12 @@ from wandb.util import random_string
 from flamingo.types import BaseFlamingoConfig
 
 
-class WandbRunLink(BaseFlamingoConfig):
-    """Settings required to log to a W&B run.
+class WandbRunConfig(BaseFlamingoConfig):
+    """Configuration required to log to a W&B run.
 
     A W&B Run is uniquely identified by the combination of `entity/project/run_id`.
-    The W&B platform will auto-generate values for these variables if they are not provided.
+    The W&B platform will auto-generate values for these variables if they are not provided
+    when you initialize a run.
 
     However, based on how these attributes are passed between jobs it is often necessary
     to know the run ID before initializing a run.
@@ -45,7 +46,7 @@ class WandbRunLink(BaseFlamingoConfig):
         return values
 
     @classmethod
-    def from_run(cls, run: Run) -> "WandbRunLink":
+    def from_run(cls, run: Run) -> "WandbRunConfig":
         """Extract environment settings from a W&B Run object.
 
         Useful when listing runs from the W&B API and extracting their settings for a job.
@@ -63,7 +64,7 @@ class WandbRunLink(BaseFlamingoConfig):
         """String identifier for the asset on the W&B platform."""
         path = "/".join(x for x in [self.entity, self.project, self.run_id] if x is not None)
         return path
-    
+
     def get_env_vars(self) -> dict[str, str]:
         env_vars = {
             "WANDB_RUN_ID": self.run_id,

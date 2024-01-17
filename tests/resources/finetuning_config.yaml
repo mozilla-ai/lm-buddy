@@ -1,0 +1,45 @@
+# Tokenizer defined by only a string repo ID
+tokenizer: "mistral-ai/other-repo-with-special-tokenizer"
+
+# Model defined as an object with additional settings beyond the repo ID
+model:
+  path: "mistral-ai/mistral-7b"
+  trust_remote_code: True
+  torch_dtype: "bfloat16"
+
+# Dataset defined as an object with a path linking to a W&B artifact
+dataset:
+  path:
+    name: "dataset-artifact"
+    version: "latest"
+    project: "research-project"
+  split: "train"
+  test_size: 0.2
+
+# HuggingFace Trainer/TrainingArguments
+trainer:
+  max_seq_length: 512
+  learning_rate: 0.1
+  num_train_epochs: 2
+
+# HuggingFace quantization settings
+quantization:
+  load_in_4bit: True
+  bnb_4bit_quant_type: "fp4"
+
+# LORA adapter settings
+adapter:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.2
+
+# W&B run for logging results
+tracking:
+  name: "location-to-log-results"
+  project: "another-project"
+  entity: "another-entity"
+
+# Ray compute settings
+ray:
+  use_gpu: True
+  num_workers: 4

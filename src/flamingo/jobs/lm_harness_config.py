@@ -3,7 +3,7 @@ import datetime
 from pydantic import Field
 
 from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
-from flamingo.integrations.wandb import WandbRunLink
+from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -30,5 +30,5 @@ class LMHarnessJobConfig(BaseFlamingoConfig):
     model: AutoModelConfig
     evaluator: LMHarnessEvaluatorSettings
     quantization: QuantizationConfig | None = None
-    tracking: WandbRunLink | None = None
+    tracking: WandbRunConfig | None = None
     ray: RayComputeSettings = Field(default_factory=RayComputeSettings)

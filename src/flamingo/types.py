@@ -26,7 +26,7 @@ class BaseFlamingoConfig(BaseModel):
         }
 
     @validator("*", pre=True)
-    def validate_serializable_dtype(cls, x: Any, field: ModelField) -> Any:  # noqa: N805
+    def validate_serializable_dtype(cls, x: Any, field: ModelField) -> Any:
         """Extract the torch.dtype corresponding to a string value, else return the value.
 
         Inspired by the HuggingFace `BitsAndBytesConfig` logic.
