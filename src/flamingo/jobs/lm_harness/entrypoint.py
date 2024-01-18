@@ -15,8 +15,9 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
     print("Building artifact for evaluation results...")
     artifact_name = default_artifact_name(run_name, ArtifactType.EVALUATION)
     artifact = wandb.Artifact(artifact_name, type=ArtifactType.EVALUATION.value)
-    for task_name, task_results in results.values():
-        task_data = list(task_results.items())
+    for task_name, task_results in results.items():
+        # Filter down to numeric metrics from task dict
+        task_data = [(k, v) for k, v in task_results.items() if isinstance(v, int | float)]
         task_table = wandb.Table(data=task_data, columns=["metric", "value"])
         artifact.add(task_table, name=f"task-{task_name}")
     return artifact
@@ -89,7 +90,7 @@ def run_lm_harness(config: LMHarnessJobConfig):
     eval_func = evaluation_task.options(num_cpus=config.ray.num_cpus, num_gpus=config.ray.num_gpus)
     eval_future = eval_func.remote(config)
 
-    timeout_seconds = config.timeout.seconds if config.timeout else None
+    timeout_seconds = config.ray.timeout.seconds if config.ray.timeout else None
     try:
         print("Waiting on evaluation task...")
         ray.get(eval_future, timeout=timeout_seconds)
