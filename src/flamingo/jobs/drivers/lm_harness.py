@@ -39,7 +39,7 @@ def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) 
     )
 
 
-@ray.remote(num_cpus=)
+@ray.remote
 def evaluation_task(config: LMHarnessJobConfig, model_to_load: str) -> None:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
