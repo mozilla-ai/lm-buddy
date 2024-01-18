@@ -12,8 +12,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, T
 from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
-from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbArtifactLoader
-from flamingo.integrations.wandb.utils import get_artifact_filesystem_path
+from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
+from flamingo.integrations.wandb.utils import resolve_artifact_path
 from flamingo.jobs import FinetuningJobConfig
 
 
@@ -21,21 +21,6 @@ def is_tracking_enabled(config: FinetuningJobConfig):
     # Only report to WandB on the rank 0 worker
     # Reference: https://docs.ray.io/en/latest/train/user-guides/experiment-tracking.html
     return config.tracking is not None and train.get_context().get_world_rank() == 0
-
-
-def resolve_artifact_path(path: str | WandbArtifactConfig, loader: WandbArtifactLoader) -> str:
-    """Resolve the actual filesystem path for a path/artifact asset.
-
-    The artifact loader internally handles linking the artifact-to-load to an in-progress run.
-    """
-    match path:
-        case str():
-            return path
-        case WandbArtifactConfig() as artifact_config:
-            artifact = loader.load_artifact(artifact_config)
-            return get_artifact_filesystem_path(artifact)
-        case _:
-            raise ValueError(f"Invalid artifact path: {path}")
 
 
 def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
@@ -47,7 +32,7 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
         push_to_hub=False,
         disable_tqdm=True,
         logging_dir=None,
-        **config.trainer.get_training_args(),
+        **config.trainer.training_args(),
     )
 
 
@@ -56,7 +41,7 @@ def load_datasets(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> D
     # We need to specify a fixed seed to load the datasets on each worker
     # Under the hood, HuggingFace uses `accelerate` to create a data loader shard for each worker
     # If the datasets are not seeded here, the ordering will be inconsistent between workers
-    # TODO: Get rid of this logic once data loading occurs once outside of the workers
+    # TODO: Get rid of this logic once data loading is done one time outside of the workers
     split_seed = config.dataset.seed or 0
     return load_and_split_dataset(
         path=dataset_path,
@@ -107,7 +92,7 @@ def train_func(config_data: dict):
     # Manually initialize run in order to set the run ID and link artifacts
     wandb_run = None
     if is_tracking_enabled(config):
-        wandb_run = wandb.init(**config.tracking.get_wandb_init_args(), resume="never")
+        wandb_run = wandb.init(**config.tracking.wandb_init_args(), resume="never")
 
     # Load the input artifacts, potentially linking them to the active W&B run
     artifact_loader = WandbArtifactLoader(wandb_run)
@@ -157,7 +142,7 @@ def run_finetuning(config: FinetuningJobConfig):
 
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
-        with wandb.init(config.tracking.get_wandb_init_args(), resume="must") as run:
+        with wandb.init(**config.tracking.wandb_init_args(), resume="must") as run:
             artifact_type = ArtifactType.MODEL.value
             artifact_name = f"{config.tracking.name or config.tracking.run_id}-{artifact_type}"
             artifact = wandb.Artifact(artifact_name, type=artifact_type)

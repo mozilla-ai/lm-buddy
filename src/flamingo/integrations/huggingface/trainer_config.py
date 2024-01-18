@@ -25,7 +25,7 @@ class TrainerConfig(BaseFlamingoConfig):
     save_strategy: str | None = None
     save_steps: int | None = None
 
-    def get_training_args(self) -> dict[str, Any]:
+    def training_args(self) -> dict[str, Any]:
         """Return the arguments to the HuggingFace `TrainingArguments` class."""
         excluded_keys = ["max_seq_length"]
         return self.dict(exclude=excluded_keys)

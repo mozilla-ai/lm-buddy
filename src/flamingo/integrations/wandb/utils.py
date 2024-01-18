@@ -4,13 +4,13 @@ from typing import Any
 import wandb
 from wandb.apis.public import Run as ApiRun
 
-from flamingo.integrations.wandb import WandbRunConfig
+from flamingo.integrations.wandb import WandbArtifactConfig, WandbArtifactLoader, WandbRunConfig
 
 
 def get_wandb_api_run(config: WandbRunConfig) -> ApiRun:
     """Retrieve a run from the W&B API."""
     api = wandb.Api()
-    return api.run(config.get_wandb_path())
+    return api.run(config.wandb_path())
 
 
 def get_wandb_summary(config: WandbRunConfig) -> dict[str, Any]:
@@ -26,10 +26,37 @@ def update_wandb_summary(config: WandbRunConfig, metrics: dict[str, Any]) -> Non
     run.update()
 
 
-def get_artifact_filesystem_path(artifact: wandb.Artifact) -> str:
+def get_artifact_directory(artifact: wandb.Artifact) -> str:
+    dir_paths = set()
     for entry in artifact.manifest.entries.values():
         if entry.ref.startswith("file://"):
-            # TODO: What if there are entries with different base paths in the artifact manifest?
             entry_path = Path(entry.ref.replace("file://", ""))
-            return str(entry_path.parent.absolute())
-    raise ValueError("Artifact does not contain a filesystem reference.")
+            dir_paths.add(str(entry_path.parent.absolute()))
+    match len(dir_paths):
+        case 0:
+            raise ValueError(
+                f"Artifact {artifact.name} does not contain any filesystem references."
+            )
+        case 1:
+            return list(dir_paths)[0]
+        case _:
+            dir_string = ",".join(dir_paths)
+            raise ValueError(
+                f"Artifact {artifact.name} references multiple directories: {dir_string}. "
+                "Unable to determine which directory to load."
+            )
+
+
+def resolve_artifact_path(path: str | WandbArtifactConfig, loader: WandbArtifactLoader) -> str:
+    """Resolve the actual filesystem path for a path/artifact asset.
+
+    The artifact loader internally handles linking the artifact-to-load to an in-progress run.
+    """
+    match path:
+        case str():
+            return path
+        case WandbArtifactConfig() as artifact_config:
+            artifact = loader.load_artifact(artifact_config)
+            return get_artifact_directory(artifact)
+        case _:
+            raise ValueError(f"Invalid artifact path: {path}")
