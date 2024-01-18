@@ -4,7 +4,7 @@ from typing import Any
 import wandb
 from wandb.apis.public import Run as ApiRun
 
-from flamingo.integrations.wandb import WandbArtifactConfig, WandbArtifactLoader, WandbRunConfig
+from flamingo.integrations.wandb import WandbRunConfig
 
 
 def get_wandb_api_run(config: WandbRunConfig) -> ApiRun:
@@ -26,12 +26,12 @@ def update_wandb_summary(config: WandbRunConfig, metrics: dict[str, Any]) -> Non
     run.update()
 
 
-def get_artifact_directory(artifact: wandb.Artifact) -> str:
+def get_artifact_directory(artifact: wandb.Artifact) -> Path:
     dir_paths = set()
     for entry in artifact.manifest.entries.values():
         if entry.ref.startswith("file://"):
             entry_path = Path(entry.ref.replace("file://", ""))
-            dir_paths.add(str(entry_path.parent.absolute()))
+            dir_paths.add(entry_path.parent.absolute())
     match len(dir_paths):
         case 0:
             raise ValueError(
@@ -46,18 +46,3 @@ def get_artifact_directory(artifact: wandb.Artifact) -> str:
                 f"Artifact {artifact.name} references multiple directories: {dir_string}. "
                 "Unable to determine which directory to load."
             )
-
-
-def resolve_artifact_path(path: str | WandbArtifactConfig, loader: WandbArtifactLoader) -> str:
-    """Resolve the actual filesystem path for a path/artifact asset.
-
-    The artifact loader internally handles linking the artifact-to-load to an in-progress run.
-    """
-    match path:
-        case str():
-            return path
-        case WandbArtifactConfig() as artifact_config:
-            artifact = loader.load_artifact(artifact_config)
-            return get_artifact_directory(artifact)
-        case _:
-            raise ValueError(f"Invalid artifact path: {path}")

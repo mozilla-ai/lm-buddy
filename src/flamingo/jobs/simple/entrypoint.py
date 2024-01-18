@@ -1,4 +1,4 @@
-from flamingo.jobs import SimpleJobConfig
+from flamingo.jobs.simple import SimpleJobConfig
 
 
 def run_simple(config: SimpleJobConfig):

@@ -23,7 +23,7 @@ optional-dependencies.all = { file = [
 ] }
 
 [project.scripts]
-flamingo = "flamingo.cli:main"
+flamingo = "flamingo.__main__:cli"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov src --no-cov-on-fail --disable-warnings"

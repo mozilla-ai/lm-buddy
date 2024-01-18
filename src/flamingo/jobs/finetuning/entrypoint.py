@@ -13,7 +13,6 @@ from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
 from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
-from flamingo.integrations.wandb.utils import resolve_artifact_path
 from flamingo.jobs.finetuning import FinetuningJobConfig
 
 
@@ -37,7 +36,7 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
 
 
 def load_datasets(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> DatasetDict:
-    dataset_path = resolve_artifact_path(config.dataset.path, loader)
+    dataset_path = loader.resolve_artifact_path(config.dataset.path)
     # We need to specify a fixed seed to load the datasets on each worker
     # Under the hood, HuggingFace uses `accelerate` to create a data loader shard for each worker
     # If the datasets are not seeded here, the ordering will be inconsistent between workers
@@ -62,7 +61,7 @@ def load_model(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> PreT
         device_map = {"": current_device}
         print(f"Setting model device_map = {device_map} to enable quantization")
 
-    model_path = resolve_artifact_path(config.model.path, loader)
+    model_path = loader.resolve_artifact_path(config.model.path)
     return AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=model_path,
         trust_remote_code=config.model.trust_remote_code,
@@ -73,7 +72,7 @@ def load_model(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> PreT
 
 
 def load_tokenizer(config: FinetuningJobConfig, loader: WandbArtifactLoader):
-    tokenizer_path = resolve_artifact_path(config.tokenizer.path, loader)
+    tokenizer_path = loader.resolve_artifact_path(config.tokenizer.path)
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=tokenizer_path,
         trust_remote_code=config.tokenizer.trust_remote_code,
@@ -140,6 +139,7 @@ def run_finetuning(config: FinetuningJobConfig):
     result = trainer.fit()
     print(f"Training result: {result}")
 
+    # Register a model artifact if tracking is enabled and Ray saved a checkpoint
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
         with wandb.init(**config.tracking.wandb_init_args(), resume="must") as run:

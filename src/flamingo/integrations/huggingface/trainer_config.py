@@ -11,7 +11,7 @@ class TrainerConfig(BaseFlamingoConfig):
     """
 
     max_seq_length: int | None = None
-    num_train_epochs: int | None = None
+    num_train_epochs: float | None = None
     per_device_train_batch_size: int | None = None
     per_device_eval_batch_size: int | None = None
     learning_rate: float | None = None
