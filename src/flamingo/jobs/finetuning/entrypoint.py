@@ -45,7 +45,7 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
 
 
 def load_datasets(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> DatasetDict:
-    dataset_path = loader.resolve_path_reference(config.dataset.path)
+    dataset_path = loader.resolve_artifact_path(config.dataset.path)
     # We need to specify a fixed seed to load the datasets on each worker
     # Under the hood, HuggingFace uses `accelerate` to create a data loader shard for each worker
     # If the datasets are not seeded here, the ordering will be inconsistent between workers
@@ -70,7 +70,7 @@ def load_model(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> PreT
         device_map = {"": current_device}
         print(f"Setting model device_map = {device_map} to enable quantization")
 
-    model_path = loader.resolve_path_reference(config.model.path)
+    model_path = loader.resolve_artifact_path(config.model.path)
     return AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=model_path,
         trust_remote_code=config.model.trust_remote_code,
@@ -81,7 +81,7 @@ def load_model(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> PreT
 
 
 def load_tokenizer(config: FinetuningJobConfig, loader: WandbArtifactLoader):
-    tokenizer_path = loader.resolve_path_reference(config.tokenizer.path)
+    tokenizer_path = loader.resolve_artifact_path(config.tokenizer.path)
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=tokenizer_path,
         trust_remote_code=config.tokenizer.trust_remote_code,

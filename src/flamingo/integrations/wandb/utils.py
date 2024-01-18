@@ -1,5 +1,4 @@
 import contextlib
-from pathlib import Path
 from typing import Any
 
 import wandb
@@ -44,26 +43,3 @@ def update_wandb_summary(config: WandbRunConfig, metrics: dict[str, Any]) -> Non
     run = get_wandb_api_run(config)
     run.summary.update(metrics)
     run.update()
-
-
-def get_artifact_directory(artifact: wandb.Artifact) -> Path:
-    entry_paths = [
-        e.ref.replace("file://", "")
-        for e in artifact.manifest.entries.values()
-        if e.ref.startswith("file://")
-    ]
-    dir_paths = {Path(e).parent.absolute() for e in entry_paths}
-    match len(dir_paths):
-        case 0:
-            raise ValueError(
-                f"Artifact {artifact.name} does not contain any filesystem references."
-            )
-        case 1:
-            return list(dir_paths)[0]
-        case _:
-            # TODO: Can this be resolved somehow else???
-            dir_string = ",".join(dir_paths)
-            raise ValueError(
-                f"Artifact {artifact.name} references multiple directories: {dir_string}. "
-                "Unable to determine which directory to load."
-            )

@@ -24,7 +24,7 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
 
 
 def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) -> HFLM:
-    model_path = loader.resolve_path_reference(config.model.path)
+    model_path = loader.resolve_artifact_path(config.model.path)
 
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
