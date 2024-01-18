@@ -11,16 +11,14 @@ requires-python = ">=3.10,<3.11"
 dynamic = ["dependencies", "optional-dependencies"]
 
 [tool.setuptools.dynamic]
-dependencies = { file = "requirements/core.txt" }
+dependencies = { file = ["requirements/ray.txt", "requirements/core.txt"] }
 
 optional-dependencies.ludwig = { file = "requirements/ludwig.txt" }
 
 optional-dependencies.test = { file = "requirements/test.txt" }
 
-optional-dependencies.all = { file = [
-    # TODO: Resolve dependency conflicts with ludwig
-    "requirements/test.txt",
-] }
+# TODO: Resolve dependency conflicts with ludwig
+optional-dependencies.all = { file = ["requirements/test.txt"] }
 
 [project.scripts]
 flamingo = "flamingo.__main__:cli"

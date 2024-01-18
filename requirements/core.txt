@@ -1,11 +1,10 @@
-# Main
+# General
 click==8.1.7
 torch==2.1.0
 scipy==1.10.1
 wandb==0.16.1
 pydantic-yaml==1.2.0
 pydantic==1.10.8
-ray[default]==2.8.0
 
 # Finetuning
 datasets==2.15.0
