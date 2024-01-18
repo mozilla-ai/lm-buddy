@@ -5,7 +5,6 @@ from pydantic import validator
 from ragas.metrics import (
     answer_relevancy,
     context_precision,
-    context_recall,
     faithfulness,
 )
 from ragas.metrics.base import MetricWithLLM
@@ -21,20 +20,20 @@ class RagasEvaluationConfig(BaseJobConfig):
     the contexts (retrieved), and optionally a ground truth field.
     """
 
+    is_hf_dataset: bool | None = False
     data_path: str | Path | None = None
 
     # remap columns so data table does not need to be edited
     data_column_names: dict = {
         "question": "question",
         "answer": "answer",
-        "context": "context",
-        "ground_truth": "ground_truth",
+        "contexts": "contexts",
     }
 
     metrics: list[MetricWithLLM] = [
         faithfulness,
         answer_relevancy,
-        context_recall,
+        # context_recall,
         context_precision,
     ]
 
@@ -47,7 +46,7 @@ class RagasEvaluationConfig(BaseJobConfig):
 
     @validator("data_column_names")
     def _validate_data_column_names(cls, v):
-        required_keys = {"question", "answer", "context", "ground_truth"}
+        required_keys = {"question", "answer", "contexts"}
         provided_keys = set(v.keys())
         missing_keys = required_keys.difference(provided_keys)
         if not missing_keys:
