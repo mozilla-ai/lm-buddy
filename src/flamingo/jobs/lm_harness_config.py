@@ -10,8 +10,8 @@ from flamingo.types import BaseFlamingoConfig
 class LMHarnessRayConfig(BaseFlamingoConfig):
     """Misc settings for Ray compute in the LM harness job."""
 
-    use_gpu: bool = True
-    num_workers: int = 1
+    num_cpus: int | float = 1
+    num_gpus: int | float = 1
     timeout: datetime.timedelta | None = None
 
 

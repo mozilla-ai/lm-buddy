@@ -1,77 +1,56 @@
-from pathlib import Path
-
 import lm_eval
 import ray
+import wandb
 from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
-from flamingo.integrations.wandb import get_wandb_summary, update_wandb_summary
-from flamingo.jobs import LMHarnessJobConfig, ModelNameOrCheckpointPath
+from flamingo.integrations.wandb import WandbArtifactLoader
+from flamingo.integrations.wandb.utils import resolve_artifact_path
+from flamingo.jobs import LMHarnessJobConfig
 
 
-def resolve_model_or_path(config: LMHarnessJobConfig) -> str:
-    mn_or_path = None
-    match config.model_name_or_path:
-        case None:
-            print("Attempting to resolve checkpoint path from existing W&B run...")
-            run_summary = get_wandb_summary(config.wandb_env)
-            cp = Path(run_summary["ray/checkpoint_path"])
-            print(f"Using checkpoint path from wandb run: {cp}")
-            if not cp.exists():
-                raise (FileNotFoundError(f"{mn_or_path} cannot be found."))
-            mn_or_path = str(cp)
-        case ModelNameOrCheckpointPath(checkpoint=None) as x:
-            print("No checkpoint; will attempt to load model from HuggingFace")
-            mn_or_path = x.name
-        case ModelNameOrCheckpointPath(checkpoint=ckpt):
-            print(f"Checkpoint found; will attempt to load model from {ckpt}")
-            mn_or_path = ckpt
-        case _:
-            raise (
-                ValueError(
-                    "Something is wrong with the passed "
-                    f"model_name_or_path: {config.model_name_or_path}"
-                )
-            )
-    return mn_or_path
+def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) -> HFLM:
+    model_path = resolve_artifact_path(config.model.path, loader)
 
-
-def load_harness_model(config: LMHarnessJobConfig, model_to_load: str) -> HFLM:
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
     try:
-        adapter_config = PeftConfig.from_pretrained(model_to_load)
+        adapter_config = PeftConfig.from_pretrained(model_path)
         pretrained = adapter_config.base_model_name_or_path
-        peft = model_to_load
+        peft = model_path
     except ValueError as e:
         print(
             f"Unable to load model as adapter: {e}. "
             "This is expected if the checkpoint does not contain adapter weights."
         )
-        pretrained = model_to_load
+        pretrained = model_path
         peft = None
 
     # Return lm-harness model wrapper class
-    quantization_kwargs = config.quantization_config.dict() if config.quantization_config else {}
+    quantization_kwargs = config.quantization.dict() if config.quantization else {}
     return HFLM(
         pretrained=pretrained,
         tokenizer=pretrained,
         peft=peft,
-        device="cuda" if config.num_gpus > 0 else None,
-        trust_remote_code=config.trust_remote_code,
-        dtype=config.torch_dtype if config.torch_dtype else "auto",
+        device="cuda" if config.ray.use_gpu else None,
+        trust_remote_code=config.model.trust_remote_code,
+        dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
         **quantization_kwargs,
     )
 
 
-@ray.remote
+@ray.remote(num_cpus=)
 def evaluation_task(config: LMHarnessJobConfig, model_to_load: str) -> None:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
-    print("Running lm-harness evaluation inside remote function...")
-    llm = load_harness_model(config, model_to_load)
-    raw_results = lm_eval.simple_evaluate(
+    wandb_run = None
+    if config.tracking is not None:
+        wandb_run = wandb.init(**config.tracking.wandb_init_args(), resume="never")
+    artifact_loader = WandbArtifactLoader(wandb_run)
+
+    llm = load_harness_model(config, artifact_loader)
+    eval_results = lm_eval.simple_evaluate(
         model=llm,
         tasks=config.tasks,
         num_fewshot=config.num_fewshot,
@@ -79,36 +58,26 @@ def evaluation_task(config: LMHarnessJobConfig, model_to_load: str) -> None:
         limit=config.limit,
         log_samples=False,
     )
-    print("Finished lm-harness evaluation inside remote function")
+    eval_results = eval_results["results"]
+    print(f"Obtained evaluation results: {eval_results}")
 
-    formatted_results = {}
-    for task_name, metrics in raw_results["results"].items():
-        task_metrics = {
-            f"{task_name}/{metric.replace(',', '_')}": value for metric, value in metrics.items()
-        }
-        formatted_results.update(task_metrics)
-    print(f"Obtained evaluation results: {formatted_results}")
-
-    if config.wandb_env:
-        print("Logging results to W&B...")
-        update_wandb_summary(config.wandb_env, formatted_results)
+    if config.tracking is not None:
+        print("Generating table artifact of evaluation results...")
+        pass
 
 
 def run_lm_harness(config: LMHarnessJobConfig):
     print(f"Received job configuration: {config}")
 
-    # Resolve path and ensure exists
-    model_to_load = resolve_model_or_path(config)
-
     # Using .options() to dynamically specify resource requirements
-    eval_func = evaluation_task.options(num_cpus=config.num_cpus, num_gpus=config.num_gpus)
-    eval_future = eval_func.remote(config, model_to_load)
+    eval_func = evaluation_task.options(num_cpus=config.ray.num_cpus, num_gpus=config.ray.num_gpus)
+    eval_future = eval_func.remote(config)
 
     timeout_seconds = config.timeout.seconds if config.timeout else None
     try:
         print("Waiting on evaluation task...")
         ray.get(eval_future, timeout=timeout_seconds)
-        print("Evaluation successfully completed")
+        print("Evaluation successfully completed!")
     except TimeoutError:
         print(
             f"Evaluation task timed out after {timeout_seconds} sec. "

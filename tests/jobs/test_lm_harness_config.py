@@ -17,8 +17,9 @@ def lm_harness_evaluator_config():
 @pytest.fixture
 def lm_harness_ray_config():
     return LMHarnessRayConfig(
-        num_workers=4,
-        use_gpu=True,
+        num_cpus=2,
+        num_gpus=4,
+        timeout=3600,
     )
 
 

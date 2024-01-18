@@ -40,6 +40,7 @@ def get_artifact_directory(artifact: wandb.Artifact) -> str:
         case 1:
             return list(dir_paths)[0]
         case _:
+            # TODO: Can this be resolved somehow else???
             dir_string = ",".join(dir_paths)
             raise ValueError(
                 f"Artifact {artifact.name} references multiple directories: {dir_string}. "

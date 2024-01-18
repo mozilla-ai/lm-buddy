@@ -144,6 +144,8 @@ def run_finetuning(config: FinetuningJobConfig):
         # Must resume from the just-completed training run
         with wandb.init(**config.tracking.wandb_init_args(), resume="must") as run:
             artifact_type = ArtifactType.MODEL.value
+            print(f"Generating {artifact_type} artifact of training results...")
+
             artifact_name = f"{config.tracking.name or config.tracking.run_id}-{artifact_type}"
             artifact = wandb.Artifact(artifact_name, type=artifact_type)
             artifact.add_reference(f"file://{result.checkpoint.path}/checkpoint")
