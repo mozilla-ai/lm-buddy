@@ -4,7 +4,12 @@ from typing import Any
 import wandb
 from wandb.apis.public import Run as ApiRun
 
-from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
+
+
+def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
+    """A default name for an artifact based on the run name and type."""
+    return f"{name}-{artifact_type.value}"
 
 
 def get_wandb_api_run(config: WandbRunConfig) -> ApiRun:
@@ -28,9 +33,9 @@ def update_wandb_summary(config: WandbRunConfig, metrics: dict[str, Any]) -> Non
 
 def get_artifact_directory(artifact: wandb.Artifact) -> Path:
     entry_paths = [
-        e.replace("file://", "")
+        e.ref.replace("file://", "")
         for e in artifact.manifest.entries.values()
-        if e.startswith("file://")
+        if e.ref.startswith("file://")
     ]
     dir_paths = {Path(e).parent.absolute() for e in entry_paths}
     match len(dir_paths):

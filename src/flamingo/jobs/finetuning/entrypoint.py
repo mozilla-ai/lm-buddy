@@ -13,6 +13,7 @@ from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
 from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
+from flamingo.integrations.wandb.utils import default_artifact_name
 from flamingo.jobs.finetuning import FinetuningJobConfig
 
 
@@ -84,20 +85,13 @@ def load_tokenizer(config: FinetuningJobConfig, loader: WandbArtifactLoader):
     return tokenizer
 
 
-def train_func(config_data: dict):
-    config = FinetuningJobConfig(**config_data)
+def train_func_with_loader(config: FinetuningJobConfig, loader: WandbArtifactLoader):
     training_args = get_training_arguments(config)
 
-    # Manually initialize run in order to set the run ID and link artifacts
-    wandb_run = None
-    if is_tracking_enabled(config):
-        wandb_run = wandb.init(**config.tracking.wandb_init_args(), resume="never")
-
     # Load the input artifacts, potentially linking them to the active W&B run
-    artifact_loader = WandbArtifactLoader(wandb_run)
-    datasets = load_datasets(config, artifact_loader)
-    model = load_model(config, artifact_loader)
-    tokenizer = load_tokenizer(config, artifact_loader)
+    datasets = load_datasets(config, loader)
+    model = load_model(config, loader)
+    tokenizer = load_tokenizer(config, loader)
 
     trainer = SFTTrainer(
         model=model,
@@ -113,14 +107,20 @@ def train_func(config_data: dict):
     trainer = prepare_trainer(trainer)
     trainer.train()
 
-    # Force WandB finish on rank 0 worker
+
+def train_func(config_data: dict):
+    config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
-        wandb.finish()
+        with wandb.init(**config.tracking.wandb_init_args(), resume="never") as run:
+            loader = WandbArtifactLoader(run=run)
+            train_func_with_loader(config, loader)
+    else:
+        loader = WandbArtifactLoader(run=None)
+        train_func_with_loader(config, loader)
 
 
 def run_finetuning(config: FinetuningJobConfig):
-    print(f"Received job configuration: {config}")
-
+    # Construct Ray train configurations from input config
     scaling_config = ScalingConfig(
         use_gpu=config.ray.use_gpu,
         num_workers=config.ray.num_workers,
@@ -143,10 +143,8 @@ def run_finetuning(config: FinetuningJobConfig):
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
         with wandb.init(**config.tracking.wandb_init_args(), resume="must") as run:
-            artifact_type = ArtifactType.MODEL.value
-            print(f"Generating {artifact_type} artifact of training results...")
-
-            artifact_name = f"{config.tracking.name or config.tracking.run_id}-{artifact_type}"
-            artifact = wandb.Artifact(artifact_name, type=artifact_type)
+            print("Generating artifact for training results...")
+            artifact_name = default_artifact_name(run.name, ArtifactType.MODEL)
+            artifact = wandb.Artifact(artifact_name, type=ArtifactType.MODEL.value)
             artifact.add_reference(f"file://{result.checkpoint.path}/checkpoint")
             run.log_artifact(artifact)

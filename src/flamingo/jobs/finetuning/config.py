@@ -39,13 +39,14 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     def ensure_tokenizer_config(cls, values):
         """Set the tokenizer to the model path when not explicitly provided."""
         if values.get("tokenizer", None) is None:
+            values["tokenizer"] = {}
             match values["model"]:
                 case str() as model_path:
-                    values["tokenizer"] = model_path
+                    values["tokenizer"]["path"] = model_path
                 case dict() as model_data:
-                    values["tokenizer"] = model_data["path"]
+                    values["tokenizer"]["path"] = model_data["path"]
                 case AutoModelConfig() as model_config:
-                    values["tokenizer"] = model_config.path
+                    values["tokenizer"]["path"] = model_config.path
                 # No fallback necessary, downstream validation will flag invalid model types
         return values
 
