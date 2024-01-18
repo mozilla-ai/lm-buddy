@@ -1,7 +1,7 @@
-from .artifact_config import WandbArtifactConfig
-from .artifact_type import ArtifactType
+# ruff: noqa: I001
 from .run_config import WandbRunConfig
-from .utils import WandbArtifactLoader
+from .artifact_type import ArtifactType
+from .artifact_config import WandbArtifactConfig, WandbArtifactLoader
 
 __all__ = [
     "ArtifactType",

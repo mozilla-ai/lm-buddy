@@ -1,15 +1,30 @@
+import contextlib
 from pathlib import Path
 from typing import Any
 
 import wandb
 from wandb.apis.public import Run as ApiRun
 
-from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
+from flamingo.integrations.wandb import ArtifactType, WandbRunConfig
+
+
+@contextlib.contextmanager
+def wandb_init_from_config(config: WandbRunConfig, *, resume: str | None = None):
+    """Initialize a W&B run from the internal run configuration."""
+    init_kwargs = dict(
+        id=config.run_id,
+        name=config.name,
+        project=config.project,
+        entity=config.entity,
+        group=config.run_group,
+    )
+    with wandb.init(**init_kwargs, resume=resume) as run:
+        yield run
 
 
 def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
     """A default name for an artifact based on the run name and type."""
-    return f"{name}-{artifact_type.value}"
+    return f"{name}-{artifact_type}"
 
 
 def get_wandb_api_run(config: WandbRunConfig) -> ApiRun:
@@ -52,41 +67,3 @@ def get_artifact_directory(artifact: wandb.Artifact) -> Path:
                 f"Artifact {artifact.name} references multiple directories: {dir_string}. "
                 "Unable to determine which directory to load."
             )
-
-
-class WandbArtifactLoader:
-    """Helper class for loading W&B artifacts and linking them to runs."""
-
-    def __init__(self, run: wandb.run):
-        self._run = run
-
-    def load_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
-        """Load an artifact from the provided config.
-
-        If a a W&B run is available, the artifact is loaded via the run as an input.
-        If not, the artifact is pulled from the W&B API outside of the run.
-        """
-        if self._run is not None:
-            # Retrieves the artifact and links it as an input to the run
-            return self._run.use_artifact(config.wandb_path())
-        else:
-            # Retrieves the artifact outside of the run
-            api = wandb.Api()
-            return api.artifact(config.wandb_path())
-
-    def resolve_artifact_path(self, path: str | WandbArtifactConfig) -> str:
-        """Resolve the actual filesystem path for an artifact.
-
-        If the path is just a string, returns the value directly.
-        If an artifact, the loader will load it from W&B (and link it to an in-progress run)
-        and resolve the filesystem path from the artifact manifest.
-        """
-        match path:
-            case str():
-                return path
-            case WandbArtifactConfig() as artifact_config:
-                artifact = self.load_artifact(artifact_config)
-                artifact_path = get_artifact_directory(artifact)
-                return str(artifact_path)
-            case _:
-                raise ValueError(f"Invalid artifact path: {path}")

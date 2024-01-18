@@ -7,7 +7,7 @@ from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
 from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
-from flamingo.integrations.wandb.utils import default_artifact_name
+from flamingo.integrations.wandb.utils import default_artifact_name, wandb_init_from_config
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
 
 
@@ -24,7 +24,7 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
 
 
 def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) -> HFLM:
-    model_path = loader.resolve_artifact_path(config.model.path)
+    model_path = loader.resolve_path_reference(config.model.path)
 
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
@@ -56,6 +56,7 @@ def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) 
 def evaluate_with_loader(config: LMHarnessJobConfig, loader: WandbArtifactLoader) -> dict[str, Any]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
+
     llm = load_harness_model(config, loader)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
@@ -73,7 +74,7 @@ def evaluate_with_loader(config: LMHarnessJobConfig, loader: WandbArtifactLoader
 @ray.remote
 def evaluation_task(config: LMHarnessJobConfig) -> None:
     if config.tracking is not None:
-        with wandb.init(**config.tracking.wandb_init_args(), resume="never") as run:
+        with wandb_init_from_config(config.tracking, resume="never") as run:
             artifact_loader = WandbArtifactLoader(run=run)
             eval_results = evaluate_with_loader(config, artifact_loader)
             artifact = build_evaluation_artifact(run.name, eval_results)
