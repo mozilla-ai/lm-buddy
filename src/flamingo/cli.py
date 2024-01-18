@@ -1,7 +1,5 @@
 import click
 
-from flamingo.jobs import FinetuningJobConfig, LMHarnessJobConfig, SimpleJobConfig
-
 
 @click.group()
 def main():
@@ -16,7 +14,7 @@ def run():
 @run.command("simple")
 @click.option("--config", type=str)
 def run_simple(config: str) -> None:
-    from flamingo.jobs.drivers.simple import run_simple
+    from flamingo.jobs.simple import SimpleJobConfig, run_simple
 
     config = SimpleJobConfig.from_yaml_file(config)
     run_simple(config)
@@ -25,7 +23,7 @@ def run_simple(config: str) -> None:
 @run.command("finetuning")
 @click.option("--config", type=str)
 def run_finetuning(config: str) -> None:
-    from flamingo.jobs.drivers.finetuning import run_finetuning
+    from flamingo.jobs.finetuning import FinetuningJobConfig, run_finetuning
 
     config = FinetuningJobConfig.from_yaml_file(config)
     run_finetuning(config)
@@ -35,7 +33,7 @@ def run_finetuning(config: str) -> None:
 @click.option("--config", type=str)
 @click.option("--dataset", type=str)
 def run_ludwig(config: str, dataset: str) -> None:
-    from flamingo.jobs.drivers.ludwig import run_ludwig
+    from flamingo.jobs.ludwig import run_ludwig
 
     run_ludwig(config, dataset)
 
@@ -43,7 +41,7 @@ def run_ludwig(config: str, dataset: str) -> None:
 @run.command("lm-harness")
 @click.option("--config", type=str)
 def run_lm_harness(config: str) -> None:
-    from flamingo.jobs.drivers.lm_harness import run_lm_harness
+    from flamingo.jobs.lm_harness import LMHarnessJobConfig, run_lm_harness
 
     config = LMHarnessJobConfig.from_yaml_file(config)
     run_lm_harness(config)

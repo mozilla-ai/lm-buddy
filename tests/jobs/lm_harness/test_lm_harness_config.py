@@ -2,8 +2,11 @@ import pytest
 from pydantic import ValidationError
 
 from flamingo.integrations.huggingface import AutoModelConfig
-from flamingo.jobs import LMHarnessJobConfig
-from flamingo.jobs.lm_harness_config import LMHarnessEvaluatorConfig, LMHarnessRayConfig
+from flamingo.jobs.lm_harness import (
+    LMHarnessEvaluatorConfig,
+    LMHarnessJobConfig,
+    LMHarnessRayConfig,
+)
 
 
 @pytest.fixture

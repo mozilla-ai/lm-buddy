@@ -16,7 +16,7 @@ dependencies = [
     "wandb==0.16.1",
     "pydantic-yaml==1.2.0",
     "pydantic==1.10.8",
-    "ray[default]==2.7.0",
+    "ray[default]==2.8.0",
 ]
 
 [project.optional-dependencies]

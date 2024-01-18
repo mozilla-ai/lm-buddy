@@ -6,7 +6,7 @@ from peft import PeftConfig
 
 from flamingo.integrations.wandb import WandbArtifactLoader
 from flamingo.integrations.wandb.utils import resolve_artifact_path
-from flamingo.jobs import LMHarnessJobConfig
+from flamingo.jobs.lm_harness import LMHarnessJobConfig
 
 
 def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) -> HFLM:

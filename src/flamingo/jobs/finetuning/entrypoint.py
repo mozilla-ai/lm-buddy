@@ -14,7 +14,7 @@ from trl import SFTTrainer
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
 from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
 from flamingo.integrations.wandb.utils import resolve_artifact_path
-from flamingo.jobs import FinetuningJobConfig
+from flamingo.jobs.finetuning import FinetuningJobConfig
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):

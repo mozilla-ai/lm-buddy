@@ -2,8 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from flamingo.integrations.huggingface import AutoModelConfig, AutoTokenizerConfig, DatasetConfig
-from flamingo.jobs import FinetuningJobConfig
-from flamingo.jobs.finetuning_config import FinetuningRayConfig
+from flamingo.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
 
 
 @pytest.fixture
