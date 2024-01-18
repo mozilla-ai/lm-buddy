@@ -5,7 +5,7 @@ import wandb
 from accelerate import Accelerator
 from datasets import DatasetDict
 from ray import train
-from ray.train import CheckpointConfig, RunConfig, ScalingConfig
+from ray.train import Checkpoint, CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
 from ray.train.torch import TorchTrainer
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, TrainingArguments
@@ -15,6 +15,14 @@ from flamingo.integrations.huggingface.utils import load_and_split_dataset
 from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
 from flamingo.integrations.wandb.utils import default_artifact_name
 from flamingo.jobs.finetuning import FinetuningJobConfig
+
+
+def build_model_artifact(run_name: str, checkpoint: Checkpoint) -> wandb.Artifact:
+    print("Building artifact for model checkpoint...")
+    artifact_name = default_artifact_name(run_name, ArtifactType.MODEL)
+    artifact = wandb.Artifact(artifact_name, type=ArtifactType.MODEL.value)
+    artifact.add_reference(f"file://{checkpoint.path}/checkpoint")
+    return artifact
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):
@@ -143,8 +151,5 @@ def run_finetuning(config: FinetuningJobConfig):
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
         with wandb.init(**config.tracking.wandb_init_args(), resume="must") as run:
-            print("Generating artifact for training results...")
-            artifact_name = default_artifact_name(run.name, ArtifactType.MODEL)
-            artifact = wandb.Artifact(artifact_name, type=ArtifactType.MODEL.value)
-            artifact.add_reference(f"file://{result.checkpoint.path}/checkpoint")
+            artifact = build_model_artifact(run.name, result.checkpoint)
             run.log_artifact(artifact)
