@@ -23,6 +23,6 @@ tracking:
   entity: "another-entity"
 
 ray:
-  use_gpu: True
-  num_workers: 4
+  num_cpus: 1
+  num_gpus: 4
   timeout: 3600

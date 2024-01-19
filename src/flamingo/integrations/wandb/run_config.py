@@ -59,12 +59,12 @@ class WandbRunConfig(BaseFlamingoConfig):
             run_id=run.id,
         )
 
-    def get_wandb_path(self) -> str:
+    def wandb_path(self) -> str:
         """String identifier for the asset on the W&B platform."""
         path = "/".join(x for x in [self.entity, self.project, self.run_id] if x is not None)
         return path
 
-    def get_env_vars(self) -> dict[str, str]:
+    def env_vars(self) -> dict[str, str]:
         env_vars = {
             "WANDB_RUN_ID": self.run_id,
             "WANDB_NAME": self.name,

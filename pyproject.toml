@@ -8,38 +8,20 @@ version = "0.1.0"
 description = "Ray-centric job library for training and evaluation"
 readme = "README.md"
 requires-python = ">=3.10,<3.11"
+dynamic = ["dependencies", "optional-dependencies"]
 
-dependencies = [
-    "click==8.1.7",
-    "torch==2.1.0",
-    "scipy==1.10.1",
-    "wandb==0.16.1",
-    "pydantic-yaml==1.2.0",
-    "pydantic==1.10.8",
-    "ray[default]==2.7.0",
-]
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements/ray.txt", "requirements/core.txt"] }
 
-[project.optional-dependencies]
-finetune = [
-    "datasets==2.15.0",
-    "transformers==4.36.2",
-    "accelerate==0.25.0",
-    "peft==0.7.1",
-    "trl==0.7.4",
-    "bitsandbytes==0.40.2",
-]
+optional-dependencies.ludwig = { file = "requirements/ludwig.txt" }
 
-ludwig = ["ludwig==0.9.1"]
+optional-dependencies.test = { file = "requirements/test.txt" }
 
-evaluate = ["lm-eval==0.4.0", "einops"]
-
-test = ["ruff==0.1.7", "pytest==7.4.3", "pytest-cov==4.1.0"]
-
-all = ["flamingo[finetune,evaluate,test]"]
+# TODO: Resolve dependency conflicts with ludwig
+optional-dependencies.all = { file = ["requirements/test.txt"] }
 
 [project.scripts]
-flamingo = "flamingo.cli:main"
-
+flamingo = "flamingo.__main__:cli"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov src --no-cov-on-fail --disable-warnings"

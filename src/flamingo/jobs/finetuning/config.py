@@ -1,13 +1,11 @@
-from typing import Any
-
 from peft import LoraConfig
 from pydantic import Field, root_validator, validator
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
     AutoTokenizerConfig,
-    DatasetConfig,
     QuantizationConfig,
+    TextDatasetConfig,
     TrainerConfig,
 )
 from flamingo.integrations.wandb import WandbRunConfig
@@ -24,16 +22,12 @@ class FinetuningRayConfig(BaseFlamingoConfig):
     num_workers: int | None = None
     storage_path: str | None = None  # TODO: This should be set globally somehow
 
-    def get_scaling_args(self) -> dict[str, Any]:
-        args = dict(use_gpu=self.use_gpu, num_workers=self.num_workers)
-        return {k: v for k, v in args.items() if v is not None}
-
 
 class FinetuningJobConfig(BaseFlamingoConfig):
     """Configuration to submit an LLM finetuning job."""
 
     model: AutoModelConfig
-    dataset: DatasetConfig
+    dataset: TextDatasetConfig
     tokenizer: AutoTokenizerConfig
     quantization: QuantizationConfig | None = None
     adapter: LoraConfig | None = None  # TODO: Create own dataclass here
@@ -44,14 +38,15 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     @root_validator(pre=True)
     def ensure_tokenizer_config(cls, values):
         """Set the tokenizer to the model path when not explicitly provided."""
-        if values.get("tokenizer", None) is None:
+        if values.get("tokenizer") is None:
+            values["tokenizer"] = {}
             match values["model"]:
                 case str() as model_path:
-                    values["tokenizer"] = model_path
+                    values["tokenizer"]["path"] = model_path
                 case dict() as model_data:
-                    values["tokenizer"] = model_data["path"]
+                    values["tokenizer"]["path"] = model_data["path"]
                 case AutoModelConfig() as model_config:
-                    values["tokenizer"] = model_config.path
+                    values["tokenizer"]["path"] = model_config.path
                 # No fallback necessary, downstream validation will flag invalid model types
         return values
 
@@ -66,7 +61,7 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     def validate_dataset_arg(cls, x):
         """Allow for passing just a path string as the dataset argument."""
         if isinstance(x, str):
-            return DatasetConfig(path=x)
+            return TextDatasetConfig(path=x, text_field="text")
         return x
 
     @validator("tokenizer", pre=True, always=True)

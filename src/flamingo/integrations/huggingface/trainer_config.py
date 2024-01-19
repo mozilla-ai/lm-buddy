@@ -1,3 +1,5 @@
+from typing import Any
+
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -9,7 +11,7 @@ class TrainerConfig(BaseFlamingoConfig):
     """
 
     max_seq_length: int | None = None
-    num_train_epochs: int | None = None
+    num_train_epochs: float | None = None
     per_device_train_batch_size: int | None = None
     per_device_eval_batch_size: int | None = None
     learning_rate: float | None = None
@@ -22,3 +24,9 @@ class TrainerConfig(BaseFlamingoConfig):
     logging_steps: float | None = None
     save_strategy: str | None = None
     save_steps: int | None = None
+
+    def training_args(self) -> dict[str, Any]:
+        """Return the arguments to the HuggingFace `TrainingArguments` class."""
+        args = self.dict(exclude={"max_seq_length"})
+        # Filter None values to use HuggingFace defaults when not provided
+        return {k: v for k, v in args.items() if v is not None}

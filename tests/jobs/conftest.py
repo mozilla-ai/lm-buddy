@@ -4,8 +4,8 @@ from peft import LoraConfig
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
     AutoTokenizerConfig,
-    DatasetConfig,
     QuantizationConfig,
+    TextDatasetConfig,
 )
 from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
@@ -34,13 +34,17 @@ def tokenizer_config_with_artifact():
 
 @pytest.fixture
 def dataset_config_with_path():
-    return DatasetConfig(path="databricks/dolly15k", split="train")
+    return TextDatasetConfig(
+        path="databricks/dolly15k",
+        text_field="text",
+        split="train",
+    )
 
 
 @pytest.fixture
 def dataset_config_with_artifact():
     artifact = WandbArtifactConfig(name="dataset")
-    return DatasetConfig(path=artifact, split="train")
+    return TextDatasetConfig(path=artifact, split="train")
 
 
 @pytest.fixture

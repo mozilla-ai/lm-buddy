@@ -1,9 +1,12 @@
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.huggingface import AutoModelConfig, AutoTokenizerConfig, DatasetConfig
-from flamingo.jobs import FinetuningJobConfig
-from flamingo.jobs.finetuning_config import FinetuningRayConfig
+from flamingo.integrations.huggingface import (
+    AutoModelConfig,
+    AutoTokenizerConfig,
+    TextDatasetConfig,
+)
+from flamingo.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
 
 
 @pytest.fixture
@@ -61,7 +64,7 @@ def test_argument_validation():
     )
     assert allowed_config.model == AutoModelConfig(path="model_path")
     assert allowed_config.tokenizer == AutoTokenizerConfig(path="tokenizer_path")
-    assert allowed_config.dataset == DatasetConfig(path="dataset_path")
+    assert allowed_config.dataset == TextDatasetConfig(path="dataset_path")
 
     # Check passing invalid arguments is validated for each asset type
     with pytest.raises(ValidationError):

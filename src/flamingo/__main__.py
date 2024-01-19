@@ -1,53 +1,51 @@
 import click
 
-from flamingo.jobs import FinetuningJobConfig, LMHarnessJobConfig, SimpleJobConfig
 
-
-@click.group()
-def main():
+@click.group(name="Flamingo CLI", help="Entrypoints for the Flamingo.")
+def cli():
     pass
 
 
-@main.group(name="run")
+@cli.group(name="run")
 def run():
     pass
 
 
-@run.command("simple")
+@run.command("simple", help="Run a simple test job.")
 @click.option("--config", type=str)
 def run_simple(config: str) -> None:
-    from flamingo.jobs.drivers import run_simple
+    from flamingo.jobs.simple import SimpleJobConfig, run_simple
 
     config = SimpleJobConfig.from_yaml_file(config)
     run_simple(config)
 
 
-@run.command("finetuning")
+@run.command("finetuning", help="Run a HuggingFace LLM finetuning job.")
 @click.option("--config", type=str)
 def run_finetuning(config: str) -> None:
-    from flamingo.jobs.drivers import run_finetuning
+    from flamingo.jobs.finetuning import FinetuningJobConfig, run_finetuning
 
     config = FinetuningJobConfig.from_yaml_file(config)
     run_finetuning(config)
 
 
-@run.command("ludwig")
+@run.command("ludwig", help="Run a Ludwig training job.")
 @click.option("--config", type=str)
 @click.option("--dataset", type=str)
 def run_ludwig(config: str, dataset: str) -> None:
-    from flamingo.jobs.drivers import run_ludwig
+    from flamingo.jobs.ludwig import run_ludwig
 
     run_ludwig(config, dataset)
 
 
-@run.command("lm-harness")
+@run.command("lm-harness", help="Run an lm-harness LLM evaluation job.")
 @click.option("--config", type=str)
 def run_lm_harness(config: str) -> None:
-    from flamingo.jobs.drivers import run_lm_harness
+    from flamingo.jobs.lm_harness import LMHarnessJobConfig, run_lm_harness
 
     config = LMHarnessJobConfig.from_yaml_file(config)
     run_lm_harness(config)
 
 
 if __name__ == "__main__":
-    main()
+    cli()

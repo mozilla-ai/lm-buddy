@@ -1,6 +1,6 @@
 import datetime
 
-from pydantic import Field, validator
+from pydantic import Field, conlist, validator
 
 from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
 from flamingo.integrations.wandb import WandbRunConfig
@@ -10,15 +10,15 @@ from flamingo.types import BaseFlamingoConfig
 class LMHarnessRayConfig(BaseFlamingoConfig):
     """Misc settings for Ray compute in the LM harness job."""
 
-    use_gpu: bool = True
-    num_workers: int = 1
+    num_cpus: int | float = 1
+    num_gpus: int | float = 1
     timeout: datetime.timedelta | None = None
 
 
 class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     """Misc settings provided to an lm-harness evaluation job."""
 
-    tasks: list[str]
+    tasks: conlist(str, min_items=1)
     batch_size: int | None = None
     num_fewshot: int | None = None
     limit: int | float | None = None
