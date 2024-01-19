@@ -30,7 +30,7 @@ jobs:
 
       - name: Lint with Ruff
         run: |
-          ruff --output-format=github .
+          poetry run ruff --output-format=github .
         continue-on-error: false
 
       - name: Install full dependencies
