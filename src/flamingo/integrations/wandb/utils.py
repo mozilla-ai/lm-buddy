@@ -6,10 +6,16 @@ import wandb
 from wandb.apis.public import Run as ApiRun
 
 from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
+from flamingo.types import BaseFlamingoConfig
 
 
 @contextlib.contextmanager
-def wandb_init_from_config(config: WandbRunConfig, *, resume: str | None = None):
+def wandb_init_from_config(
+    config: WandbRunConfig,
+    *,
+    resume: str | None = None,
+    parameters: BaseFlamingoConfig | None = None,
+):
     """Initialize a W&B run from the internal run configuration."""
     init_kwargs = dict(
         id=config.run_id,
@@ -17,8 +23,10 @@ def wandb_init_from_config(config: WandbRunConfig, *, resume: str | None = None)
         project=config.project,
         entity=config.entity,
         group=config.run_group,
+        config=parameters.dict() if parameters else None,
+        resume=resume,
     )
-    with wandb.init(**init_kwargs, resume=resume) as run:
+    with wandb.init(**init_kwargs) as run:
         yield run
 
 
