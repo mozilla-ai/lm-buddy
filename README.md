@@ -19,13 +19,13 @@ poetry lock
 poetry install
 ```
 
-This will install the package in editable mode along with all of its optional dependency groups.
+This will install an editable version of the package along with all of its dependency groups.
 Poetry should recognize your active virtual environment during installation
 and install the package dependencies there.
 
 The `pyproject.toml` file defines dependency groups for the logical job types in the package.
-Individual package dependency groups can be installed by running 
-`poetry install --with <group1> <group2>` or `poetry install --only <group>`.
+Individual dependency groups can be installed by running 
+`poetry install --with <group1>,<group2>` or `poetry install --only <group>`.
 
 See the [contributing](CONTRIBUTING.md) guide for more information on development workflows.
 

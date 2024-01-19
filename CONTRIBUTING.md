@@ -23,8 +23,7 @@ This can be done by the following steps:
 This will create a `requirements.txt` file in the repository that contains the dependencies
 for the `finetuning` and `evaluation` job groups.
 2. In your Ray runtime environment, specify the following:
-    - `py_modules`: Local path to the `flamingo` module folder 
-    (located at `src/flamingo` in the workspace).
+    - `py_modules`: Local path to the `flamingo` module folder (located at `src/flamingo` in the workspace).
     - `pip`: Local path to the `requirements.txt` file generated above.
 3. Submit your job with an entrypoint command that invokes `flamingo` directly as a module,
 e.g., `python -m flamingo run finetuning --config cofig.yaml`.
