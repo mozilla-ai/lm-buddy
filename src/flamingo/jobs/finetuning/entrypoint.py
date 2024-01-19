@@ -122,7 +122,7 @@ def load_and_train(config: FinetuningJobConfig):
 def train_func(config_data: dict):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
-        with wandb_init_from_config(config, resume="never"):
+        with wandb_init_from_config(config.tracking, resume="never"):
             load_and_train(config)
     else:
         load_and_train(config)
