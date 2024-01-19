@@ -1,4 +1,5 @@
 import contextlib
+from pathlib import Path
 from typing import Any
 
 import wandb
@@ -41,7 +42,7 @@ def update_wandb_summary(config: WandbRunConfig, metrics: dict[str, Any]) -> Non
 
 
 def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
-    """Load an artifact from the provided config.
+    """Load an artifact from the artifact config.
 
     If a W&B run is active, the artifact is loaded via the run as an input.
     If not, the artifact is pulled from the W&B API outside of the run.
@@ -59,15 +60,19 @@ def resolve_artifact_path(path: str | WandbArtifactConfig) -> str:
     """Resolve the actual filesystem path from an artifact/path reference.
 
     If the provided path is just a string, return the value directly.
-    If an artifact, download it from W&B (and link it to an in-progress run)
-    to retrieve the actual data directory.
+    If an artifact, load it and extract the path from its entries manifest.
     """
     match path:
         case str():
             return path
         case WandbArtifactConfig() as config:
             artifact = get_wandb_artifact(config)
-            return artifact.download()
+            # TODO: We should use artifact.download() here to get the data directory
+            # But we need to point the download root at a volume mount, which isnt wired up yet
+            for entry in artifact.manifest.entries.values():
+                if entry.ref.startswith("file://"):
+                    return str(Path(entry.ref.replace("file://", "")).parent)
+            raise ValueError(f"Artifact {artifact.name} does not contain a filesystem reference.")
         case _:
             raise ValueError(f"Invalid artifact path: {path}")
 
