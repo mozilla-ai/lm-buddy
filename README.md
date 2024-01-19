@@ -4,16 +4,27 @@
     <img src="https://github.com/mozilla-ai/flamingo/blob/main/assets/flamingo.png" width="300">
 </p>
 
-## Installation
+## Getting Started
 
-Install the package for local development in your chosen Python environment by running:
+### Installation
+
+This project is built using the [Poetry](https://python-poetry.org/docs/) build tool.
+Follow the [installation guide](https://python-poetry.org/docs/#installation)
+to install Poetry into your local Python environmennt.
+
+Once Poetry is installed, you can install `flamingo` for development by running:
 
 ```
-pip install -e ".[all]"
+poetry install
 ```
 
-Dependency groups are defined for the logical job groups accessible from the library.
-See `pyproject.toml` for exact information.
+This will install the package in editable mode along with all of its optional dependency groups.
+Poetry should recognize your active virtual environment during installation
+and install the package dependencies there.
+
+The `pyproject.toml` file defines dependency groups for the logical job types in the package.
+Individual package dependency groups can be installed by running 
+`poetry install --with <group1> <group2>` or `poetry install --only <group>`.
 
 ### Python version
 

@@ -29,15 +29,6 @@ def run_finetuning(config: str) -> None:
     run_finetuning(config)
 
 
-@run.command("ludwig", help="Run a Ludwig training job.")
-@click.option("--config", type=str)
-@click.option("--dataset", type=str)
-def run_ludwig(config: str, dataset: str) -> None:
-    from flamingo.jobs.ludwig import run_ludwig
-
-    run_ludwig(config, dataset)
-
-
 @run.command("lm-harness", help="Run an lm-harness LLM evaluation job.")
 @click.option("--config", type=str)
 def run_lm_harness(config: str) -> None:
