@@ -41,7 +41,7 @@ lm-eval = "0.4.0"
 einops = "0.7.0"
 
 [tool.poetry.scripts]
-flamingo = 'flamingo.__main__:cli'
+flamingo = "flamingo.__main__:cli"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov src --no-cov-on-fail --disable-warnings"
