@@ -4,7 +4,7 @@
     <img src="https://github.com/mozilla-ai/flamingo/blob/main/assets/flamingo.png" width="300">
 </p>
 
-## Getting Started
+## Getting started
 
 ### Installation
 
