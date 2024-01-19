@@ -4,8 +4,8 @@ from pydantic import Field, root_validator, validator
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
     AutoTokenizerConfig,
-    DatasetConfig,
     QuantizationConfig,
+    TextDatasetConfig,
     TrainerConfig,
 )
 from flamingo.integrations.wandb import WandbRunConfig
@@ -27,7 +27,7 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     """Configuration to submit an LLM finetuning job."""
 
     model: AutoModelConfig
-    dataset: DatasetConfig
+    dataset: TextDatasetConfig
     tokenizer: AutoTokenizerConfig
     quantization: QuantizationConfig | None = None
     adapter: LoraConfig | None = None  # TODO: Create own dataclass here
@@ -61,7 +61,7 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     def validate_dataset_arg(cls, x):
         """Allow for passing just a path string as the dataset argument."""
         if isinstance(x, str):
-            return DatasetConfig(path=x)
+            return TextDatasetConfig(path=x, text_field="text")
         return x
 
     @validator("tokenizer", pre=True, always=True)
