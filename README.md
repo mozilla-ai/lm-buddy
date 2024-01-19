@@ -15,6 +15,7 @@ to install Poetry into your local Python environmennt.
 Once Poetry is installed, you can install `flamingo` for development by running:
 
 ```
+poetry lock
 poetry install
 ```
 
@@ -25,6 +26,8 @@ and install the package dependencies there.
 The `pyproject.toml` file defines dependency groups for the logical job types in the package.
 Individual package dependency groups can be installed by running 
 `poetry install --with <group1> <group2>` or `poetry install --only <group>`.
+
+See the [contributing](CONTRIBUTING.md) guide for more information on development workflows.
 
 ### Python version
 

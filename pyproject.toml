@@ -26,6 +26,7 @@ ray = { version = "2.8.0", extras = ["default"] }
 ruff = "0.1.7"
 pytest = "7.4.3"
 pytest-cov = "4.1.0"
+jupyter = "1.0.0"
 
 [tool.poetry.group.finetuning.dependencies]
 datasets = "2.16.1"
