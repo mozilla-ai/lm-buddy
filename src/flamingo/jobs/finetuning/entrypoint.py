@@ -12,8 +12,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, T
 from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
-from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
-from flamingo.integrations.wandb.utils import default_artifact_name, wandb_init_from_config
+from flamingo.integrations.wandb import ArtifactType
+from flamingo.integrations.wandb.utils import (
+    default_artifact_name,
+    resolve_artifact_path,
+    wandb_init_from_config,
+)
 from flamingo.jobs.finetuning import FinetuningJobConfig
 
 
@@ -44,8 +48,8 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
     )
 
 
-def load_datasets(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> DatasetDict:
-    dataset_path = loader.resolve_artifact_path(config.dataset.path)
+def load_datasets(config: FinetuningJobConfig) -> DatasetDict:
+    dataset_path = resolve_artifact_path(config.dataset.path)
     # We need to specify a fixed seed to load the datasets on each worker
     # Under the hood, HuggingFace uses `accelerate` to create a data loader shard for each worker
     # If the datasets are not seeded here, the ordering will be inconsistent between workers
@@ -59,7 +63,7 @@ def load_datasets(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> D
     )
 
 
-def load_model(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> PreTrainedModel:
+def load_model(config: FinetuningJobConfig) -> PreTrainedModel:
     device_map, bnb_config = None, None
     if config.quantization is not None:
         bnb_config = config.quantization.as_huggingface()
@@ -70,7 +74,7 @@ def load_model(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> PreT
         device_map = {"": current_device}
         print(f"Setting model device_map = {device_map} to enable quantization")
 
-    model_path = loader.resolve_artifact_path(config.model.path)
+    model_path = resolve_artifact_path(config.model.path)
     return AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=model_path,
         trust_remote_code=config.model.trust_remote_code,
@@ -80,8 +84,8 @@ def load_model(config: FinetuningJobConfig, loader: WandbArtifactLoader) -> PreT
     )
 
 
-def load_tokenizer(config: FinetuningJobConfig, loader: WandbArtifactLoader):
-    tokenizer_path = loader.resolve_artifact_path(config.tokenizer.path)
+def load_tokenizer(config: FinetuningJobConfig):
+    tokenizer_path = resolve_artifact_path(config.tokenizer.path)
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=tokenizer_path,
         trust_remote_code=config.tokenizer.trust_remote_code,
@@ -93,14 +97,13 @@ def load_tokenizer(config: FinetuningJobConfig, loader: WandbArtifactLoader):
     return tokenizer
 
 
-def train_func_with_loader(config: FinetuningJobConfig, loader: WandbArtifactLoader):
-    training_args = get_training_arguments(config)
-
+def load_and_train(config: FinetuningJobConfig):
     # Load the input artifacts, potentially linking them to the active W&B run
-    datasets = load_datasets(config, loader)
-    model = load_model(config, loader)
-    tokenizer = load_tokenizer(config, loader)
+    datasets = load_datasets(config)
+    model = load_model(config)
+    tokenizer = load_tokenizer(config)
 
+    training_args = get_training_arguments(config)
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
@@ -119,12 +122,10 @@ def train_func_with_loader(config: FinetuningJobConfig, loader: WandbArtifactLoa
 def train_func(config_data: dict):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
-        with wandb_init_from_config(config, resume="never") as run:
-            loader = WandbArtifactLoader(run=run)
-            train_func_with_loader(config, loader)
+        with wandb_init_from_config(config, resume="never"):
+            load_and_train(config)
     else:
-        loader = WandbArtifactLoader(run=None)
-        train_func_with_loader(config, loader)
+        load_and_train(config)
 
 
 def run_finetuning(config: FinetuningJobConfig):

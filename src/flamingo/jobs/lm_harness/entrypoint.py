@@ -6,8 +6,12 @@ import wandb
 from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
-from flamingo.integrations.wandb import ArtifactType, WandbArtifactLoader
-from flamingo.integrations.wandb.utils import default_artifact_name, wandb_init_from_config
+from flamingo.integrations.wandb import ArtifactType
+from flamingo.integrations.wandb.utils import (
+    default_artifact_name,
+    resolve_artifact_path,
+    wandb_init_from_config,
+)
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
 
 
@@ -23,8 +27,8 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
     return artifact
 
 
-def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) -> HFLM:
-    model_path = loader.resolve_artifact_path(config.model.path)
+def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
+    model_path = resolve_artifact_path(config.model.path)
 
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
@@ -53,11 +57,11 @@ def load_harness_model(config: LMHarnessJobConfig, loader: WandbArtifactLoader) 
     )
 
 
-def evaluate_with_loader(config: LMHarnessJobConfig, loader: WandbArtifactLoader) -> dict[str, Any]:
+def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
-    llm = load_harness_model(config, loader)
+    llm = load_harness_model(config)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
         tasks=config.evaluator.tasks,
@@ -75,13 +79,11 @@ def evaluate_with_loader(config: LMHarnessJobConfig, loader: WandbArtifactLoader
 def evaluation_task(config: LMHarnessJobConfig) -> None:
     if config.tracking is not None:
         with wandb_init_from_config(config.tracking, resume="never") as run:
-            artifact_loader = WandbArtifactLoader(run=run)
-            eval_results = evaluate_with_loader(config, artifact_loader)
+            eval_results = load_and_evaluate(config)
             artifact = build_evaluation_artifact(run.name, eval_results)
             run.log_artifact(artifact)
     else:
-        artifact_loader = WandbArtifactLoader(run=None)
-        evaluate_with_loader(config, artifact_loader)
+        load_and_evaluate(config)
 
 
 def run_lm_harness(config: LMHarnessJobConfig):
