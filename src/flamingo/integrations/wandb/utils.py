@@ -1,6 +1,7 @@
 import contextlib
 from pathlib import Path
 from typing import Any
+from urllib.parse import ParseResult, urlparse
 
 import wandb
 from wandb.apis.public import Run as ApiRun
@@ -16,7 +17,16 @@ def wandb_init_from_config(
     parameters: BaseFlamingoConfig | None = None,
     resume: str | None = None,
 ):
-    """Initialize a W&B run from the internal run configuration."""
+    """Initialize a W&B run from the internal run configuration.
+
+    This method can be entered as a context manager similar to `wandb.init` as follows:
+
+    ```
+    with wandb_init_from_config(run_config, resume="must") as run:
+        # Use the initialized run here
+        ...
+    ```
+    """
     init_kwargs = dict(
         id=config.run_id,
         name=config.name,
@@ -78,8 +88,9 @@ def resolve_artifact_path(path: str | WandbArtifactConfig) -> str:
             # TODO: We should use artifact.download() here to get the data directory
             # But we need to point the download root at a volume mount, which isnt wired up yet
             for entry in artifact.manifest.entries.values():
-                if entry.ref.startswith("file://"):
-                    return str(Path(entry.ref.replace("file://", "")).parent)
+                match urlparse(entry.ref):
+                    case ParseResult(scheme="file", path=file_path):
+                        return str(Path(file_path).parent)
             raise ValueError(f"Artifact {artifact.name} does not contain a filesystem reference.")
         case _:
             raise ValueError(f"Invalid artifact path: {path}")
