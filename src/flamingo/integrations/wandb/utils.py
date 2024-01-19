@@ -13,8 +13,8 @@ from flamingo.types import BaseFlamingoConfig
 def wandb_init_from_config(
     config: WandbRunConfig,
     *,
-    resume: str | None = None,
     parameters: BaseFlamingoConfig | None = None,
+    resume: str | None = None,
 ):
     """Initialize a W&B run from the internal run configuration."""
     init_kwargs = dict(

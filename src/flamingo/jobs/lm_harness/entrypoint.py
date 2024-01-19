@@ -80,8 +80,8 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
     if config.tracking is not None:
         with wandb_init_from_config(
             config.tracking,
-            resume="allow",
             parameters=config.evaluator,  # Log eval settings in W&B run
+            resume="allow",
         ) as run:
             eval_results = load_and_evaluate(config)
             artifact = build_evaluation_artifact(run.name, eval_results)
