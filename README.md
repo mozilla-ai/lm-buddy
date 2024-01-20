@@ -9,16 +9,18 @@
 ### Installation
 
 This project is built using the [Poetry](https://python-poetry.org/docs/) build tool.
-Follow the [installation guide](https://python-poetry.org/docs/#installation)
-to install Poetry into your local Python environmennt.
+First, install Poetry in your local environment via
+```
+curl -sSL https://install.python-poetry.org | python3 - -y
+```
+or see the [installation guide](https://python-poetry.org/docs/#installation)
+for more instructions.
 
-Once Poetry is installed, you can install `flamingo` for development by running:
-
+Once Poetry is installed, you can install `flamingo` for development by running
 ```
 poetry lock
 poetry install
 ```
-
 This will install an editable version of the package along with all of its dependency groups.
 Poetry should recognize your active virtual environment during installation
 and install the package dependencies there.

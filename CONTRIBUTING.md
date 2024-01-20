@@ -12,33 +12,34 @@ Ruff will pick up the configuration defined in the `pyproject.toml` file automat
 ## Testing a development branch
 
 `flamingo` is intended to be installed as a pip requirement in the runtime environment of a Ray job.
-However, when developing the package locally it is desirable to be able to test your branch
-by running jobs from it before publishing a new library version.
-This is possible by submitting your Ray job with a runtime environment that points to your local,
-in-development copy of the `flamingo` repo.
+However, it is often desirable to test local branches on Ray before publishing a new version of the library.
+This is possible submitting a Ray job with a runtime environment that points to your 
+development branch of the `flamingo` repo.
 
+To do so, follow the steps:
 
-This can be done by the following steps:
 1. Export a copy of the package dependencies by running:
 
-```poetry export --without-hashes --with finetuning,evaluation -o requirements.txt```
+    ```
+    poetry export --without-hashes --with finetuning,evaluation -o requirements.txt
+    ```
 
-This will create a `requirements.txt` file in the repository that contains the dependencies
-for the `finetuning` and `evaluation` job groups.
+    The following command will create a `requirements.txt` file in the repository 
+    that contains the dependencies for the `finetuning` and `evaluation` job groups:
 
 2. In your Ray runtime environment, specify the following:
 
     - `py_modules`: Local path to the `flamingo` module folder (located at `src/flamingo` in the workspace).
     - `pip`: Local path to the `requirements.txt` file generated above.
 
-```<code snippet, assuming you are in `$SOURCE`>```
-
 3. Submit your job with an entrypoint command that invokes `flamingo` directly as a module, eg:
 
-```python -m flamingo run finetuning --config cofig.yaml```
+    ```
+    python -m flamingo run finetuning --config config.yaml
+    ```
 
-This is necessary because `py_modules` uploads the `flamingo` module
-but does not install its entrypoint in the environment path.
+    This is necessary because `py_modules` uploads the `flamingo` module
+    but does not install its entrypoint in the environment path.
 
 An example of this workflow can be found in the `examples/dev_workflow.ipynb` notebook.
 
