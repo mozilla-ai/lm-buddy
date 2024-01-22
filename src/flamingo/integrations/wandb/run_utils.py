@@ -12,9 +12,9 @@ from flamingo.types import BaseFlamingoConfig
 def wandb_init_from_config(
     config: WandbRunConfig,
     *,
-    resume: str | None = None,
-    job_type: str | None = None,
     parameters: BaseFlamingoConfig | None = None,
+    job_type: str | None = None,
+    resume: str | None = None,
 ):
     """Initialize a W&B run from the internal run configuration.
 
@@ -33,8 +33,8 @@ def wandb_init_from_config(
         entity=config.entity,
         group=config.run_group,
         config=parameters.dict() if parameters else None,
-        resume=resume,
         job_type=job_type,
+        resume=resume,
     )
     with wandb.init(**init_kwargs) as run:
         yield run
