@@ -42,3 +42,18 @@ jobs:
         run: |
           poetry run pytest
         continue-on-error: false
+
+      - name: Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: publish internally
+        run: |
+          # just a test for now
+          poetry config repositories.mzai-pypi http://10.135.172.57/
+          poetry publish --build --repository mzai-pypi
+
+        continue-on-error: false
