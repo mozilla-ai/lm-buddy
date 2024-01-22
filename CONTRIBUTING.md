@@ -27,7 +27,7 @@ To do so, follow the steps:
     The following command will create a `requirements.txt` file in the repository 
     that contains the dependencies for the `finetuning` and `evaluation` job groups:
 
-2. In your Ray runtime environment, specify the following:
+2. When submitting a job to cluster, specify in the Ray runtime environment the following:
 
     - `py_modules`: Local path to the `flamingo` module folder (located at `src/flamingo` in the workspace).
     - `pip`: Local path to the `requirements.txt` file generated above.
