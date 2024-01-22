@@ -12,6 +12,7 @@ from flamingo.jobs.lm_harness import LMHarnessJobConfig
 from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_path
 
 
+# TODO: Should this also be abstracted to a helper method like log_artifact_from_path?
 def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -> wandb.Artifact:
     print("Building artifact for evaluation results...")
     artifact_name = default_artifact_name(run_name, ArtifactType.EVALUATION)
@@ -78,8 +79,8 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
         with wandb_init_from_config(
             config.tracking,
             parameters=config.evaluator,  # Log eval settings in W&B run
+            job_type=FlamingoJobType.EVALUATION,
             resume="allow",
-            job_type=FlamingoJobType.FINETUNING,
         ) as run:
             eval_results = load_and_evaluate(config)
             artifact = build_evaluation_artifact(run.name, eval_results)

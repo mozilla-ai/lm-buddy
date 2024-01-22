@@ -11,7 +11,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, T
 from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
-from flamingo.integrations.wandb import ArtifactType
+from flamingo.integrations.wandb import ArtifactType, ArtifactURIScheme
 from flamingo.integrations.wandb.utils import (
     default_artifact_name,
     log_artifact_from_path,
@@ -116,8 +116,8 @@ def train_func(config_data: dict):
     if is_tracking_enabled(config):
         with wandb_init_from_config(
             config.tracking,
-            resume="never",
             job_type=FlamingoJobType.FINETUNING,
+            resume="never",
         ):
             load_and_train(config)
     else:
@@ -149,11 +149,10 @@ def run_finetuning(config: FinetuningJobConfig):
         # Must resume from the just-completed training run
         with wandb_init_from_config(config.tracking, resume="must") as run:
             print("Building artifact for model checkpoint...")
-            artifact_type = ArtifactType.MODEL
-            artifact_name = default_artifact_name(run.name, artifact_type)
+            artifact_name = default_artifact_name(run.name, ArtifactType.MODEL)
             log_artifact_from_path(
                 name=artifact_name,
                 path=f"{result.checkpoint.path}/checkpoint",
-                artifact_type=artifact_type,
-                reference_scheme="file",
+                artifact_type=ArtifactType.MODEL,
+                uri_scheme=ArtifactURIScheme.FILE,
             )

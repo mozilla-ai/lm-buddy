@@ -13,7 +13,7 @@ class FlamingoJobType(str, Enum):
 
 
 def resolve_artifact_path(path_or_artifact: str | WandbArtifactConfig) -> str:
-    """Resolve the path to load from a path/artifact config.
+    """Resolve the path to load for an asset.
 
     If the path is just a string, simply return that.
     If an artifact config, resolve the data path from the artifact's manifest.

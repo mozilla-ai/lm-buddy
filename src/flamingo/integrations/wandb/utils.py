@@ -6,7 +6,12 @@ from urllib.parse import ParseResult, urlparse
 import wandb
 from wandb.apis.public import Run as ApiRun
 
-from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
+from flamingo.integrations.wandb import (
+    ArtifactType,
+    ArtifactURIScheme,
+    WandbArtifactConfig,
+    WandbRunConfig,
+)
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -88,9 +93,9 @@ def get_artifact_directory(
 ) -> str:
     """Get the directory containing the artifact's data.
 
-    If the artifact references data already on the filesystem, simply returns that path.
+    If the artifact references data already on the filesystem, simply return that path.
     If not, downloads the artifact (with the specified `download_root`)
-    and returns the newly created artifact directory.
+    and returns the newly created artifact directory path.
     """
     artifact = get_wandb_artifact(config)
     for entry in artifact.manifest.entries.values():
@@ -106,7 +111,8 @@ def log_artifact_from_path(
     path: str | Path,
     artifact_type: ArtifactType,
     *,
-    reference_scheme: str | None = None,
+    uri_scheme: ArtifactURIScheme | None = None,
+    max_objects: int | None = None,
 ) -> wandb.Artifact:
     """Log an artifact containing the contents of a directory to the currently active run.
 
@@ -123,16 +129,18 @@ def log_artifact_from_path(
         name (str): Name of the artifact
         path (str | Path): Path to the artifact directory
         artifact_type (ArtifactType): Type of the artifact to create
-        reference_scheme (str, optional): URL scheme to prepend to the artifact path.
+        uri_scheme (ArtifactURIScheme, optional): URI scheme to prepend to the artifact path.
             When provided, the artifact is logged as a reference to this path.
+        max_objects (int, optional): Max number of objects allowed in the artifact.
+            Only used when creating reference artifacts.
 
     Returns:
         The `wandb.Artifact` that was logged
 
     """
     artifact = wandb.Artifact(name=name, type=artifact_type)
-    if reference_scheme is not None:
-        artifact.add_reference(f"{reference_scheme}://{path}")
+    if uri_scheme is not None:
+        artifact.add_reference(f"{uri_scheme}://{path}", max_objects=max_objects)
     else:
         artifact.add_dir(str(path))
     # Log artifact to the currently active run
