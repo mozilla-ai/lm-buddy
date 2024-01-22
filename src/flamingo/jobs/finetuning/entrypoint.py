@@ -11,8 +11,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, T
 from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
-from flamingo.integrations.wandb import ArtifactType, ArtifactURIScheme
-from flamingo.integrations.wandb.utils import (
+from flamingo.integrations.wandb import (
+    ArtifactType,
+    ArtifactURIScheme,
     default_artifact_name,
     log_artifact_from_path,
     wandb_init_from_config,

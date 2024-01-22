@@ -1,7 +1,6 @@
 from enum import Enum
 
-from flamingo.integrations.wandb.artifact_config import WandbArtifactConfig
-from flamingo.integrations.wandb.utils import get_artifact_directory
+from flamingo.integrations.wandb import WandbArtifactConfig, get_artifact_path
 
 
 class FlamingoJobType(str, Enum):
@@ -22,6 +21,6 @@ def resolve_artifact_path(path_or_artifact: str | WandbArtifactConfig) -> str:
         case str():
             return path_or_artifact
         case WandbArtifactConfig() as config:
-            return get_artifact_directory(config)
+            return get_artifact_path(config)
         case _:
             raise ValueError(f"Invalid path/artifact: {path_or_artifact}")
