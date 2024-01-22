@@ -46,7 +46,7 @@ def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
         return api.artifact(config.wandb_path())
 
 
-def get_artifact_path(
+def get_artifact_filesystem_path(
     config: WandbArtifactConfig,
     *,
     download_root: str | None = None,

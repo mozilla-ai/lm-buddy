@@ -8,7 +8,7 @@ from peft import PeftConfig
 
 from flamingo.integrations.wandb import ArtifactType, default_artifact_name, wandb_init_from_config
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
-from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_path
+from flamingo.jobs.utils import FlamingoJobType, resolve_load_path
 
 
 # TODO: Should this also be abstracted to a helper method like log_artifact_from_path?
@@ -25,7 +25,7 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
 
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
-    model_path = resolve_artifact_path(config.model.path)
+    model_path = resolve_load_path(config.model.path)
 
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
