@@ -7,12 +7,9 @@ from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
 from flamingo.integrations.wandb import ArtifactType
-from flamingo.integrations.wandb.utils import (
-    default_artifact_name,
-    resolve_artifact_path,
-    wandb_init_from_config,
-)
+from flamingo.integrations.wandb.utils import default_artifact_name, wandb_init_from_config
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
+from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_path
 
 
 def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -> wandb.Artifact:
@@ -82,6 +79,7 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
             config.tracking,
             parameters=config.evaluator,  # Log eval settings in W&B run
             resume="allow",
+            job_type=FlamingoJobType.FINETUNING,
         ) as run:
             eval_results = load_and_evaluate(config)
             artifact = build_evaluation_artifact(run.name, eval_results)

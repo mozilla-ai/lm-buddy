@@ -14,8 +14,9 @@ from flamingo.types import BaseFlamingoConfig
 def wandb_init_from_config(
     config: WandbRunConfig,
     *,
-    parameters: BaseFlamingoConfig | None = None,
     resume: str | None = None,
+    job_type: str | None = None,
+    parameters: BaseFlamingoConfig | None = None,
 ):
     """Initialize a W&B run from the internal run configuration.
 
@@ -35,6 +36,7 @@ def wandb_init_from_config(
         group=config.run_group,
         config=parameters.dict() if parameters else None,
         resume=resume,
+        job_type=job_type,
     )
     with wandb.init(**init_kwargs) as run:
         yield run
@@ -59,6 +61,11 @@ def update_wandb_summary(config: WandbRunConfig, metrics: dict[str, Any]) -> Non
     run.update()
 
 
+def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
+    """A default name for an artifact based on the run name and type."""
+    return f"{name}-{artifact_type}"
+
+
 def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
     """Load an artifact from the artifact config.
 
@@ -74,28 +81,59 @@ def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
         return api.artifact(config.wandb_path())
 
 
-def resolve_artifact_path(path: str | WandbArtifactConfig) -> str:
-    """Resolve the actual filesystem path from an artifact/path reference.
+def get_artifact_directory(
+    config: WandbArtifactConfig,
+    *,
+    download_root: str | None = None,
+) -> str:
+    """Get the directory containing the artifact's data.
 
-    If the provided path is just a string, return the value directly.
-    If an artifact, load it and extract the path from its entries manifest.
+    If the artifact references data already on the filesystem, simply returns that path.
+    If not, downloads the artifact (with the specified `download_root`)
+    and returns the newly created artifact directory.
     """
-    match path:
-        case str():
-            return path
-        case WandbArtifactConfig() as config:
-            artifact = get_wandb_artifact(config)
-            # TODO: We should use artifact.download() here to get the data directory
-            # But we need to point the download root at a volume mount, which isnt wired up yet
-            for entry in artifact.manifest.entries.values():
-                match urlparse(entry.ref):
-                    case ParseResult(scheme="file", path=file_path):
-                        return str(Path(file_path).parent)
-            raise ValueError(f"Artifact {artifact.name} does not contain a filesystem reference.")
-        case _:
-            raise ValueError(f"Invalid artifact path: {path}")
+    artifact = get_wandb_artifact(config)
+    for entry in artifact.manifest.entries.values():
+        match urlparse(entry.ref):
+            case ParseResult(scheme="file", path=file_path):
+                return str(Path(file_path).parent)
+    # No filesystem references found in the manifest -> download the artifact
+    return artifact.download(root=download_root)
 
 
-def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
-    """A default name for an artifact based on the run name and type."""
-    return f"{name}-{artifact_type}"
+def log_artifact_from_path(
+    name: str,
+    path: str | Path,
+    artifact_type: ArtifactType,
+    *,
+    reference_scheme: str | None = None,
+) -> wandb.Artifact:
+    """Log an artifact containing the contents of a directory to the currently active run.
+
+    A run should already be initialized before calling this method.
+    If not, an exception will be thrown.
+
+    Example usage:
+    ```
+    with wandb_init_from_config(run_config):
+        log_artifact_from_path(...)
+    ```
+
+    Args:
+        name (str): Name of the artifact
+        path (str | Path): Path to the artifact directory
+        artifact_type (ArtifactType): Type of the artifact to create
+        reference_scheme (str, optional): URL scheme to prepend to the artifact path.
+            When provided, the artifact is logged as a reference to this path.
+
+    Returns:
+        The `wandb.Artifact` that was logged
+
+    """
+    artifact = wandb.Artifact(name=name, type=artifact_type)
+    if reference_scheme is not None:
+        artifact.add_reference(f"{reference_scheme}://{path}")
+    else:
+        artifact.add_dir(str(path))
+    # Log artifact to the currently active run
+    return wandb.run.log_artifact(artifact)

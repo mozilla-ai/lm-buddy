@@ -1,11 +1,10 @@
 import json
 
 import torch
-import wandb
 from accelerate import Accelerator
 from datasets import DatasetDict
 from ray import train
-from ray.train import Checkpoint, CheckpointConfig, RunConfig, ScalingConfig
+from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
 from ray.train.torch import TorchTrainer
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, TrainingArguments
@@ -15,18 +14,11 @@ from flamingo.integrations.huggingface.utils import load_and_split_dataset
 from flamingo.integrations.wandb import ArtifactType
 from flamingo.integrations.wandb.utils import (
     default_artifact_name,
-    resolve_artifact_path,
+    log_artifact_from_path,
     wandb_init_from_config,
 )
 from flamingo.jobs.finetuning import FinetuningJobConfig
-
-
-def build_model_artifact(run_name: str, checkpoint: Checkpoint) -> wandb.Artifact:
-    print("Building artifact for model checkpoint...")
-    artifact_name = default_artifact_name(run_name, ArtifactType.MODEL)
-    artifact = wandb.Artifact(artifact_name, type=ArtifactType.MODEL.value)
-    artifact.add_reference(f"file://{checkpoint.path}/checkpoint")
-    return artifact
+from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_path
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):
@@ -122,7 +114,11 @@ def load_and_train(config: FinetuningJobConfig):
 def train_func(config_data: dict):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
-        with wandb_init_from_config(config.tracking, resume="never"):
+        with wandb_init_from_config(
+            config.tracking,
+            resume="never",
+            job_type=FlamingoJobType.FINETUNING,
+        ):
             load_and_train(config)
     else:
         load_and_train(config)
@@ -152,5 +148,12 @@ def run_finetuning(config: FinetuningJobConfig):
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
         with wandb_init_from_config(config.tracking, resume="must") as run:
-            artifact = build_model_artifact(run.name, result.checkpoint)
-            run.log_artifact(artifact)
+            print("Building artifact for model checkpoint...")
+            artifact_type = ArtifactType.MODEL
+            artifact_name = default_artifact_name(run.name, artifact_type)
+            log_artifact_from_path(
+                name=artifact_name,
+                path=f"{result.checkpoint.path}/checkpoint",
+                artifact_type=artifact_type,
+                reference_scheme="file",
+            )
