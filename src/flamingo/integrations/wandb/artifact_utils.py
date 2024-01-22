@@ -39,7 +39,7 @@ def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
     """
     if wandb.run is not None:
         # Retrieves the artifact and links it as an input to the run
-        return wandb.run.use_artifact(config.wandb_path())
+        return wandb.use_artifact(config.wandb_path())
     else:
         # Retrieves the artifact outside of the run
         api = wandb.Api()
@@ -104,4 +104,4 @@ def log_artifact_from_path(
     else:
         artifact.add_dir(str(path))
     # Log artifact to the currently active run
-    return wandb.run.log_artifact(artifact)
+    return wandb.log_artifact(artifact)
