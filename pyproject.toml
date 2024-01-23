@@ -84,12 +84,7 @@ line-length = 100
     "F403", # undefined import names
 ]
 
-
 [tool.ruff.lint]
-
-# Only format Jupyter notebooks, but don't lint them
-exclude = ["*.ipynb"]
-
 select = [
     "E",   # pycodestyle
     "F",   # pyflakes
@@ -111,6 +106,9 @@ ignore = [
     "D100", # module-level docstrings
     "N805", # first param needs to be self; pydantic breaks this sometimes
 ]
+
+# Only format Jupyter notebooks, but don't lint them
+exclude = ["*.ipynb"]
 
 # Avoid trying to fix some violations
 unfixable = ["B", "SIM", "TRY", "RUF"]
