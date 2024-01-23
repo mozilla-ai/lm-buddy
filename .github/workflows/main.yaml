@@ -1,5 +1,7 @@
 name: Tests
 
+
+
 on:
   push:
     branches:
@@ -7,6 +9,8 @@ on:
   pull_request:
     branches:
       - "**"
+  # required to enable manual triggers on the GH web ui
+  workflow_dispatch:
 
 jobs:
   pytest_ruff:
