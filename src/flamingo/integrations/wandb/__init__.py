@@ -1,9 +1,5 @@
+# ruff: noqa: I001
 from flamingo.integrations.wandb.artifact_config import WandbArtifactConfig
-from flamingo.integrations.wandb.artifact_type import ArtifactType
 from flamingo.integrations.wandb.run_config import WandbRunConfig
-
-__all__ = [
-    "ArtifactType",
-    "WandbArtifactConfig",
-    "WandbRunConfig",
-]
+from flamingo.integrations.wandb.artifact_utils import *
+from flamingo.integrations.wandb.run_utils import *

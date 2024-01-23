@@ -1,32 +1,25 @@
 import json
 
 import torch
-import wandb
 from accelerate import Accelerator
 from datasets import DatasetDict
 from ray import train
-from ray.train import Checkpoint, CheckpointConfig, RunConfig, ScalingConfig
+from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
 from ray.train.torch import TorchTrainer
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, TrainingArguments
 from trl import SFTTrainer
 
 from flamingo.integrations.huggingface.utils import load_and_split_dataset
-from flamingo.integrations.wandb import ArtifactType
-from flamingo.integrations.wandb.utils import (
+from flamingo.integrations.wandb import (
+    ArtifactType,
+    ArtifactURIScheme,
     default_artifact_name,
-    resolve_artifact_path,
+    log_directory_reference,
     wandb_init_from_config,
 )
 from flamingo.jobs.finetuning import FinetuningJobConfig
-
-
-def build_model_artifact(run_name: str, checkpoint: Checkpoint) -> wandb.Artifact:
-    print("Building artifact for model checkpoint...")
-    artifact_name = default_artifact_name(run_name, ArtifactType.MODEL)
-    artifact = wandb.Artifact(artifact_name, type=ArtifactType.MODEL.value)
-    artifact.add_reference(f"file://{checkpoint.path}/checkpoint")
-    return artifact
+from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_load_path
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):
@@ -49,7 +42,7 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
 
 
 def load_datasets(config: FinetuningJobConfig) -> DatasetDict:
-    dataset_path = resolve_artifact_path(config.dataset.path)
+    dataset_path = resolve_artifact_load_path(config.dataset.path)
     # We need to specify a fixed seed to load the datasets on each worker
     # Under the hood, HuggingFace uses `accelerate` to create a data loader shard for each worker
     # If the datasets are not seeded here, the ordering will be inconsistent between workers
@@ -74,7 +67,7 @@ def load_model(config: FinetuningJobConfig) -> PreTrainedModel:
         device_map = {"": current_device}
         print(f"Setting model device_map = {device_map} to enable quantization")
 
-    model_path = resolve_artifact_path(config.model.path)
+    model_path = resolve_artifact_load_path(config.model.path)
     return AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=model_path,
         trust_remote_code=config.model.trust_remote_code,
@@ -85,7 +78,7 @@ def load_model(config: FinetuningJobConfig) -> PreTrainedModel:
 
 
 def load_tokenizer(config: FinetuningJobConfig):
-    tokenizer_path = resolve_artifact_path(config.tokenizer.path)
+    tokenizer_path = resolve_artifact_load_path(config.tokenizer.path)
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=tokenizer_path,
         trust_remote_code=config.tokenizer.trust_remote_code,
@@ -122,7 +115,11 @@ def load_and_train(config: FinetuningJobConfig):
 def train_func(config_data: dict):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
-        with wandb_init_from_config(config.tracking, resume="never"):
+        with wandb_init_from_config(
+            config.tracking,
+            job_type=FlamingoJobType.FINETUNING,
+            resume="never",
+        ):
             load_and_train(config)
     else:
         load_and_train(config)
@@ -152,5 +149,10 @@ def run_finetuning(config: FinetuningJobConfig):
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
         with wandb_init_from_config(config.tracking, resume="must") as run:
-            artifact = build_model_artifact(run.name, result.checkpoint)
-            run.log_artifact(artifact)
+            print("Logging artifact for model checkpoint...")
+            log_directory_reference(
+                dir_path=f"{result.checkpoint.path}/checkpoint",
+                artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
+                artifact_type=ArtifactType.MODEL,
+                scheme=ArtifactURIScheme.FILE,
+            )

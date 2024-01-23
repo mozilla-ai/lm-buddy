@@ -6,19 +6,16 @@ import wandb
 from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
-from flamingo.integrations.wandb import ArtifactType
-from flamingo.integrations.wandb.utils import (
-    default_artifact_name,
-    resolve_artifact_path,
-    wandb_init_from_config,
-)
+from flamingo.integrations.wandb import ArtifactType, default_artifact_name, wandb_init_from_config
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
+from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_load_path
 
 
+# TODO: Should this also be abstracted to a helper method like log_artifact_from_path?
 def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -> wandb.Artifact:
     print("Building artifact for evaluation results...")
     artifact_name = default_artifact_name(run_name, ArtifactType.EVALUATION)
-    artifact = wandb.Artifact(artifact_name, type=ArtifactType.EVALUATION.value)
+    artifact = wandb.Artifact(artifact_name, type=ArtifactType.EVALUATION)
     for task_name, task_results in results.items():
         # Filter down to numeric metrics from task dict
         task_data = [(k, v) for k, v in task_results.items() if isinstance(v, int | float)]
@@ -28,7 +25,7 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
 
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
-    model_path = resolve_artifact_path(config.model.path)
+    model_path = resolve_artifact_load_path(config.model.path)
 
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
@@ -81,6 +78,7 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
         with wandb_init_from_config(
             config.tracking,
             parameters=config.evaluator,  # Log eval settings in W&B run
+            job_type=FlamingoJobType.EVALUATION,
             resume="allow",
         ) as run:
             eval_results = load_and_evaluate(config)
