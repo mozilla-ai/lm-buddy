@@ -66,42 +66,64 @@ def get_artifact_filesystem_path(
     return artifact.download(root=download_root)
 
 
-def log_artifact_from_path(
-    name: str,
-    path: str | Path,
+def log_directory_contents(
+    dir_path: str | Path,
+    artifact_name: str,
     artifact_type: ArtifactType,
     *,
-    uri_scheme: ArtifactURIScheme | None = None,
-    max_objects: int | None = None,
+    entry_name: str | None = None,
 ) -> wandb.Artifact:
-    """Log an artifact containing the contents of a directory to the currently active run.
+    """Log the contents of a directory as an artifact of the active run.
 
     A run should already be initialized before calling this method.
     If not, an exception will be thrown.
 
-    Example usage:
-    ```
-    with wandb_init_from_config(run_config):
-        log_artifact_from_path(...)
-    ```
-
     Args:
-        name (str): Name of the artifact
-        path (str | Path): Path to the artifact directory
-        artifact_type (ArtifactType): Type of the artifact to create
-        uri_scheme (ArtifactURIScheme, optional): URI scheme to prepend to the artifact path.
-            When provided, the artifact is logged as a reference to this path.
-        max_objects (int, optional): Max number of objects allowed in the artifact.
-            Only used when creating reference artifacts.
+        dir_path (str | Path): Path to the artifact directory.
+        artifact_name (str): Name of the artifact.
+        artifact_type (ArtifactType): Type of the artifact to create.
+        entry_name (str, optional): Name within the artifact to add the directory contents.
 
     Returns:
-        The `wandb.Artifact` that was logged
+        The `wandb.Artifact` that was produced
 
     """
-    artifact = wandb.Artifact(name=name, type=artifact_type)
-    if uri_scheme is not None:
-        artifact.add_reference(f"{uri_scheme}://{path}", max_objects=max_objects)
-    else:
-        artifact.add_dir(str(path))
-    # Log artifact to the currently active run
+    artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
+    artifact.add_dir(str(dir_path), name=entry_name)
+    return wandb.log_artifact(artifact)
+
+
+def log_directory_reference(
+    dir_path: str | Path,
+    artifact_name: str,
+    artifact_type: ArtifactType,
+    *,
+    scheme: ArtifactURIScheme = ArtifactURIScheme.FILE,
+    entry_name: str | None = None,
+    max_objects: int | None = None,
+) -> wandb.Artifact:
+    """Log a reference to a directory's contents as an artifact of the active run.
+
+    A run should already be initialized before calling this method.
+    If not, an exception will be thrown.
+
+    Args:
+        dir_path (str | Path): Path to the artifact directory.
+        artifact_name (str): Name of the artifact.
+        artifact_type (ArtifactType): Type of the artifact to create.
+        scheme (ArtifactURIScheme): URI scheme to prepend to the artifact path.
+            Defaults to `ArtifactURIScheme.FILE` for filesystem references.
+        entry_name (str, optional): Name within the artifact to add the directory reference.
+        max_objects (int, optional): Max number of objects allowed in the artifact.
+
+    Returns:
+        The `wandb.Artifact` that was produced
+
+    """
+    artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
+    artifact.add_reference(
+        uri=f"{scheme}://{dir_path}",
+        name=entry_name,
+        max_objects=max_objects,
+    )
     return wandb.log_artifact(artifact)

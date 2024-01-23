@@ -15,7 +15,7 @@ from flamingo.integrations.wandb import (
     ArtifactType,
     ArtifactURIScheme,
     default_artifact_name,
-    log_artifact_from_path,
+    log_directory_reference,
     wandb_init_from_config,
 )
 from flamingo.jobs.finetuning import FinetuningJobConfig
@@ -149,11 +149,10 @@ def run_finetuning(config: FinetuningJobConfig):
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
         with wandb_init_from_config(config.tracking, resume="must") as run:
-            print("Building artifact for model checkpoint...")
-            artifact_name = default_artifact_name(run.name, ArtifactType.MODEL)
-            log_artifact_from_path(
-                name=artifact_name,
-                path=f"{result.checkpoint.path}/checkpoint",
+            print("Logging artifact for model checkpoint...")
+            log_directory_reference(
+                dir_path=f"{result.checkpoint.path}/checkpoint",
+                artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
                 artifact_type=ArtifactType.MODEL,
-                uri_scheme=ArtifactURIScheme.FILE,
+                scheme=ArtifactURIScheme.FILE,
             )
