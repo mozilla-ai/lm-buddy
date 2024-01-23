@@ -49,12 +49,12 @@ def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
 def get_artifact_filesystem_path(
     config: WandbArtifactConfig,
     *,
-    download_root: str | None = None,
+    download_root_path: str | None = None,
 ) -> str:
     """Get the directory containing the artifact's data.
 
     If the artifact references data already on the filesystem, simply return that path.
-    If not, downloads the artifact (with the specified `download_root`)
+    If not, downloads the artifact (with the specified `download_root_path`)
     and returns the newly created artifact directory path.
     """
     artifact = get_wandb_artifact(config)
@@ -63,7 +63,7 @@ def get_artifact_filesystem_path(
             case ParseResult(scheme="file", path=file_path):
                 return str(Path(file_path).parent)
     # No filesystem references found in the manifest -> download the artifact
-    return artifact.download(root=download_root)
+    return artifact.download(root=download_root_path)
 
 
 def log_directory_contents(

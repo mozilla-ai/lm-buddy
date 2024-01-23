@@ -11,16 +11,16 @@ class FlamingoJobType(str, Enum):
     EVALUATION = "evaluation"
 
 
-def resolve_load_path(path_or_artifact: str | WandbArtifactConfig) -> str:
+def resolve_artifact_load_path(artifact_or_path: str | WandbArtifactConfig) -> str:
     """Resolve the path to load for an asset.
 
     If the path is just a string, simply return that.
     If an artifact config, resolve the data path from the artifact's manifest.
     """
-    match path_or_artifact:
+    match artifact_or_path:
         case str():
-            return path_or_artifact
+            return artifact_or_path
         case WandbArtifactConfig() as config:
             return get_artifact_filesystem_path(config)
         case _:
-            raise ValueError(f"Invalid path/artifact: {path_or_artifact}")
+            raise ValueError(f"Invalid artifact/path: {artifact_or_path}")
