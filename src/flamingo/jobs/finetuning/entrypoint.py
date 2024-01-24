@@ -10,7 +10,7 @@ from ray.train.torch import TorchTrainer
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, TrainingArguments
 from trl import SFTTrainer
 
-from flamingo.integrations.huggingface.utils import load_and_split_dataset
+from flamingo.integrations.huggingface import load_and_split_dataset
 from flamingo.integrations.wandb import (
     ArtifactType,
     ArtifactURIScheme,

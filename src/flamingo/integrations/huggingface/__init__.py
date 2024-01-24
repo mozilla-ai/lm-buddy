@@ -1,5 +1,5 @@
 from flamingo.integrations.huggingface.repo_config import *
-from flamingo.integrations.huggingface.utils import *
+from flamingo.integrations.huggingface.dataset_utils import *
 from flamingo.integrations.huggingface.dataset_config import *
 from flamingo.integrations.huggingface.model_config import *
 from flamingo.integrations.huggingface.quantization_config import *

@@ -6,7 +6,7 @@ from pydantic import validator
 from flamingo.types import BaseFlamingoConfig
 
 
-def convert_to_repo_config(x: Any):
+def convert_string_to_repo(x: Any):
     if isinstance(x, str):
         return HuggingFaceRepoConfig(repo_id=x)
     return x

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.huggingface.repo_config import HuggingFaceRepoConfig
+from flamingo.integrations.huggingface import HuggingFaceRepoConfig
 from flamingo.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,

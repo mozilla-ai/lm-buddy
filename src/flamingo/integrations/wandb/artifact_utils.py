@@ -50,7 +50,7 @@ def get_artifact_filesystem_path(
     config: WandbArtifactConfig,
     *,
     download_root_path: str | None = None,
-) -> str:
+) -> Path:
     """Get the directory containing the artifact's data.
 
     If the artifact references data already on the filesystem, simply return that path.
@@ -61,9 +61,10 @@ def get_artifact_filesystem_path(
     for entry in artifact.manifest.entries.values():
         match urlparse(entry.ref):
             case ParseResult(scheme="file", path=file_path):
-                return str(Path(file_path).parent)
+                return Path(file_path).parent
     # No filesystem references found in the manifest -> download the artifact
-    return artifact.download(root=download_root_path)
+    download_path = artifact.download(root=download_root_path)
+    return Path(download_path)
 
 
 def log_directory_contents(
