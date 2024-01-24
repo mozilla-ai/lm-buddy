@@ -58,13 +58,6 @@ class FinetuningJobConfig(BaseFlamingoConfig):
             return AutoModelConfig(load_from=x)
         return x
 
-    @validator("dataset", pre=True, always=True)
-    def validate_dataset_arg(cls, x):
-        """Allow for passing just a path string as the dataset argument."""
-        if isinstance(x, str):
-            return TextDatasetConfig(load_from=x)
-        return x
-
     @validator("tokenizer", pre=True, always=True)
     def validate_tokenizer_arg(cls, x):
         """Allow for passing just a path string as the tokenizer argument."""

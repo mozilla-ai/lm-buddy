@@ -97,35 +97,32 @@ def load_pretrained_tokenizer(config: AutoTokenizerConfig) -> PreTrainedTokenize
     return tokenizer
 
 
-def load_dataset_from_config(config: DatasetConfig) -> Dataset | DatasetDict:
-    """Load a HuggingFace `Dataset` or `DatasetDict` from the flamingo configuration."""
+def load_dataset_from_config(config: DatasetConfig) -> Dataset:
+    """Load a HuggingFace `Dataset` from the flamingo configuration.
+
+    This method is expected to return a singular
+    """
     dataset_path, revision = resolve_loadable_path(config.load_from)
-    # Dataset loading requires a different method if from a HF Repo vs. on disk
+    # Dataset loading requires a different method if from a HF vs. disk
     if isinstance(config.load_from, HuggingFaceRepoConfig):
-        datasets = load_dataset(dataset_path, revision=revision, split=config.split)
+        return load_dataset(dataset_path, revision=revision, split=config.split)
     else:
-        datasets = load_from_disk(dataset_path)
-    # We can't handle anything besides Dataset or DatasetDict atm
-    match datasets:
-        case Dataset() | DatasetDict():
-            return datasets
-        case _:
-            raise ValueError(
-                f"Unrecognized dataset type {type(datasets)}. "
-                "Does the HuggingFace repo load a `Dataset` or `DatasetDict`?"
-            )
+        match load_from_disk(dataset_path):
+            case Dataset() as dataset:
+                return dataset
+            case other:
+                raise ValueError(
+                    "Flamingo currently only supports loading `Dataset` objects from disk, "
+                    f"instead found a {type(other)}."
+                )
 
 
 def load_and_split_dataset(config: DatasetConfig) -> DatasetDict:
     """Load a HuggingFace dataset and optionally perform a train/test split.
 
-    The split is performed if the loaded dataset is a standard HuggingFace `Dataset`
-    and a `test_size` is specified on the configuration.
-    Datasets are returned as a `DatasetDict` in all cases.
+    The split is performed when a `test_size` is specified on the configuration.
     """
     match load_dataset_from_config(config):
-        case DatasetDict() as dataset_dict:
-            return dataset_dict
         case Dataset() as dataset if config.test_size is not None:
             # We need to specify a fixed seed to load the datasets on each worker
             # Under the hood, HuggingFace uses `accelerate` to create a data loader shards
@@ -133,5 +130,5 @@ def load_and_split_dataset(config: DatasetConfig) -> DatasetDict:
             # TODO: Get rid of this logic once data loading is done one time outside of Ray workers
             split_seed = config.seed or 0
             return dataset.train_test_split(test_size=config.test_size, seed=split_seed)
-        case Dataset() as dataset:
+        case dataset:
             return DatasetDict({"train": dataset})
