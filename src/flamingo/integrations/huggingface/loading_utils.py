@@ -13,13 +13,12 @@ from transformers import (
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
     AutoTokenizerConfig,
+    DatasetConfig,
     HuggingFaceRepoConfig,
     LoadFromConfig,
     QuantizationConfig,
 )
-from flamingo.integrations.huggingface.dataset_config import DatasetConfig
-from flamingo.integrations.wandb import WandbArtifactConfig
-from flamingo.integrations.wandb.artifact_utils import get_artifact_filesystem_path
+from flamingo.integrations.wandb import WandbArtifactConfig, get_artifact_filesystem_path
 
 
 def resolve_loadable_path(load_from: LoadFromConfig) -> (str, str | None):
@@ -28,6 +27,7 @@ def resolve_loadable_path(load_from: LoadFromConfig) -> (str, str | None):
     If a `HuggingFaceRepoConfig` is provided, return the values directly.
     If a `WandbArtifactConfig` is provided, resolve the path from the artifact manifest.
     """
+
     match load_from:
         case HuggingFaceRepoConfig(repo_id, revision):
             load_path, revision = repo_id, revision
