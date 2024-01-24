@@ -1,16 +1,17 @@
 import json
 
-import torch
-from accelerate import Accelerator
-from datasets import DatasetDict
 from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
 from ray.train.torch import TorchTrainer
-from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel, TrainingArguments
+from transformers import TrainingArguments
 from trl import SFTTrainer
 
-from flamingo.integrations.huggingface import load_and_split_dataset
+from flamingo.integrations.huggingface import (
+    load_and_split_dataset,
+    load_pretrained_model,
+    load_pretrained_tokenizer,
+)
 from flamingo.integrations.wandb import (
     ArtifactType,
     ArtifactURIScheme,
@@ -19,7 +20,7 @@ from flamingo.integrations.wandb import (
     wandb_init_from_config,
 )
 from flamingo.jobs.finetuning import FinetuningJobConfig
-from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_load_path
+from flamingo.jobs.utils import FlamingoJobType
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):
@@ -41,60 +42,11 @@ def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
     )
 
 
-def load_datasets(config: FinetuningJobConfig) -> DatasetDict:
-    dataset_path = resolve_artifact_load_path(config.dataset.path)
-    # We need to specify a fixed seed to load the datasets on each worker
-    # Under the hood, HuggingFace uses `accelerate` to create a data loader shard for each worker
-    # If the datasets are not seeded here, the ordering will be inconsistent between workers
-    # TODO: Get rid of this logic once data loading is done one time outside of the workers
-    split_seed = config.dataset.seed or 0
-    return load_and_split_dataset(
-        path=dataset_path,
-        split=config.dataset.split,
-        test_size=config.dataset.test_size,
-        seed=split_seed,
-    )
-
-
-def load_model(config: FinetuningJobConfig) -> PreTrainedModel:
-    device_map, bnb_config = None, None
-    if config.quantization is not None:
-        bnb_config = config.quantization.as_huggingface()
-        # When quantization is enabled, model must all be on same GPU to work with DDP
-        # If a device_map is not specified we will get accelerate errors downstream
-        # Reference: https://github.com/huggingface/accelerate/issues/1840#issuecomment-1683105994
-        current_device = Accelerator().local_process_index if torch.cuda.is_available() else "cpu"
-        device_map = {"": current_device}
-        print(f"Setting model device_map = {device_map} to enable quantization")
-
-    model_path = resolve_artifact_load_path(config.model.path)
-    return AutoModelForCausalLM.from_pretrained(
-        pretrained_model_name_or_path=model_path,
-        trust_remote_code=config.model.trust_remote_code,
-        torch_dtype=config.model.torch_dtype,
-        quantization_config=bnb_config,
-        device_map=device_map,
-    )
-
-
-def load_tokenizer(config: FinetuningJobConfig):
-    tokenizer_path = resolve_artifact_load_path(config.tokenizer.path)
-    tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=tokenizer_path,
-        trust_remote_code=config.tokenizer.trust_remote_code,
-        use_fast=config.tokenizer.use_fast,
-    )
-    if not tokenizer.pad_token_id:
-        # Pad token required for generating consistent batch sizes
-        tokenizer.pad_token_id = tokenizer.eos_token_id
-    return tokenizer
-
-
 def load_and_train(config: FinetuningJobConfig):
     # Load the input artifacts, potentially linking them to the active W&B run
-    datasets = load_datasets(config)
-    model = load_model(config)
-    tokenizer = load_tokenizer(config)
+    model = load_pretrained_model(config.model, config.quantization)
+    tokenizer = load_pretrained_tokenizer(config.tokenizer)
+    datasets = load_and_split_dataset(config.dataset)
 
     training_args = get_training_arguments(config)
     trainer = SFTTrainer(
@@ -112,7 +64,7 @@ def load_and_train(config: FinetuningJobConfig):
     trainer.train()
 
 
-def train_func(config_data: dict):
+def training_function(config_data: dict):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
         with wandb_init_from_config(
@@ -137,7 +89,7 @@ def run_finetuning(config: FinetuningJobConfig):
         checkpoint_config=CheckpointConfig(num_to_keep=1),
     )
     trainer = TorchTrainer(
-        train_loop_per_worker=train_func,
+        train_loop_per_worker=training_function,
         train_loop_config=json.loads(config.json()),
         scaling_config=scaling_config,
         run_config=run_config,
