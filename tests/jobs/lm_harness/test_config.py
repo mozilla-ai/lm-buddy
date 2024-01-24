@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.huggingface import AutoModelConfig
+from flamingo.integrations.huggingface.repo_config import HuggingFaceRepoConfig
 from flamingo.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
@@ -61,8 +61,12 @@ def test_load_example_config(examples_folder):
 
 
 def test_model_validation(lm_harness_evaluator_config):
-    allowed_config = LMHarnessJobConfig(model="hf_repo_id", evaluator=lm_harness_evaluator_config)
-    assert allowed_config.model == AutoModelConfig(path="hf_repo_id")
+    model_repo = HuggingFaceRepoConfig(repo_id="model_repo")
+    allowed_config = LMHarnessJobConfig(
+        model=model_repo.repo_id,
+        evaluator=lm_harness_evaluator_config,
+    )
+    assert allowed_config.model.load_from == model_repo
 
     with pytest.raises(ValidationError):
         LMHarnessJobConfig(model="invalid...hf..repo", evaluator=lm_harness_evaluator_config)

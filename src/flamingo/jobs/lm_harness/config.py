@@ -37,5 +37,5 @@ class LMHarnessJobConfig(BaseFlamingoConfig):
     def validate_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
-            return AutoModelConfig(path=x)
+            return AutoModelConfig(load_from=x)
         return x

@@ -1,6 +1,6 @@
 from pydantic import validator
 
-from flamingo.integrations.huggingface.utils import repo_id_validator
+from flamingo.integrations.huggingface import HuggingFaceRepoConfig, convert_to_repo_config
 from flamingo.integrations.wandb import WandbArtifactConfig
 from flamingo.types import BaseFlamingoConfig
 
@@ -13,10 +13,10 @@ class TextDatasetConfig(BaseFlamingoConfig):
     The dataset should contain a single text column named by the `text_field` parameter.
     """
 
-    path: str | WandbArtifactConfig
+    load_from: HuggingFaceRepoConfig | WandbArtifactConfig
     split: str | None = None
     text_field: str = DEFAULT_TEXT_FIELD
     test_size: float | None = None
     seed: int | None = None
 
-    _path_validator = validator("path", allow_reuse=True, pre=True)(repo_id_validator)
+    _validate_load_from = validator("load_from", pre=True, allow_reuse=True)(convert_to_repo_config)

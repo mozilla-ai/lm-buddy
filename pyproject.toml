@@ -80,6 +80,7 @@ line-length = 100
 
 [tool.ruff.extend-per-file-ignores]
 "__init__.py" = [
+    "I001", # import ordering
     "F401", # import unused
     "F403", # undefined import names
 ]

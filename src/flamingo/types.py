@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any
 
@@ -6,7 +7,11 @@ from pydantic import BaseModel, Extra, validator
 from pydantic.fields import ModelField
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
+FileSystemPath = str | os.PathLike
+"""Path to an object on the local filesystem."""
+
 SerializableTorchDtype = str | torch.dtype | None
+"""Representation of a `torch.dtype` that can be serialized to string."""
 
 
 class BaseFlamingoConfig(BaseModel):

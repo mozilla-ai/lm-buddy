@@ -1,6 +1,6 @@
 # Model to evaluate, specified as a W&B artifact
 model:
-  path:
+  load_from:
     name: "training-run-model-artifact"
     version: "v4"
     project: "research-project"
