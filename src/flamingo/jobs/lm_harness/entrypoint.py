@@ -6,9 +6,10 @@ import wandb
 from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
+from flamingo.integrations.huggingface import resolve_loadable_path
 from flamingo.integrations.wandb import ArtifactType, default_artifact_name, wandb_init_from_config
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
-from flamingo.jobs.utils import FlamingoJobType, resolve_artifact_load_path
+from flamingo.jobs.utils import FlamingoJobType
 
 
 # TODO: Should this also be abstracted to a helper method like log_artifact_from_path?
@@ -25,33 +26,35 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
 
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
-    model_path = resolve_artifact_load_path(config.model.path)
+    # Helper method to return lm-harness model wrapper
+    def _loader(pretrained: str, tokenizer: str, peft: str | None):
+        quantization_kwargs = config.quantization.dict() if config.quantization else {}
+        return HFLM(
+            pretrained=pretrained,
+            tokenizer=tokenizer,
+            peft=peft,
+            device="cuda" if config.ray.num_gpus > 0 else None,
+            trust_remote_code=config.model.trust_remote_code,
+            dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
+            **quantization_kwargs,
+        )
 
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
+    load_path, revision = resolve_loadable_path(config.model.load_from)
     try:
-        adapter_config = PeftConfig.from_pretrained(model_path)
-        pretrained = adapter_config.base_model_name_or_path
-        peft = model_path
+        peft_config = PeftConfig.from_pretrained(load_path, revision=revision)
+        return _loader(
+            pretrained=peft_config.base_model_name_or_path,
+            tokenizer=peft_config.base_model_name_or_path,
+            peft=load_path,
+        )
     except ValueError as e:
         print(
             f"Unable to load model as adapter: {e}. "
             "This is expected if the checkpoint does not contain adapter weights."
         )
-        pretrained = model_path
-        peft = None
-
-    # Return lm-harness model wrapper class
-    quantization_kwargs = config.quantization.dict() if config.quantization else {}
-    return HFLM(
-        pretrained=pretrained,
-        tokenizer=pretrained,
-        peft=peft,
-        device="cuda" if config.ray.num_gpus > 0 else None,
-        trust_remote_code=config.model.trust_remote_code,
-        dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
-        **quantization_kwargs,
-    )
+        return _loader(pretrained=load_path, tokenizer=load_path, peft=None)
 
 
 def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:

@@ -1,11 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.huggingface import (
-    AutoModelConfig,
-    AutoTokenizerConfig,
-    TextDatasetConfig,
-)
+from flamingo.integrations.huggingface import HuggingFaceRepoConfig
+from flamingo.integrations.huggingface.dataset_config import TextDatasetConfig
 from flamingo.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
 
 
@@ -56,15 +53,21 @@ def test_load_example_config(examples_folder):
 
 
 def test_argument_validation():
+    model_repo = HuggingFaceRepoConfig(repo_id="model_path")
+    tokenizer_repo = HuggingFaceRepoConfig(repo_id="dataset_path")
+    dataset_config = TextDatasetConfig(
+        load_from=HuggingFaceRepoConfig(repo_id="dataset_path"),
+        split="train",
+    )
+
     # Strings should be upcast to configs as the path argument
     allowed_config = FinetuningJobConfig(
-        model="model_path",
-        tokenizer="tokenizer_path",
-        dataset="dataset_path",
+        model=model_repo.repo_id,
+        tokenizer=tokenizer_repo.repo_id,
+        dataset=dataset_config,
     )
-    assert allowed_config.model == AutoModelConfig(path="model_path")
-    assert allowed_config.tokenizer == AutoTokenizerConfig(path="tokenizer_path")
-    assert allowed_config.dataset == TextDatasetConfig(path="dataset_path")
+    assert allowed_config.model.load_from == model_repo
+    assert allowed_config.tokenizer.load_from == tokenizer_repo
 
     # Check passing invalid arguments is validated for each asset type
     with pytest.raises(ValidationError):
@@ -75,8 +78,5 @@ def test_argument_validation():
         FinetuningJobConfig(model="model_path", tokenizer="tokenizer_path", dataset=12345)
 
     # Check that tokenizer is set to model path when absent
-    missing_tokenizer_config = FinetuningJobConfig(
-        model="model_path",
-        dataset="dataset_path",
-    )
-    assert missing_tokenizer_config.tokenizer.path == "model_path"
+    missing_tokenizer_config = FinetuningJobConfig(model=model_repo.repo_id, dataset=dataset_config)
+    assert missing_tokenizer_config.tokenizer.load_from == model_repo

@@ -7,6 +7,7 @@ from pydantic.fields import ModelField
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
 SerializableTorchDtype = str | torch.dtype | None
+"""Representation of a `torch.dtype` that can be serialized to string."""
 
 
 class BaseFlamingoConfig(BaseModel):

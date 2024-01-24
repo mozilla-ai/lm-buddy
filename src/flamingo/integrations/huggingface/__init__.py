@@ -1,13 +1,8 @@
-from flamingo.integrations.huggingface.dataset_config import TextDatasetConfig
-from flamingo.integrations.huggingface.model_config import AutoModelConfig
-from flamingo.integrations.huggingface.quantization_config import QuantizationConfig
-from flamingo.integrations.huggingface.tokenizer_config import AutoTokenizerConfig
-from flamingo.integrations.huggingface.trainer_config import TrainerConfig
-
-__all__ = [
-    "AutoModelConfig",
-    "AutoTokenizerConfig",
-    "QuantizationConfig",
-    "TextDatasetConfig",
-    "TrainerConfig",
-]
+# ruff: noqa: I001
+from flamingo.integrations.huggingface.repo_config import *
+from flamingo.integrations.huggingface.dataset_config import *
+from flamingo.integrations.huggingface.model_config import *
+from flamingo.integrations.huggingface.quantization_config import *
+from flamingo.integrations.huggingface.tokenizer_config import *
+from flamingo.integrations.huggingface.trainer_config import *
+from flamingo.integrations.huggingface.loading_utils import *

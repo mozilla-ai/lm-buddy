@@ -9,8 +9,8 @@ def wandb_run_config():
     return WandbRunConfig(
         name="run-name",
         run_id="run-id",
-        project="cortex",
-        entity="twitter",
+        project="research",
+        entity="team",
     )
 
 
@@ -19,7 +19,7 @@ def test_serde_round_trip(wandb_run_config):
 
 
 def test_wandb_path(wandb_run_config):
-    assert wandb_run_config.wandb_path() == "twitter/cortex/run-id"
+    assert wandb_run_config.wandb_path() == "team/research/run-id"
 
 
 def test_ensure_run_id():
