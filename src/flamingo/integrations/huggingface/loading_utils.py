@@ -18,7 +18,8 @@ from flamingo.integrations.huggingface import (
     QuantizationConfig,
 )
 from flamingo.integrations.huggingface.dataset_config import DatasetConfig
-from flamingo.integrations.wandb import WandbArtifactConfig, get_artifact_filesystem_path
+from flamingo.integrations.wandb import WandbArtifactConfig
+from flamingo.integrations.wandb.artifact_utils import get_artifact_filesystem_path
 
 
 def resolve_loadable_path(load_from: LoadFromConfig) -> (str, str | None):
@@ -29,13 +30,13 @@ def resolve_loadable_path(load_from: LoadFromConfig) -> (str, str | None):
     """
     match load_from:
         case HuggingFaceRepoConfig(repo_id, revision):
-            model_path, revision = repo_id, revision
+            load_path, revision = repo_id, revision
         case WandbArtifactConfig() as artifact_config:
-            model_path = get_artifact_filesystem_path(artifact_config)
+            load_path = get_artifact_filesystem_path(artifact_config)
             revision = None
         case _:
             raise ValueError(f"Unable to resolve load path from {load_from}.")
-    return str(model_path), revision
+    return str(load_path), revision
 
 
 def load_pretrained_model_config(config: AutoModelConfig) -> PretrainedConfig:
@@ -101,7 +102,7 @@ def load_dataset_from_config(config: DatasetConfig) -> Dataset | DatasetDict:
     dataset_path, revision = resolve_loadable_path(config.load_from)
     # Dataset loading requires a different method if from a HF Repo vs. on disk
     if isinstance(config.load_from, HuggingFaceRepoConfig):
-        datasets = load_dataset(dataset_path, revision=revision)
+        datasets = load_dataset(dataset_path, revision=revision, split=config.split)
     else:
         datasets = load_from_disk(dataset_path)
     # We can't handle anything besides Dataset or DatasetDict atm
@@ -130,7 +131,7 @@ def load_and_split_dataset(config: DatasetConfig) -> DatasetDict:
             # Under the hood, HuggingFace uses `accelerate` to create a data loader shards
             # If the datasets are not seeded here, the ordering will be inconsistent
             # TODO: Get rid of this logic once data loading is done one time outside of Ray workers
-            split_seed = config.dataset.seed or 0
+            split_seed = config.seed or 0
             return dataset.train_test_split(test_size=config.test_size, seed=split_seed)
         case Dataset() as dataset:
             return DatasetDict({"train": dataset})

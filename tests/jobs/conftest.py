@@ -1,5 +1,4 @@
 import pytest
-from peft import LoraConfig
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
@@ -54,7 +53,7 @@ def quantization_config():
 
 @pytest.fixture
 def lora_config():
-    return LoraConfig(r=8, lora_alpha=32, lora_dropout=0.2)
+    return dict(r=8, lora_alpha=32, lora_dropout=0.2)
 
 
 @pytest.fixture

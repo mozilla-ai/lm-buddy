@@ -6,7 +6,7 @@ import wandb
 from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
-from flamingo.integrations.huggingface.loading_utils import resolve_loadable_path
+from flamingo.integrations.huggingface import resolve_loadable_path
 from flamingo.integrations.wandb import ArtifactType, default_artifact_name, wandb_init_from_config
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
 from flamingo.jobs.utils import FlamingoJobType

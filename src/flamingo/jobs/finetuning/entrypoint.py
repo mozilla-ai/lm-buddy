@@ -1,5 +1,6 @@
 import json
 
+from peft import LoraConfig
 from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
@@ -29,34 +30,33 @@ def is_tracking_enabled(config: FinetuningJobConfig):
     return config.tracking is not None and train.get_context().get_world_rank() == 0
 
 
-def get_training_arguments(config: FinetuningJobConfig) -> TrainingArguments:
-    """Get TrainingArguments appropriate for the worker rank and job config."""
-    return TrainingArguments(
-        output_dir="out",  # Local checkpoint path on a worker
-        report_to="wandb" if is_tracking_enabled(config) else "none",
-        no_cuda=not config.ray.use_gpu,
-        push_to_hub=False,
-        disable_tqdm=True,
-        logging_dir=None,
-        **config.trainer.training_args(),
-    )
-
-
 def load_and_train(config: FinetuningJobConfig):
     # Load the input artifacts, potentially linking them to the active W&B run
     model = load_pretrained_model(config.model, config.quantization)
     tokenizer = load_pretrained_tokenizer(config.tokenizer)
     datasets = load_and_split_dataset(config.dataset)
 
-    training_args = get_training_arguments(config)
+    training_args = TrainingArguments(
+        output_dir="out",  # Local checkpoint path on a worker
+        report_to="wandb" if is_tracking_enabled(config) else "none",
+        use_cpu=not config.ray.use_gpu,
+        push_to_hub=False,
+        disable_tqdm=True,
+        logging_dir=None,
+        **config.trainer.training_args(),
+    )
+
+    # TODO(RD2024-44): Replace with structured config
+    peft_config = LoraConfig(**config.adapter, task_type="CAUSAL_LM") if config.adapter else None
+
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
         args=training_args,
-        peft_config=config.adapter,
-        max_seq_length=config.trainer.max_seq_length,
+        peft_config=peft_config,
         train_dataset=datasets["train"],
         eval_dataset=datasets.get("test"),
+        max_seq_length=config.trainer.max_seq_length,
         dataset_text_field=config.dataset.text_field,
     )
     trainer.add_callback(RayTrainReportCallback())

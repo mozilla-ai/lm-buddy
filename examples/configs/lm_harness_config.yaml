@@ -4,7 +4,7 @@ model:
     name: "training-run-model-artifact"
     version: "v4"
     project: "research-project"
-    entity: "twitter.com"
+    entity: "mozilla.ai"
   trust_remote_code: True
   torch_dtype: "float16"
 
