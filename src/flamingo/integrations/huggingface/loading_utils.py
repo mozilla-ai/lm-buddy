@@ -100,7 +100,9 @@ def load_pretrained_tokenizer(config: AutoTokenizerConfig) -> PreTrainedTokenize
 def load_dataset_from_config(config: DatasetConfig) -> Dataset:
     """Load a HuggingFace `Dataset` from the flamingo configuration.
 
-    This method is expected to return a singular
+    This method always returns a single `Dataset` object.
+    When loading from HuggingFace directly, the `Dataset` is for the provided split.
+    When loading from disk, the saved files must be for a dataset else an exception is raised.
     """
     dataset_path, revision = resolve_loadable_path(config.load_from)
     # Dataset loading requires a different method if from a HF vs. disk
