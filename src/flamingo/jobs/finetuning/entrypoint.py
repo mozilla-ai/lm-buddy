@@ -1,6 +1,5 @@
 import json
 
-from peft import LoraConfig
 from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
@@ -46,8 +45,7 @@ def load_and_train(config: FinetuningJobConfig):
         **config.trainer.training_args(),
     )
 
-    # TODO(RD2024-44): Replace with structured config
-    peft_config = LoraConfig(**config.adapter, task_type="CAUSAL_LM") if config.adapter else None
+    peft_config = config.adapter.as_huggingface() if config.adapter else None
 
     trainer = SFTTrainer(
         model=model,

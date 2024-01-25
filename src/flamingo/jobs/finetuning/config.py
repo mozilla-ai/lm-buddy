@@ -1,10 +1,9 @@
-from typing import Any
-
 from pydantic import Field, root_validator, validator
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
     AutoTokenizerConfig,
+    LoraAdapterConfig,
     QuantizationConfig,
     TextDatasetConfig,
     TrainerConfig,
@@ -31,7 +30,7 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     dataset: TextDatasetConfig
     tokenizer: AutoTokenizerConfig
     quantization: QuantizationConfig | None = None
-    adapter: dict[str, Any] | None = None  # TODO(RD2024-44): Replace with structured config
+    adapter: LoraAdapterConfig | None = None
     tracking: WandbRunConfig | None = None
     trainer: TrainerConfig = Field(default_factory=TrainerConfig)
     ray: FinetuningRayConfig = Field(default_factory=FinetuningRayConfig)
