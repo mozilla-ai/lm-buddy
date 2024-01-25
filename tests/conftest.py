@@ -44,6 +44,12 @@ def mock_environment_wandb_disabled():
 
 @pytest.fixture(scope="session")
 def initialize_ray_cluster():
+    """Initialize a small, fixed-size Ray cluster for testing.
+
+    Ray has other options for initialization during tests to explore down the road
+    (https://docs.ray.io/en/latest/ray-core/examples/testing-tips.html),
+    but for now, a static cluster as a fixture should work.
+    """
     try:
         ray.init(
             # Auto-detect num_cpu
