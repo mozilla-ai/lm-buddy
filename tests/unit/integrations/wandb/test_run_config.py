@@ -1,7 +1,17 @@
+import os
+from unittest import mock
+
 import pytest
 from pydantic import ValidationError
 
 from flamingo.integrations.wandb import WandbRunConfig
+
+
+@pytest.fixture
+def mock_environment_without_keys():
+    """Mocks an environment missing common API keys."""
+    with mock.patch.dict(os.environ, clear=True):
+        yield
 
 
 @pytest.fixture

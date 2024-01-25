@@ -45,9 +45,9 @@ def test_parse_yaml_file(finetuning_job_config, tmp_path_factory):
     assert finetuning_job_config == FinetuningJobConfig.from_yaml_file(config_path)
 
 
-def test_load_example_config(examples_folder):
+def test_load_example_config(examples_dir):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_folder / "configs" / "finetuning_config.yaml"
+    config_file = examples_dir / "configs" / "finetuning_config.yaml"
     config = FinetuningJobConfig.from_yaml_file(config_file)
     assert FinetuningJobConfig.parse_raw(config.json()) == config
 

@@ -53,9 +53,9 @@ def test_parse_yaml_file(lm_harness_job_config, tmp_path_factory):
     assert lm_harness_job_config == LMHarnessJobConfig.from_yaml_file(config_path)
 
 
-def test_load_example_config(examples_folder):
+def test_load_example_config(examples_dir):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_folder / "configs" / "lm_harness_config.yaml"
+    config_file = examples_dir / "configs" / "lm_harness_config.yaml"
     config = LMHarnessJobConfig.from_yaml_file(config_file)
     assert LMHarnessJobConfig.parse_raw(config.json()) == config
 
