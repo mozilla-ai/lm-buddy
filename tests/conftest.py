@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+import ray
 
 
 @pytest.fixture
@@ -39,3 +40,16 @@ def mock_environment_wandb_disabled():
     """Mocks an environment with W&B disabled."""
     with mock.patch.dict(os.environ, {"WANDB_MODE": "disabled"}):
         yield
+
+
+@pytest.fixture(scope="session")
+def initialize_ray_cluster():
+    try:
+        ray.init(
+            # Auto-detect num_cpu
+            num_gpus=0,
+            runtime_env={"env_vars": {"WANDB_MODE": "disabled"}},
+        )
+        yield
+    finally:
+        ray.shutdown()
