@@ -1,5 +1,3 @@
-import json
-
 from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
@@ -88,7 +86,7 @@ def run_finetuning(config: FinetuningJobConfig):
     )
     trainer = TorchTrainer(
         train_loop_per_worker=training_function,
-        train_loop_config=json.loads(config.json()),
+        train_loop_config=config.dict(),
         scaling_config=scaling_config,
         run_config=run_config,
     )

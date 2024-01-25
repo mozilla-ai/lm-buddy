@@ -9,8 +9,8 @@ from flamingo.types import BaseFlamingoConfig
 DEFAULT_TASK_TYPE = TaskType.CAUSAL_LM
 
 
-class FinetuningAdapterConfig(BaseFlamingoConfig):
-    """Configuration class containing generic PEFT adapter settings.
+class AdapterConfig(BaseFlamingoConfig):
+    """Configuration containing PEFT adapter settings.
 
     The type of adapter is controlled by the required `adapter_type` field,
     which must be one of the allowed values from the PEFT `PeftType` enumeration.

@@ -6,6 +6,7 @@ from flamingo.integrations.huggingface import (
     QuantizationConfig,
     TextDatasetConfig,
 )
+from flamingo.integrations.huggingface.adapter_config import AdapterConfig
 from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
 
@@ -52,8 +53,8 @@ def quantization_config():
 
 
 @pytest.fixture
-def lora_config():
-    return dict(r=8, lora_alpha=32, lora_dropout=0.2)
+def adapter_config():
+    return AdapterConfig(type="LORA", r=8, lora_alpha=16, lora_dropout=0.2)
 
 
 @pytest.fixture
