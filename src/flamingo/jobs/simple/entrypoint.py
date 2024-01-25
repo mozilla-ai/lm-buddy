@@ -5,7 +5,7 @@ from flamingo.jobs.simple import SimpleJobConfig
 
 @ray.remote
 def get_magic_number(config: SimpleJobConfig) -> int:
-    print(f"The magic number is {config.magic_number}")
+    return config.magic_number
 
 
 def run_simple(config: SimpleJobConfig):
