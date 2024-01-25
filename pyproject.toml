@@ -40,6 +40,10 @@ bitsandbytes = "0.42.0"
 lm-eval = "0.4.0"
 einops = "0.7.0"
 
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.0.0"
+
 [tool.poetry.scripts]
 flamingo = "flamingo.__main__:cli"
 
