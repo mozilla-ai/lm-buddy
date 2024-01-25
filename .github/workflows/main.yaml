@@ -40,5 +40,10 @@ jobs:
 
       - name: Run unit tests
         run: |
-          poetry run pytest
+          poetry run pytest tests/unit
+        continue-on-error: false
+
+      - name: Run integration tests
+        run: |
+          poetry run pytest tests/integration
         continue-on-error: false
