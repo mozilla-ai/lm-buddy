@@ -3,59 +3,16 @@ Tests for the Flamingo.
 
 This file is used to provide fixtures for the test session that are accessible to all submodules.
 """
-import os
 from pathlib import Path
-from unittest import mock
 
 import pytest
-import ray
-
-
-@pytest.fixture
-def examples_folder():
-    return Path(__file__).parents[1] / "examples"
-
-
-@pytest.fixture
-def resources_folder():
-    return Path(__file__).parent / "resources"
-
-
-@pytest.fixture(autouse=True, scope="function")
-def mock_environment_with_keys():
-    """Mocks an API key-like mechanism for the environment."""
-    with mock.patch.dict(os.environ, {"WANDB_API_KEY": "abcdefg123"}):
-        yield
-
-
-@pytest.fixture(autouse=True, scope="function")
-def mock_environment_without_keys():
-    """Mocks an environment missing common API keys."""
-    with mock.patch.dict(os.environ, clear=True):
-        yield
-
-
-@pytest.fixture(autouse=True, scope="function")
-def mock_environment_wandb_disabled():
-    """Mocks an environment with W&B disabled."""
-    with mock.patch.dict(os.environ, {"WANDB_MODE": "disabled"}):
-        yield
 
 
 @pytest.fixture(scope="session")
-def initialize_ray_cluster():
-    """Initialize a small, fixed-size Ray cluster for testing.
+def examples_dir():
+    return Path(__file__).parents[1] / "examples"
 
-    Ray has other options for initialization during tests to explore down the road
-    (https://docs.ray.io/en/latest/ray-core/examples/testing-tips.html),
-    but for now, a static cluster as a fixture should work.
-    """
-    try:
-        ray.init(
-            # Auto-detect num_cpu
-            num_gpus=0,
-            runtime_env={"env_vars": {"WANDB_MODE": "disabled"}},
-        )
-        yield
-    finally:
-        ray.shutdown()
+
+@pytest.fixture(scope="session")
+def resources_dir():
+    return Path(__file__).parent / "resources"

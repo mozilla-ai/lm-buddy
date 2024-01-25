@@ -4,13 +4,14 @@ from flamingo.jobs.simple import SimpleJobConfig
 
 
 @ray.remote
-def do_magic(config: SimpleJobConfig):
+def get_magic_number(config: SimpleJobConfig) -> int:
     print(f"The magic number is {config.magic_number}")
 
 
 def run_simple(config: SimpleJobConfig):
-    """A simple job entrypoint to demonstrate the Ray interface."""
+    """A simple entrypoint to demonstrate the Ray interface."""
     # Connect to the Ray cluster (if not already running)
     ray.init(ignore_reinit_error=True)
-    # Wait on remote task
-    ray.get(do_magic.remote(config))
+    # Run dummy remote task
+    magic_number = ray.get(get_magic_number.remote(config))
+    print(f"The magic number is {magic_number}")

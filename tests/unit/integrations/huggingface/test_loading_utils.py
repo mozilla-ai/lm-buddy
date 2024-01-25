@@ -10,8 +10,8 @@ from flamingo.integrations.huggingface import (
 from flamingo.integrations.wandb import WandbArtifactConfig
 
 
-def test_dataset_loading(resources_folder):
-    xyz_dataset_path = resources_folder / "datasets" / "xyz.hf"
+def test_dataset_loading(resources_dir):
+    xyz_dataset_path = resources_dir / "datasets" / "xyz.hf"
 
     # The mock function is imported inside the `loading_utils` module
     # so we mock that path rather than where it is defined
