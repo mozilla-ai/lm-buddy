@@ -9,6 +9,8 @@ from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 class TorchDtypeString(str):
     """String representation of a `torch.dtype`.
 
+    Only strings corresponding to a `dtype` instance within the `torch` module are allowed.
+
     This class has validation and schema definitions for use in Pydantic models.
     Ref: https://docs.pydantic.dev/1.10/usage/types/#custom-data-types
     """
@@ -19,13 +21,14 @@ class TorchDtypeString(str):
 
     @classmethod
     def validate(cls, x):
-        if isinstance(x, torch.dtype):
-            x = str(x).split(".")[1]
-        else:
-            x = str(x)
-            if not hasattr(torch, x):
+        match x:
+            case torch.dtype():
+                x = str(x).split(".")[1]
+                return cls(x)
+            case str() if hasattr(torch, x) and isinstance(getattr(torch, x), torch.dtype):
+                return cls(x)
+            case _:
                 raise ValueError(f"{x} is not a valid `torch.dtype`.")
-        return cls(x)
 
     @classmethod
     def __modify_schema__(cls, field_schema: dict[str, Any]):
