@@ -1,4 +1,4 @@
-from pydantic import ValidationError, root_validator, validator
+from pydantic import root_validator, validator
 
 from flamingo.integrations.huggingface import HuggingFaceRepoConfig, convert_string_to_repo_config
 from flamingo.integrations.wandb import WandbArtifactConfig
@@ -29,7 +29,7 @@ class DatasetConfig(BaseFlamingoConfig):
         load_from = values["load_from"]
         split = values.get("split")
         if split is None and isinstance(load_from, HuggingFaceRepoConfig):
-            raise ValidationError(
+            raise ValueError(
                 "A `split` must be specified when loading a dataset directly from HuggingFace."
             )
         return values

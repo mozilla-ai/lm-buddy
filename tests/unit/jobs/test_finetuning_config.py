@@ -1,8 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.huggingface import HuggingFaceRepoConfig
-from flamingo.integrations.huggingface.dataset_config import TextDatasetConfig
+from flamingo.integrations.huggingface import HuggingFaceRepoConfig, TextDatasetConfig
 from flamingo.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
 
 
@@ -20,7 +19,7 @@ def finetuning_job_config(
     dataset_config_with_artifact,
     tokenizer_config_with_artifact,
     quantization_config,
-    lora_config,
+    adapter_config,
     wandb_run_config,
     finetuning_ray_config,
 ):
@@ -29,7 +28,7 @@ def finetuning_job_config(
         dataset=dataset_config_with_artifact,
         tokenizer=tokenizer_config_with_artifact,
         quantization=quantization_config,
-        adapter=lora_config,
+        adapter=adapter_config,
         tracking=wandb_run_config,
         ray=finetuning_ray_config,
     )

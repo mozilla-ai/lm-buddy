@@ -29,8 +29,18 @@ poetry lock
 poetry install
 ```
 This will install an editable version of the package along with all of its dependency groups.
+
 Poetry should recognize your active virtual environment during installation
-and install the package dependencies there.
+If you have an active Conda environment, Poetry should recognize it during installation
+and install the package dependencies there. This hasn't been explicitly tested with other virtual python environments, but will likely work.
+
+Alternatively, you can use poetry's own environment by running
+```
+poetry lock
+poetry env use python3.10
+poetry install
+```
+where `python3.10` is your python interpreter.
 
 The `pyproject.toml` file defines dependency groups for the logical job types in the package.
 Individual dependency groups can be installed by running 
