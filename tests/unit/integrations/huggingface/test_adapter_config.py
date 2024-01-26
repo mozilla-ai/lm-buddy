@@ -6,15 +6,10 @@ from flamingo.integrations.huggingface import AdapterConfig
 from flamingo.integrations.huggingface.adapter_config import _get_peft_config_class
 
 
-def test_peft_type_sanitzation():
-    config = AdapterConfig(peft_type="lora  ", task_type=TaskType.CAUSAL_LM)
+def test_enum_sanitzation():
+    config = AdapterConfig(peft_type="lora  ", task_type="  causal_lm")
     assert config.peft_type == PeftType.LORA
-
-
-def test_ensure_task_type():
-    with pytest.warns(UserWarning):
-        config = AdapterConfig(peft_type="LORA")
-        assert config.task_type == TaskType.CAUSAL_LM
+    assert config.task_type == TaskType.CAUSAL_LM
 
 
 def test_extra_field_validation():

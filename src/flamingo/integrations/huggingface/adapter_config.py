@@ -1,12 +1,9 @@
 import dataclasses
-import warnings
 
 from peft import PeftConfig, PeftType, TaskType
 from pydantic import Extra, root_validator, validator
 
 from flamingo.types import BaseFlamingoConfig
-
-_DEFAULT_TASK_TYPE = TaskType.CAUSAL_LM
 
 
 def _get_peft_config_class(peft_type: PeftType) -> type[PeftConfig]:
@@ -23,28 +20,24 @@ class AdapterConfig(BaseFlamingoConfig):
     which must be one of the allowed values from the PEFT `PeftType` enumeration.
     Extra arguments are allowed and are passed down to the HuggingFace `PeftConfig`
     class determined by the `peft_type` argument.
+
+    The `task_type` for the adapter is also required.
+    By default, this is set to `TaskType.CAUSAL_LM`
+    which is appropriate for causal language model finetuning.
+    See the allowed values in the PEFT `TaskType` enumeration.
     """
 
     class Config:
         extra = Extra.allow
 
     peft_type: PeftType
+    task_type: TaskType = TaskType.CAUSAL_LM
 
-    @validator("peft_type", pre=True, always=True)
-    def sanitize_peft_type(cls, x):
+    @validator("peft_type", "task_type", pre=True, always=True)
+    def sanitize_enum_args(cls, x):
         if isinstance(x, str):
             x = x.strip().upper()
         return x
-
-    @root_validator
-    def ensure_task_type(cls, values):
-        if "task_type" not in values:
-            warnings.warn(
-                "Task type not specified for adapter. "
-                f"Assuming default of `{_DEFAULT_TASK_TYPE}`."
-            )
-            values["task_type"] = _DEFAULT_TASK_TYPE
-        return values
 
     @root_validator
     def validate_adapter_args(cls, values):
@@ -55,13 +48,11 @@ class AdapterConfig(BaseFlamingoConfig):
         allowed_fields = {x.name for x in dataclasses.fields(adapter_cls)}
 
         # Filter fields to those found on the PeftConfig
-        allowed_values = {k: v for k, v in values.items() if k in allowed_fields}
-
-        extra_fields = set(values.keys()).difference(allowed_values.keys())
+        extra_fields = set(values.keys()).difference(allowed_fields)
         if extra_fields:
             raise ValueError(f"Unknowon arguments for {peft_type} adapter: {extra_fields}")
 
-        return allowed_values
+        return values
 
     def as_huggingface(self) -> PeftConfig:
         adapter_cls = _get_peft_config_class(self.peft_type)
