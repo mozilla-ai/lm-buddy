@@ -1,7 +1,6 @@
 import warnings
 
 from peft import PeftConfig, PeftType, TaskType
-from peft.mapping import PEFT_TYPE_TO_CONFIG_MAPPING
 from pydantic import Extra, root_validator, validator
 
 from flamingo.types import BaseFlamingoConfig
@@ -40,6 +39,9 @@ class AdapterConfig(BaseFlamingoConfig):
         return x
 
     def as_huggingface(self) -> PeftConfig:
+        # Internal import to avoid bringing the global from peft into module scope
+        from peft.mapping import PEFT_TYPE_TO_CONFIG_MAPPING
+
         adapter_cls = PEFT_TYPE_TO_CONFIG_MAPPING[self.adapter_type]
         adapter_args = self.dict(exclude={"adapter_type"})
         return adapter_cls(**adapter_args)
