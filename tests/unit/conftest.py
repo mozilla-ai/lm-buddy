@@ -1,4 +1,5 @@
 import pytest
+from peft import PeftType, TaskType
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
@@ -54,7 +55,13 @@ def quantization_config():
 
 @pytest.fixture
 def adapter_config():
-    return AdapterConfig(type="LORA", r=8, lora_alpha=16, lora_dropout=0.2)
+    return AdapterConfig(
+        adapter_type=PeftType.LORA,
+        task_type=TaskType.CAUSAL_LM,
+        r=8,
+        lora_alpha=16,
+        lora_dropout=0.2,
+    )
 
 
 @pytest.fixture

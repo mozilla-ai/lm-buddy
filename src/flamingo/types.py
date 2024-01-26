@@ -42,11 +42,3 @@ class BaseFlamingoConfig(BaseModel):
 
     def to_yaml_file(self, path: Path | str):
         to_yaml_file(path, self, exclude_none=True)
-
-    def dict(self, **kwargs) -> "dict[str, Any]":
-        kwargs = {"by_alias": True, **kwargs}
-        return super().dict(**kwargs)
-
-    def json(self, **kwargs) -> str:
-        kwargs = {"by_alias": True, **kwargs}
-        return super().json(**kwargs)

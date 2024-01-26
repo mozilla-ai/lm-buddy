@@ -2,7 +2,7 @@ import warnings
 
 from peft import PeftConfig, PeftType, TaskType
 from peft.mapping import PEFT_TYPE_TO_CONFIG_MAPPING
-from pydantic import Extra, Field, root_validator, validator
+from pydantic import Extra, root_validator, validator
 
 from flamingo.types import BaseFlamingoConfig
 
@@ -21,7 +21,7 @@ class AdapterConfig(BaseFlamingoConfig):
     class Config:
         extra = Extra.allow
 
-    adapter_type: PeftType = Field(..., alias="type")
+    adapter_type: PeftType
 
     @root_validator
     def ensure_task_type(cls, values):
