@@ -56,7 +56,7 @@ def quantization_config():
 @pytest.fixture
 def adapter_config():
     return AdapterConfig(
-        adapter_type=PeftType.LORA,
+        peft_type=PeftType.LORA,
         task_type=TaskType.CAUSAL_LM,
         r=8,
         lora_alpha=16,
