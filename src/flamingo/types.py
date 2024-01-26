@@ -7,7 +7,7 @@ from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
 
 class TorchDtypeString(str):
-    """String representation of a `torch.dtype` instance.
+    """String representation of a `torch.dtype`.
 
     This class has validation and schema definitions for use in Pydantic models.
     Ref: https://docs.pydantic.dev/1.10/usage/types/#custom-data-types
