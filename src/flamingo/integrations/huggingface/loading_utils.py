@@ -73,7 +73,7 @@ def load_pretrained_model(
         pretrained_model_name_or_path=model_path,
         revision=revision,
         trust_remote_code=config.trust_remote_code,
-        torch_dtype=config.torch_dtype,
+        torch_dtype=config.torch_dtype.as_torch() if config.torch_dtype else None,
         quantization_config=bnb_config,
         device_map=device_map,
     )

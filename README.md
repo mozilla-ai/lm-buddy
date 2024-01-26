@@ -32,7 +32,8 @@ This will install an editable version of the package along with all of its depen
 
 Poetry should recognize your active virtual environment during installation
 If you have an active Conda environment, Poetry should recognize it during installation
-and install the package dependencies there. This hasn't been explicitly tested with other virtual python environments, but will likely work.
+and install the package dependencies there. 
+This hasn't been explicitly tested with other virtual python environments, but will likely work.
 
 Alternatively, you can use poetry's own environment by running
 ```
