@@ -2,12 +2,38 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from pydantic import BaseModel, Extra, validator
-from pydantic.fields import ModelField
+from pydantic import BaseModel, Extra
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
-SerializableTorchDtype = str | torch.dtype | None
-"""Representation of a `torch.dtype` that can be serialized to string."""
+
+class TorchDtypeString(str):
+    """String representation of a `torch.dtype` instance.
+
+    This class has validation and schema definitions for use in Pydantic models.
+    Ref: https://docs.pydantic.dev/1.10/usage/types/#custom-data-types
+    """
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, x):
+        if isinstance(x, torch.dtype):
+            x = str(x).split(".")[1]
+        else:
+            x = str(x)
+            if not hasattr(torch, x):
+                raise ValueError(f"{x} is not a valid `torch.dtype`.")
+        return cls(x)
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: dict[str, Any]):
+        field_schema.update(type="string", examples=["float16", "bfloat16", "int8"])
+
+    def as_torch(self) -> torch.dtype:
+        """Return the actual `torch.dtype` instance."""
+        return getattr(torch, self)
 
 
 class BaseFlamingoConfig(BaseModel):
@@ -20,21 +46,6 @@ class BaseFlamingoConfig(BaseModel):
         extra = Extra.forbid
         arbitrary_types_allowed = True
         validate_assignment = True
-        json_encoders = {
-            # Default JSON encoding of a torch.dtype object
-            # Defining here allows it to be inherited by all sub-classes of BaseFlamingoConfig
-            torch.dtype: lambda x: str(x).split(".")[1],
-        }
-
-    @validator("*", pre=True)
-    def validate_serializable_dtype(cls, x: Any, field: ModelField) -> Any:
-        """Extract the torch.dtype corresponding to a string value, else return the value.
-
-        Inspired by the HuggingFace `BitsAndBytesConfig` logic.
-        """
-        if field.type_ is SerializableTorchDtype and isinstance(x, str):
-            return getattr(torch, x)
-        return x
 
     @classmethod
     def from_yaml_file(cls, path: Path | str):
