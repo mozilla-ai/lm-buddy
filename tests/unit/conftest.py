@@ -2,12 +2,12 @@ import pytest
 from peft import PeftType, TaskType
 
 from flamingo.integrations.huggingface import (
+    AdapterConfig,
     AutoModelConfig,
     AutoTokenizerConfig,
     QuantizationConfig,
     TextDatasetConfig,
 )
-from flamingo.integrations.huggingface.adapter_config import AdapterConfig
 from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
 
