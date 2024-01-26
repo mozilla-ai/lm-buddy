@@ -18,7 +18,7 @@ torch = "2.1.2"
 scipy = "1.10.1"
 wandb = "0.16.2"
 protobuf = "3.20.0"
-urllib3 = "<2"
+urllib3 = ">=1.26.18,<2"
 pydantic = "1.10.14"
 pydantic-yaml = "1.2.0"
 ray = { version = "2.8.0", extras = ["default"] }
