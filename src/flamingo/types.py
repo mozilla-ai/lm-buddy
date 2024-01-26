@@ -28,7 +28,7 @@ class TorchDtypeString(str):
             case str() if hasattr(torch, x) and isinstance(getattr(torch, x), torch.dtype):
                 return cls(x)
             case _:
-                raise ValueError(f"{x} is not a valid `torch.dtype`.")
+                raise ValueError(f"{x} is not a valid torch.dtype.")
 
     @classmethod
     def __modify_schema__(cls, field_schema: dict[str, Any]):
