@@ -15,12 +15,11 @@ def test_enum_sanitzation():
 def test_extra_field_validation():
     for peft_type in PeftType:
         with pytest.raises(ValidationError):
-            config = AdapterConfig(
+            AdapterConfig(
                 peft_type=peft_type,
                 task_type=TaskType.CAUSAL_LM,
                 extra_bad_field_name="123",
             )
-            assert "extra_bad_field_name" not in config.dict()
 
 
 def test_huggingface_conversion():
