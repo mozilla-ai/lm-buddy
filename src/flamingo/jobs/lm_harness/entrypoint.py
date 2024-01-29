@@ -4,6 +4,7 @@ import lm_eval
 import ray
 import wandb
 from lm_eval.models.huggingface import HFLM
+from lm_eval.models.OpenaiCompletionsLM import OpenaiCompletionsLM
 from peft import PeftConfig
 
 from flamingo.integrations.huggingface import resolve_loadable_path
@@ -30,19 +31,30 @@ def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -
     return wandb.log_artifact(artifact)
 
 
-def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
+def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
     # Helper method to return lm-harness model wrapper
     def loader(pretrained: str, tokenizer: str, peft: str | None):
         quantization_kwargs = config.quantization.dict() if config.quantization else {}
-        return HFLM(
-            pretrained=pretrained,
-            tokenizer=tokenizer,
-            peft=peft,
-            device="cuda" if config.ray.num_gpus > 0 else None,
-            trust_remote_code=config.model.trust_remote_code,
-            dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
-            **quantization_kwargs,
-        )
+
+        """Load model directly from HF if HF path, otherwise from an inference server URL"""
+
+        if isinstance(config.model) == AutoModelConfig:
+            return HFLM(
+                pretrained=pretrained,
+                tokenizer=tokenizer,
+                peft=peft,
+                device="cuda" if config.ray.num_gpus > 0 else None,
+                trust_remote_code=config.model.trust_remote_code,
+                dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
+                **quantization_kwargs,
+            )
+        elif isinstance(config.model) == InferenceServerConfig:
+            return OpenaiCompletionsLM(
+                model=pretrained,
+                base_url = base_url,
+                tokenizer = tokenizer,
+            )
+
 
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
