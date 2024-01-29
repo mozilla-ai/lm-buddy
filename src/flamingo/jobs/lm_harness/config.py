@@ -23,11 +23,17 @@ class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     num_fewshot: int | None = None
     limit: int | float | None = None
 
+class InferenceServerConfig(BaseFlamingoConfig):
+    """Inference Server URL endpoint path"""
+
+    base_url: String | None
+
+
 
 class LMHarnessJobConfig(BaseFlamingoConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
-    model: AutoModelConfig
+    model: AutoModelConfig | InferenceServerConfig
     evaluator: LMHarnessEvaluatorConfig
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None

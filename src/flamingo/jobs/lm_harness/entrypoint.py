@@ -4,6 +4,7 @@ import lm_eval
 import ray
 import wandb
 from lm_eval.models.huggingface import HFLM
+from lm_eval.models.OpenaiCompletionsLM import OpenaiCompletionsLM
 from peft import PeftConfig
 
 from flamingo.integrations.huggingface import resolve_loadable_path
@@ -30,7 +31,7 @@ def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -
     return wandb.log_artifact(artifact)
 
 
-def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
+def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
     # Helper method to return lm-harness model wrapper
     def loader(pretrained: str, tokenizer: str, peft: str | None):
         quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
