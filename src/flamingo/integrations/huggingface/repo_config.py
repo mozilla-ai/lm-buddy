@@ -42,6 +42,5 @@ class HuggingFaceRepoConfig(BaseFlamingoConfig):
             raise ValueError(f"{x} is not a valid HuggingFace repo ID.")
         return x
 
-
-LoadFromConfig = HuggingFaceRepoConfig | WandbArtifactConfig
-"""Config that can be resolved to a HuggingFace name/path."""
+LoadFromLocalConfig = HuggingFaceRepoConfig | WandbArtifactConfig
+"""Config that can be resolved to a HuggingFace name/path or a local path."""
