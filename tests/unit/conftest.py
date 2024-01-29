@@ -18,7 +18,7 @@ def model_config_with_path():
 
 @pytest.fixture
 def model_config_with_artifact():
-    artifact = WandbArtifactConfig(name="model")
+    artifact = WandbArtifactConfig(name="model", project="project")
     return AutoModelConfig(load_from=artifact, trust_remote_code=True)
 
 
@@ -29,22 +29,18 @@ def tokenizer_config_with_path():
 
 @pytest.fixture
 def tokenizer_config_with_artifact():
-    artifact = WandbArtifactConfig(name="tokenizer")
+    artifact = WandbArtifactConfig(name="tokenizer", project="project")
     return AutoTokenizerConfig(load_from=artifact, trust_remote_code=True)
 
 
 @pytest.fixture
 def dataset_config_with_path():
-    return TextDatasetConfig(
-        load_from="databricks/dolly15k",
-        text_field="text",
-        split="train",
-    )
+    return TextDatasetConfig(load_from="databricks/dolly15k", text_field="text", split="train")
 
 
 @pytest.fixture
 def dataset_config_with_artifact():
-    artifact = WandbArtifactConfig(name="dataset")
+    artifact = WandbArtifactConfig(name="dataset", project="project")
     return TextDatasetConfig(load_from=artifact, split="train")
 
 
