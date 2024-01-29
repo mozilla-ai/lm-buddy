@@ -9,6 +9,7 @@ from flamingo.integrations.huggingface import (
     TrainerConfig,
 )
 from flamingo.integrations.wandb import WandbRunConfig
+from flamingo.jobs.base import BaseJobConfig
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -23,7 +24,7 @@ class FinetuningRayConfig(BaseFlamingoConfig):
     storage_path: str | None = None  # TODO: This should be set globally somehow
 
 
-class FinetuningJobConfig(BaseFlamingoConfig):
+class FinetuningJobConfig(BaseJobConfig):
     """Configuration to submit an LLM finetuning job."""
 
     model: AutoModelConfig
