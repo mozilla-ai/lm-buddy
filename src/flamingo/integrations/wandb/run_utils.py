@@ -34,7 +34,7 @@ def wandb_init_from_config(
     This method can be entered as a context manager similar to `wandb.init` as follows:
 
     ```
-    with wandb_init_from_config(run_config, resume="must") as run:
+    with wandb_init_from_config(run_config, resume=WandbResumeMode.MUST) as run:
         # Use the initialized run here
         ...
     ```

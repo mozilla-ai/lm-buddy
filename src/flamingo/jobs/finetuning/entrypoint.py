@@ -95,7 +95,7 @@ def run_finetuning(config: FinetuningJobConfig):
     # Register a model artifact if tracking is enabled and Ray saved a checkpoint
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
-        with wandb_init_from_config(config.tracking, resume="must") as run:
+        with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
             print("Logging artifact for model checkpoint...")
             log_directory_reference(
                 dir_path=f"{result.checkpoint.path}/checkpoint",
