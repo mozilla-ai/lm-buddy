@@ -1,5 +1,5 @@
-from ray import train
-from ray.train import CheckpointConfig, RunConfig, ScalingConfig
+import ray
+from ray.train import CheckpointConfig, DataConfig, RunConfig, ScalingConfig, get_dataset_shard
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
 from ray.train.torch import TorchTrainer
 from transformers import TrainingArguments
@@ -13,29 +13,37 @@ from flamingo.integrations.huggingface import (
 from flamingo.integrations.wandb import (
     ArtifactType,
     ArtifactURIScheme,
+    WandbResumeMode,
     default_artifact_name,
     log_directory_reference,
     wandb_init_from_config,
 )
 from flamingo.jobs.finetuning import FinetuningJobConfig
+from flamingo.jobs.finetuning.utils import generate_huggingface_dataset, is_tracking_enabled
 from flamingo.jobs.utils import FlamingoJobType
 
 
-def is_tracking_enabled(config: FinetuningJobConfig):
-    # Only report to WandB on the rank 0 worker
-    # Reference: https://docs.ray.io/en/latest/train/user-guides/experiment-tracking.html
-    return config.tracking is not None and train.get_context().get_world_rank() == 0
-
-
 def load_and_train(config: FinetuningJobConfig):
-    # Load the input artifacts, potentially linking them to the active W&B run
+    # Load the model and tokenizer
     model = load_pretrained_model(config.model, config.quantization)
     tokenizer = load_pretrained_tokenizer(config.tokenizer)
-    datasets = load_and_split_dataset(config.dataset)
+
+    # Get the Ray dataset shards and convert back to HuggingFace format
+    # The SFTTrainer handles pre-processing internally (e.g., tokenization, batch collation),
+    # but only when provided a `datasets.Dataset` instance
+    # TODO: Is there a smarter/more efficient way to do this with the re-conversion?
+    train_ds = get_dataset_shard("train")
+    train_ds = generate_huggingface_dataset(train_ds)
+
+    eval_ds = get_dataset_shard("test")
+    eval_ds = generate_huggingface_dataset(eval_ds) if eval_ds else None
+
+    print(f"Train Dataset: {train_ds}")
+    print(f"Eval Dataset: {eval_ds}")
 
     training_args = TrainingArguments(
         output_dir="out",  # Local checkpoint path on a worker
-        report_to="wandb" if is_tracking_enabled(config) else "none",
+        report_to="wandb" if config.tracking and is_tracking_enabled() else "none",
         use_cpu=not config.ray.use_gpu,
         push_to_hub=False,
         disable_tqdm=True,
@@ -50,8 +58,8 @@ def load_and_train(config: FinetuningJobConfig):
         tokenizer=tokenizer,
         args=training_args,
         peft_config=peft_config,
-        train_dataset=datasets["train"],
-        eval_dataset=datasets.get("test"),
+        train_dataset=train_ds,
+        eval_dataset=eval_ds,
         max_seq_length=config.trainer.max_seq_length,
         dataset_text_field=config.dataset.text_field,
     )
@@ -62,11 +70,9 @@ def load_and_train(config: FinetuningJobConfig):
 
 def training_function(config_data: dict):
     config = FinetuningJobConfig(**config_data)
-    if is_tracking_enabled(config):
+    if config.tracking and is_tracking_enabled():
         with wandb_init_from_config(
-            config.tracking,
-            job_type=FlamingoJobType.FINETUNING,
-            resume="never",
+            config.tracking, resume=WandbResumeMode.NEVER, job_type=FlamingoJobType.FINETUNING
         ):
             load_and_train(config)
     else:
@@ -74,7 +80,15 @@ def training_function(config_data: dict):
 
 
 def run_finetuning(config: FinetuningJobConfig):
+    # Load data and convert to Ray datasets
+    # FIXME: This is not logging input artifacts, fix in the next dev PR
+    hf_datasets = load_and_split_dataset(config.dataset)
+    ray_datasets = {split: ray.data.from_huggingface(d) for split, d in hf_datasets.items()}
+
     # Construct Ray train configurations from input config
+    data_config = DataConfig(
+        datasets_to_split=config.ray.datasets_to_shard,
+    )
     scaling_config = ScalingConfig(
         use_gpu=config.ray.use_gpu,
         num_workers=config.ray.num_workers,
@@ -89,7 +103,11 @@ def run_finetuning(config: FinetuningJobConfig):
         train_loop_config=config.dict(),
         scaling_config=scaling_config,
         run_config=run_config,
+        dataset_config=data_config,
+        datasets=ray_datasets,
     )
+
+    # Fit the trainer
     result = trainer.fit()
     print(f"Training result: {result}")
 

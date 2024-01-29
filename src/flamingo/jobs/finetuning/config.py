@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field, root_validator, validator
 
 from flamingo.integrations.huggingface import (
@@ -20,6 +22,7 @@ class FinetuningRayConfig(BaseFlamingoConfig):
 
     use_gpu: bool = True
     num_workers: int | None = None
+    datasets_to_shard: Literal["all"] | list[str] = "all"
     storage_path: str | None = None  # TODO: This should be set globally somehow
 
 
