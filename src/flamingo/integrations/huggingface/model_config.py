@@ -1,6 +1,6 @@
 from pydantic import field_validator
 
-from flamingo.integrations.huggingface import HuggingFaceRepoConfig, convert_string_to_repo_config
+from flamingo.integrations.huggingface import HuggingFaceRepoConfig,convert_string_to_repo_config
 from flamingo.integrations.wandb import WandbArtifactConfig
 from flamingo.types import BaseFlamingoConfig, TorchDtypeString
 
@@ -18,3 +18,4 @@ class AutoModelConfig(BaseFlamingoConfig):
     _validate_load_from_string = field_validator("load_from", mode="before")(
         convert_string_to_repo_config
     )
+
