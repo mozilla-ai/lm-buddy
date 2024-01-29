@@ -13,6 +13,7 @@ from flamingo.integrations.huggingface import (
 from flamingo.integrations.wandb import (
     ArtifactType,
     ArtifactURIScheme,
+    WandbResumeMode,
     default_artifact_name,
     log_directory_reference,
     wandb_init_from_config,
@@ -64,9 +65,7 @@ def training_function(config_data: dict):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
         with wandb_init_from_config(
-            config.tracking,
-            job_type=FlamingoJobType.FINETUNING,
-            resume="never",
+            config.tracking, resume=WandbResumeMode.NEVER, job_type=FlamingoJobType.FINETUNING
         ):
             load_and_train(config)
     else:
