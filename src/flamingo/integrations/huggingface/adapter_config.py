@@ -45,7 +45,7 @@ class AdapterConfig(BaseFlamingoConfig, extra="allow"):
         allowed_fields = {x.name for x in dataclasses.fields(adapter_cls)}
 
         # Filter fields to those found on the PeftConfig
-        extra_fields = set(config.model_fields_set).difference(allowed_fields)
+        extra_fields = config.model_fields_set.difference(allowed_fields)
         if extra_fields:
             raise ValueError(f"Unknowon arguments for {peft_type} adapter: {extra_fields}")
 
