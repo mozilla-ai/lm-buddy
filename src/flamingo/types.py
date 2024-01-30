@@ -60,18 +60,17 @@ class BaseFlamingoConfig(BaseModel):
         to_yaml_file(path, self, exclude_none=True)
 
     @contextlib.contextmanager
-    def to_tempfile(self, *, name: str | None = None, dir: str | Path | None = None):
+    def to_tempfile(self, *, name: str = "config.yaml", dir: str | Path | None = None):
         """Enter a context manager with the config written to a temporary YAML file.
 
         Args:
-            name (str, optional): Name of the config file in the temporary directory
+            name (str): Name of the config file in the tmp directory. Defaults to "config.yaml"
             dir (str | Path, optional): Root path of the temporary directory
 
         Returns:
             Path to the temporary config file
         """
-        config_name = name or "config.yaml"
         with tempfile.TemporaryDirectory(dir=dir) as tmpdir:
-            config_path = Path(tmpdir) / config_name
+            config_path = Path(tmpdir) / name
             self.to_yaml_file(config_path)
             yield config_path
