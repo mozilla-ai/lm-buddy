@@ -2,8 +2,8 @@ import datetime
 
 from pydantic import Field, conlist, validator
 
-from flamingo.integrations.vllm import LocalServerConfig
 from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
+from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
@@ -25,7 +25,6 @@ class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     limit: int | float | None = None
 
 
-
 class LMHarnessJobConfig(BaseFlamingoConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
@@ -34,12 +33,3 @@ class LMHarnessJobConfig(BaseFlamingoConfig):
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None
     ray: LMHarnessRayConfig = Field(default_factory=LMHarnessRayConfig)
-
-    @validator("model", pre=True, always=True)
-    def validate_model_arg(cls, x):
-        """Allow for passing a path string as the model argument."""
-        if "v1/completions" in x:
-                return InferenceServerConfig(load_from=x)
-        else:
-            return AutoModelConfig(load_from=x)
-        return x
