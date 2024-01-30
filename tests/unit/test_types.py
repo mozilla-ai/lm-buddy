@@ -3,13 +3,21 @@ import torch
 from pydantic import ValidationError
 
 from flamingo.jobs.simple import SimpleJobConfig
-from flamingo.types import TorchDtypeString
+from flamingo.types import BaseFlamingoConfig, TorchDtypeString
 
 
-def test_assignment_validation():
-    config = SimpleJobConfig(magic_number=42)
+def test_base_config_settings():
+    class DummyConfig(BaseFlamingoConfig):
+        value: int
+
+    # Validate assignment
+    config = DummyConfig(value=42)
     with pytest.raises(ValidationError):
-        config.magic_number = "dogs"
+        config.value = "dogs"
+
+    # Extra forbid
+    with pytest.raises(ValidationError):
+        DummyConfig(value=42, foo="bar")
 
 
 def test_torch_dtype_validation():
