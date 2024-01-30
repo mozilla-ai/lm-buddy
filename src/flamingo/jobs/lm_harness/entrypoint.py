@@ -34,7 +34,8 @@ def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
     # Helper method to return lm-harness model wrapper
-    def loader(model: str | None, tokenizer: str, peft: str | None):
+    def _loader(model: str | None , tokenizer: str, peft: str | None):
+        
         """Load model directly from HF if HF path, otherwise from an inference server URL"""
 
         if isinstance(config.model) == AutoModelConfig:
