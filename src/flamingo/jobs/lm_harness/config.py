@@ -4,7 +4,6 @@ from pydantic import Field, conlist, validator
 
 from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
 from flamingo.integrations.wandb import WandbRunConfig
-from flamingo.jobs.base import BaseJobConfig
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -25,7 +24,7 @@ class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     limit: int | float | None = None
 
 
-class LMHarnessJobConfig(BaseJobConfig):
+class LMHarnessJobConfig(BaseFlamingoConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
     model: AutoModelConfig

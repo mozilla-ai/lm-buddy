@@ -51,13 +51,6 @@ def test_load_example_config(examples_dir):
     assert FinetuningJobConfig.parse_raw(config.json()) == config
 
 
-def test_to_tempfile(finetuning_job_config):
-    config_name = "my-special-config.yaml"
-    with finetuning_job_config.to_tempfile(name=config_name) as path:
-        assert path.name == config_name
-        assert FinetuningJobConfig.from_yaml_file(path) == finetuning_job_config
-
-
 def test_argument_validation():
     model_repo = HuggingFaceRepoConfig(repo_id="model_path")
     tokenizer_repo = HuggingFaceRepoConfig(repo_id="dataset_path")

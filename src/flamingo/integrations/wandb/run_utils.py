@@ -12,8 +12,8 @@ from flamingo.types import BaseFlamingoConfig
 class WandbResumeMode(str, Enum):
     """Enumeration of modes for resuming a W&B run.
 
-    This set is not exhaustive, just the commonly used modes within flamingo.
-    See their documentation (https://docs.wandb.ai/ref/python/init) for adding more options.
+    This is not an exahustive list of the values that can be passed to the W&B SDK
+    (Docs: https://docs.wandb.ai/ref/python/init), but just those commonly used within the package.
     """
 
     ALLOW = "allow"

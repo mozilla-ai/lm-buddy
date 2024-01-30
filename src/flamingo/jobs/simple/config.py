@@ -1,7 +1,7 @@
-from flamingo.jobs.base import BaseJobConfig
+from flamingo.types import BaseFlamingoConfig
 
 
-class SimpleJobConfig(BaseJobConfig):
+class SimpleJobConfig(BaseFlamingoConfig):
     """Simple job submission config."""
 
     magic_number: int
