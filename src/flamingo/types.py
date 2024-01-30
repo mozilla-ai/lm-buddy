@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from pydantic import BaseModel, ConfigDict, GetCoreSchemaHandler
+from pydantic import BaseModel, GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
@@ -40,17 +40,16 @@ class TorchDtypeString(str):
         return getattr(torch, self)
 
 
-class BaseFlamingoConfig(BaseModel):
+class BaseFlamingoConfig(
+    BaseModel,
+    extra="forbid",
+    arbitrary_types_allowed=True,
+    validate_assignment=True,
+):
     """Base class for all Pydantic configs in the library.
 
     Defines some common settings used by all subclasses.
     """
-
-    model_config = ConfigDict(
-        extra="forbid",
-        arbitrary_types_allowed=True,
-        validate_assignment=True,
-    )
 
     @classmethod
     def from_yaml_file(cls, path: Path | str):
