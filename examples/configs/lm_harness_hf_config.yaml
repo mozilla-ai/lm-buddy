@@ -1,0 +1,25 @@
+# Model to evaluate
+model:
+  load_from: "distilgpt2"
+  torch_dtype: "bfloat16"
+  
+
+# Settings specific to lm_harness.evaluate
+evaluator:
+  tasks: ["hellaswag"]
+  num_fewshot: 5
+  limit: 10
+
+quantization:
+  load_in_4bit: True
+  bnb_4bit_quant_type: "fp4"
+
+# Tracking info for where to log the run results
+tracking:
+  name: "flamingo-example-lm-harness"
+  project: "flamingo-examples"
+  entity: "mozilla-ai"
+
+ray:
+  num_cpus: 1
+  num_gpus: 1
