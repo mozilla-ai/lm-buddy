@@ -38,15 +38,14 @@ def test_serde_round_trip(finetuning_job_config):
     assert FinetuningJobConfig.parse_raw(finetuning_job_config.json()) == finetuning_job_config
 
 
-def test_parse_yaml_file(finetuning_job_config, tmp_path_factory):
-    config_path = tmp_path_factory.mktemp("flamingo_tests") / "finetuning_config.yaml"
-    finetuning_job_config.to_yaml_file(config_path)
-    assert finetuning_job_config == FinetuningJobConfig.from_yaml_file(config_path)
+def test_parse_yaml_file(finetuning_job_config):
+    with finetuning_job_config.to_tempfile() as config_path:
+        assert finetuning_job_config == FinetuningJobConfig.from_yaml_file(config_path)
 
 
 def test_load_example_config(examples_dir):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_dir / "configs" / "finetuning_config.yaml"
+    config_file = examples_dir / "configs" / "finetuning.yaml"
     config = FinetuningJobConfig.from_yaml_file(config_file)
     assert FinetuningJobConfig.parse_raw(config.json()) == config
 

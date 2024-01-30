@@ -7,13 +7,18 @@ from lm_eval.models.huggingface import HFLM
 from peft import PeftConfig
 
 from flamingo.integrations.huggingface import resolve_loadable_path
-from flamingo.integrations.wandb import ArtifactType, default_artifact_name, wandb_init_from_config
+from flamingo.integrations.wandb import (
+    ArtifactType,
+    WandbResumeMode,
+    default_artifact_name,
+    wandb_init_from_config,
+)
 from flamingo.jobs.lm_harness import LMHarnessJobConfig
 from flamingo.jobs.utils import FlamingoJobType
 
 
 # TODO: Should this also be abstracted to a helper method like log_artifact_from_path?
-def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -> wandb.Artifact:
+def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -> wandb.Artifact:
     print("Building artifact for evaluation results...")
     artifact_name = default_artifact_name(run_name, ArtifactType.EVALUATION)
     artifact = wandb.Artifact(artifact_name, type=ArtifactType.EVALUATION)
@@ -22,12 +27,12 @@ def build_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]])
         task_data = [(k, v) for k, v in task_results.items() if isinstance(v, int | float)]
         task_table = wandb.Table(data=task_data, columns=["metric", "value"])
         artifact.add(task_table, name=f"task-{task_name}")
-    return artifact
+    return wandb.log_artifact(artifact)
 
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
     # Helper method to return lm-harness model wrapper
-    def _loader(pretrained: str, tokenizer: str, peft: str | None):
+    def loader(pretrained: str, tokenizer: str, peft: str | None):
         quantization_kwargs = config.quantization.dict() if config.quantization else {}
         return HFLM(
             pretrained=pretrained,
@@ -44,7 +49,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
     load_path, revision = resolve_loadable_path(config.model.load_from)
     try:
         peft_config = PeftConfig.from_pretrained(load_path, revision=revision)
-        return _loader(
+        return loader(
             pretrained=peft_config.base_model_name_or_path,
             tokenizer=peft_config.base_model_name_or_path,
             peft=load_path,
@@ -54,7 +59,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
             f"Unable to load model as adapter: {e}. "
             "This is expected if the checkpoint does not contain adapter weights."
         )
-        return _loader(pretrained=load_path, tokenizer=load_path, peft=None)
+        return loader(pretrained=load_path, tokenizer=load_path, peft=None)
 
 
 def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:
@@ -81,12 +86,11 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
         with wandb_init_from_config(
             config.tracking,
             parameters=config.evaluator,  # Log eval settings in W&B run
+            resume=WandbResumeMode.ALLOW,
             job_type=FlamingoJobType.EVALUATION,
-            resume="allow",
         ) as run:
             eval_results = load_and_evaluate(config)
-            artifact = build_evaluation_artifact(run.name, eval_results)
-            run.log_artifact(artifact)
+            log_evaluation_artifact(run.name, eval_results)
     else:
         load_and_evaluate(config)
 

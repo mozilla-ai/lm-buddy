@@ -19,7 +19,7 @@ def test_dataset_loading(resources_dir):
         "flamingo.integrations.huggingface.loading_utils.get_artifact_filesystem_path",
         return_value=xyz_dataset_path,
     ):
-        artifact = WandbArtifactConfig(name="xyz-dataset")
+        artifact = WandbArtifactConfig(name="xyz-dataset", project="project")
         dataset_config = DatasetConfig(load_from=artifact, test_size=0.2, seed=0)
 
         dataset = load_dataset_from_config(dataset_config)

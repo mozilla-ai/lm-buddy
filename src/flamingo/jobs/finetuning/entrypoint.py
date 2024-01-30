@@ -13,6 +13,7 @@ from flamingo.integrations.huggingface import (
 from flamingo.integrations.wandb import (
     ArtifactType,
     ArtifactURIScheme,
+    WandbResumeMode,
     default_artifact_name,
     log_directory_reference,
     wandb_init_from_config,
@@ -64,9 +65,7 @@ def training_function(config_data: dict):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
         with wandb_init_from_config(
-            config.tracking,
-            job_type=FlamingoJobType.FINETUNING,
-            resume="never",
+            config.tracking, resume=WandbResumeMode.NEVER, job_type=FlamingoJobType.FINETUNING
         ):
             load_and_train(config)
     else:
@@ -96,7 +95,7 @@ def run_finetuning(config: FinetuningJobConfig):
     # Register a model artifact if tracking is enabled and Ray saved a checkpoint
     if config.tracking and result.checkpoint:
         # Must resume from the just-completed training run
-        with wandb_init_from_config(config.tracking, resume="must") as run:
+        with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
             print("Logging artifact for model checkpoint...")
             log_directory_reference(
                 dir_path=f"{result.checkpoint.path}/checkpoint",

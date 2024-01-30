@@ -1,4 +1,5 @@
 import contextlib
+from enum import Enum
 from typing import Any
 
 import wandb
@@ -8,20 +9,32 @@ from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
 
+class WandbResumeMode(str, Enum):
+    """Enumeration of modes for resuming a W&B run.
+
+    This is not an exahustive list of the values that can be passed to the W&B SDK
+    (Docs: https://docs.wandb.ai/ref/python/init), but just those commonly used within the package.
+    """
+
+    ALLOW = "allow"
+    MUST = "must"
+    NEVER = "never"
+
+
 @contextlib.contextmanager
 def wandb_init_from_config(
     config: WandbRunConfig,
     *,
     parameters: BaseFlamingoConfig | None = None,
+    resume: WandbResumeMode | None = None,
     job_type: str | None = None,
-    resume: str | None = None,
 ):
     """Initialize a W&B run from the internal run configuration.
 
     This method can be entered as a context manager similar to `wandb.init` as follows:
 
     ```
-    with wandb_init_from_config(run_config, resume="must") as run:
+    with wandb_init_from_config(run_config, resume=WandbResumeMode.MUST) as run:
         # Use the initialized run here
         ...
     ```

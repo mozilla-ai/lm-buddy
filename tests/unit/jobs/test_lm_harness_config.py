@@ -47,15 +47,14 @@ def test_serde_round_trip(lm_harness_job_config):
     assert LMHarnessJobConfig.parse_raw(lm_harness_job_config.json()) == lm_harness_job_config
 
 
-def test_parse_yaml_file(lm_harness_job_config, tmp_path_factory):
-    config_path = tmp_path_factory.mktemp("flamingo_tests") / "lm_harness_config.yaml"
-    lm_harness_job_config.to_yaml_file(config_path)
-    assert lm_harness_job_config == LMHarnessJobConfig.from_yaml_file(config_path)
+def test_parse_yaml_file(lm_harness_job_config):
+    with lm_harness_job_config.to_tempfile() as config_path:
+        assert lm_harness_job_config == LMHarnessJobConfig.from_yaml_file(config_path)
 
 
 def test_load_example_config(examples_dir):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_dir / "configs" / "lm_harness_config.yaml"
+    config_file = examples_dir / "configs" / "lm_harness.yaml"
     config = LMHarnessJobConfig.from_yaml_file(config_file)
     assert LMHarnessJobConfig.parse_raw(config.json()) == config
 
