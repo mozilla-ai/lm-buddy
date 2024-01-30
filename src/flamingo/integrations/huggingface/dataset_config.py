@@ -20,19 +20,19 @@ class DatasetConfig(BaseFlamingoConfig):
     )
 
     @model_validator(mode="after")
-    def validate_split_if_huggingface_repo(cls, values):
+    def validate_split_if_huggingface_repo(cls, config: "DatasetConfig"):
         """
         Ensure a  `split` is provided when loading a HuggingFace dataset directly from HF Hub.
         This makes it such that the `load_dataset` function returns the type `Dataset`
         instead of `DatasetDict`, which makes some of the downstream logic easier.
         """
-        load_from = values["load_from"]
-        split = values.get("split")
+        load_from = config.load_from
+        split = config.split
         if split is None and isinstance(load_from, HuggingFaceRepoConfig):
             raise ValueError(
                 "A `split` must be specified when loading a dataset directly from HuggingFace."
             )
-        return values
+        return config
 
 
 class TextDatasetConfig(DatasetConfig):

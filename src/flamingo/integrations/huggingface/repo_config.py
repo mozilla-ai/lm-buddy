@@ -36,7 +36,7 @@ class HuggingFaceRepoConfig(BaseFlamingoConfig):
     repo_id: str
     revision: str | None = None
 
-    @field_validator("repo_id", mode="before")
+    @field_validator("repo_id", mode="after")
     def validate_repo_id(cls, x):
         if isinstance(x, str) and not is_valid_huggingface_repo_id(x):
             raise ValueError(f"{x} is not a valid HuggingFace repo ID.")

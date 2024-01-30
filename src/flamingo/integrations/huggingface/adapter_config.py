@@ -36,20 +36,20 @@ class AdapterConfig(BaseFlamingoConfig, extra="allow"):
             x = x.strip().upper()
         return x
 
-    @model_validator(mode="before")
-    def validate_adapter_args(cls, values):
-        peft_type = values["peft_type"]
+    @model_validator(mode="after")
+    def validate_adapter_args(cls, config: "AdapterConfig"):
+        peft_type = config.peft_type
 
         # PeftConfigs are standard dataclasses so can extract their allowed field names
         adapter_cls = _get_peft_config_class(peft_type)
         allowed_fields = {x.name for x in dataclasses.fields(adapter_cls)}
 
         # Filter fields to those found on the PeftConfig
-        extra_fields = set(values.keys()).difference(allowed_fields)
+        extra_fields = set(config.model_fields_set).difference(allowed_fields)
         if extra_fields:
             raise ValueError(f"Unknowon arguments for {peft_type} adapter: {extra_fields}")
 
-        return values
+        return config
 
     def as_huggingface(self) -> PeftConfig:
         adapter_cls = _get_peft_config_class(self.peft_type)

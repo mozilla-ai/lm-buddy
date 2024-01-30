@@ -15,14 +15,14 @@ class TorchDtypeString(str):
     Only strings corresponding to a `dtype` instance within the `torch` module are allowed.
 
     This class has validation and schema definitions for use in Pydantic models.
-    Ref: https://docs.pydantic.dev/1.10/usage/types/#custom-data-types
+    Ref: https://docs.pydantic.dev/latest/concepts/types/#custom-types
     """
 
     @classmethod
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
-        return core_schema.with_info_after_validator_function(cls.validate, handler(str))
+        return core_schema.no_info_before_validator_function(cls.validate, handler(str))
 
     @classmethod
     def validate(cls, x):

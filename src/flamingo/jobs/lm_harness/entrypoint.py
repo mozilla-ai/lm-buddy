@@ -33,7 +33,7 @@ def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
     # Helper method to return lm-harness model wrapper
     def loader(pretrained: str, tokenizer: str, peft: str | None):
-        quantization_kwargs = config.quantization.dict() if config.quantization else {}
+        quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
         return HFLM(
             pretrained=pretrained,
             tokenizer=tokenizer,

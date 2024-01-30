@@ -85,7 +85,7 @@ def run_finetuning(config: FinetuningJobConfig):
     )
     trainer = TorchTrainer(
         train_loop_per_worker=training_function,
-        train_loop_config=config.dict(),
+        train_loop_config=config.model_dump(),
         scaling_config=scaling_config,
         run_config=run_config,
     )
