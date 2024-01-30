@@ -1,0 +1,50 @@
+# Base model to load for finetuning
+model:
+  load_from:
+    repo_id: "distilgpt2"
+  # Can also specify the asset to load as a W&B artifact
+  # load_from:
+  #   name: "artifact-name"
+  #   project: "artifact-project"
+  #   version: "v0"
+  torch_dtype: "bfloat16"
+
+# Tokenizer section (when not defined, will default to the model value)
+# tokenizer: "distilgpt2"
+
+# Text dataset to use for training
+dataset:
+  load_from:
+    repo_id: "imdb"
+  split: "train[:100]"
+  test_size: 0.2
+  text_field: "text"
+
+trainer:
+  max_seq_length: 512
+  learning_rate: 0.001
+  num_train_epochs: 2
+  save_steps: 1
+  save_strategy: "epochs"
+  logging_steps: 1
+  logging_strategy: "steps"
+
+# Quantization section (not necessary when using LORA w/ built in LOFT-Q)
+# quantization:
+
+adapter:
+  peft_type: "LORA"
+  task_type: "CAUSAL_LM"
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.2
+
+# Tracking info for where to log the run results
+tracking:
+  name: "flamingo-example-finetuning"
+  project: "flamingo-examples"
+  entity: "mozilla-ai"
+
+ray:
+  use_gpu: True
+  num_workers: 2

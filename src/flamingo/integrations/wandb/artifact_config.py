@@ -13,7 +13,11 @@ class WandbArtifactConfig(BaseFlamingoConfig):
 
     @classmethod
     def from_wandb_path(cls, path: str) -> "WandbArtifactConfig":
-        """Construct a configuration from the full W&B name."""
+        """Construct an artifact configuration from the W&B name.
+
+        The name should be of the form "<entity>/<project>/<name>:<version>"
+        with the "entity" field optional.
+        """
         match = re.search(r"((.*)\/)?(.*)\/(.*)\:(.*)", path)
         if match is not None:
             entity, project, name, version = match.groups()[1:]
