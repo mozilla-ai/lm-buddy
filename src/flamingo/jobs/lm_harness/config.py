@@ -28,7 +28,7 @@ class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
 class LMHarnessJobConfig(BaseFlamingoConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
-    model: AutoModelConfig | InferenceServerConfig = None
+    model: AutoModelConfig | InferenceServerConfig
     evaluator: LMHarnessEvaluatorConfig
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None
