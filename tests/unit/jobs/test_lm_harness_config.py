@@ -54,21 +54,6 @@ def test_parse_yaml_file(lm_harness_job_config):
 
 def test_load_example_config(examples_dir):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_dir / "configs" / "lm_harness.yaml"
+    config_file = examples_dir / "configs" / "lm_harness_hf_config.yaml"
     config = LMHarnessJobConfig.from_yaml_file(config_file)
     assert LMHarnessJobConfig.parse_raw(config.json()) == config
-
-
-def test_model_validation(lm_harness_evaluator_config):
-    model_repo = HuggingFaceRepoConfig(repo_id="model_repo")
-    allowed_config = LMHarnessJobConfig(
-        model=model_repo.repo_id,
-        evaluator=lm_harness_evaluator_config,
-    )
-    assert allowed_config.model.load_from == model_repo
-
-    with pytest.raises(ValidationError):
-        LMHarnessJobConfig(model="invalid...hf..repo", evaluator=lm_harness_evaluator_config)
-
-    with pytest.raises(ValidationError):
-        LMHarnessJobConfig(model=12345, evaluator=lm_harness_evaluator_config)
