@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict, GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
 
@@ -18,8 +19,10 @@ class TorchDtypeString(str):
     """
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.with_info_after_validator_function(cls.validate, handler(str))
 
     @classmethod
     def validate(cls, x):
@@ -32,10 +35,6 @@ class TorchDtypeString(str):
             case _:
                 raise ValueError(f"{x} is not a valid torch.dtype.")
 
-    @classmethod
-    def __modify_schema__(cls, field_schema: dict[str, Any]):
-        field_schema.update(type="string", examples=["float16", "bfloat16", "int8"])
-
     def as_torch(self) -> torch.dtype:
         """Return the actual `torch.dtype` instance."""
         return getattr(torch, self)
@@ -47,10 +46,11 @@ class BaseFlamingoConfig(BaseModel):
     Defines some common settings used by all subclasses.
     """
 
-    class Config:
-        extra = Extra.forbid
-        arbitrary_types_allowed = True
-        validate_assignment = True
+    model_config = ConfigDict(
+        extra="forbid",
+        arbitrary_types_allowed=True,
+        validate_assignment=True,
+    )
 
     @classmethod
     def from_yaml_file(cls, path: Path | str):

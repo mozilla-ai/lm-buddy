@@ -1,4 +1,4 @@
-from pydantic import root_validator, validator
+from pydantic import field_validator, model_validator
 
 from flamingo.integrations.huggingface import HuggingFaceRepoConfig, convert_string_to_repo_config
 from flamingo.integrations.wandb import WandbArtifactConfig
@@ -15,11 +15,11 @@ class DatasetConfig(BaseFlamingoConfig):
     test_size: float | None = None
     seed: int | None = None
 
-    _validate_load_from_string = validator("load_from", pre=True, allow_reuse=True)(
+    _validate_load_from_string = field_validator("load_from", mode="before")(
         convert_string_to_repo_config
     )
 
-    @root_validator()
+    @model_validator(mode="after")
     def validate_split_if_huggingface_repo(cls, values):
         """
         Ensure a  `split` is provided when loading a HuggingFace dataset directly from HF Hub.

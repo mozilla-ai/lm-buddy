@@ -1,6 +1,6 @@
 import datetime
 
-from pydantic import Field, conlist, validator
+from pydantic import Field, conlist, field_validator
 
 from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
 from flamingo.integrations.wandb import WandbRunConfig
@@ -18,7 +18,7 @@ class LMHarnessRayConfig(BaseFlamingoConfig):
 class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     """Misc settings provided to an lm-harness evaluation job."""
 
-    tasks: conlist(str, min_items=1)
+    tasks: conlist(str, min_length=1)
     batch_size: int | None = None
     num_fewshot: int | None = None
     limit: int | float | None = None
@@ -33,7 +33,7 @@ class LMHarnessJobConfig(BaseFlamingoConfig):
     tracking: WandbRunConfig | None = None
     ray: LMHarnessRayConfig = Field(default_factory=LMHarnessRayConfig)
 
-    @validator("model", pre=True, always=True)
+    @field_validator("model", mode="before")
     def validate_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
