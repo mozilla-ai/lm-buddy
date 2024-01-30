@@ -1,7 +1,7 @@
 import datetime
 from pathlib import Path
 
-from pydantic import Field, validator
+from pydantic import Field
 from ragas.metrics import (
     answer_relevancy,
     context_precision,
@@ -20,22 +20,11 @@ class RagasEvaluationDatasetConfig(BaseFlamingoConfig):
     is_hf_dataset: bool | None = False
     data_path: str | Path | None = None
 
-    # remap columns so data table does not need to be edited
-    data_column_names: dict = {
-        "question": "question",
-        "answer": "answer",
-        "contexts": "contexts",
-    }
-
-    @validator("data_column_names")
-    def _validate_data_column_names(cls, v):
-        required_keys = {"question", "answer", "contexts"}
-        provided_keys = set(v.keys())
-        missing_keys = required_keys.difference(provided_keys)
-        if not missing_keys:
-            return v
-        else:
-            raise ValueError(f"`{v}` is missing the following keys:[{missing_keys}]")
+    # columns of relevant maps
+    question_col: str | None = "question"
+    answer_col: str | None = "answer"
+    context_col: str | None = "contexts"
+    ground_truth_col: str | None = None
 
 
 class RagasRayConfig(BaseFlamingoConfig):
