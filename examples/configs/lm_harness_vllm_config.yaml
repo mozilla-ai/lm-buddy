@@ -1,0 +1,17 @@
+# Model to evaluate, specified as a W&B artifact
+model:
+    base_url: "1.2.3.4:8000/v1/completions"
+
+# Settings specific to lm_harness.evaluate
+evaluator:
+  tasks: ["gsk8"]
+  num_fewshot: 5
+
+tracking:
+  name: "mistral-finetune"
+  project: "mistral-finetune"
+  entity: "mozilla-ai"
+
+ray:
+  num_cpus: 1
+  timeout: 3600
