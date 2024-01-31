@@ -28,6 +28,7 @@ ruff = "0.1.7"
 pytest = "7.4.3"
 pytest-cov = "4.1.0"
 jupyter = "1.0.0"
+pre-commit = "3.6.0"
 
 [tool.poetry.group.finetuning.dependencies]
 datasets = "2.16.1"
@@ -38,7 +39,7 @@ trl = "0.7.10"
 bitsandbytes = "0.42.0"
 
 [tool.poetry.group.evaluation.dependencies]
-lm-eval = "0.4.0"
+lm-eval = "0.4.1"
 einops = "0.7.0"
 
 [tool.poetry.scripts]
