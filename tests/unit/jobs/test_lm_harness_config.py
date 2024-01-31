@@ -1,7 +1,5 @@
 import pytest
-from pydantic import ValidationError
 
-from flamingo.integrations.huggingface import HuggingFaceRepoConfig
 from flamingo.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
@@ -58,7 +56,7 @@ def lm_harness_vllm_job_config(
     lm_harness_ray_config,
 ):
     return LMHarnessJobConfig(
-        model=model_config_with_artifact,
+        model=model_config_with_vllm,
         evaluator=lm_harness_evaluator_config,
         ray=lm_harness_ray_config,
         tracking=wandb_run_config,

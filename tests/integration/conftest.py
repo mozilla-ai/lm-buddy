@@ -34,7 +34,7 @@ def disabled_wandb_env(temporary_storage_path):
         "WANDB_DIR": str(storage / "wandb" / "logs"),
         "WANDB_CACHE_DIR": str(storage / "wandb" / "cache"),
         "WANDB_CONFIG_DIR": str(storage / "wandb" / "configs"),
-        "WANDB_API_KEY": "MY-API-KEY",
+        "WANDB_API_KEY": "MY-API-KEY",  # pragma: allowlist secret
         "WANDB_MODE": "disabled",
     }
     with mock.patch.dict(os.environ, wandb_env):

@@ -1,5 +1,5 @@
 """
-Tests for the Flamingo. 
+Tests for the Flamingo.
 
 This file is used to provide fixtures for the test session that are accessible to all submodules.
 """

@@ -24,8 +24,7 @@ def model_config_with_artifact():
 
 
 def model_config_with_vllm():
-    artifact = InferenceServerConfig(base_url="1.2.3.4:8000/v1/completions")
-    return AutoModelConfig(load_from=artifact, trust_remote_code=True)
+    return InferenceServerConfig(base_url="1.2.3.4:8000/v1/completions")
 
 
 @pytest.fixture
