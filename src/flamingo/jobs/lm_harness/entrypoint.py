@@ -34,8 +34,7 @@ def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
     # Helper method to return lm-harness model wrapper
-    def _loader(model: str | None , tokenizer: str, peft: str | None):
-        
+    def loader(model: str | None, tokenizer: str, base_url: str | None, peft: str | None):
         """Load model directly from HF if HF path, otherwise from an inference server URL"""
 
         if isinstance(config.model) == AutoModelConfig:
@@ -50,29 +49,28 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
                 dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
                 **quantization_kwargs,
             )
+            # We don't know if the checkpoint is adapter weights or merged model weights
+            # Try to load as an adapter and fall back to the checkpoint containing the full model
+            load_path, revision = resolve_loadable_path(config.model.load_from)
+            try:
+                peft_config = PeftConfig.from_pretrained(load_path, revision=revision)
+                return loader(
+                    pretrained=peft_config.base_model_name_or_path,
+                    tokenizer=peft_config.base_model_name_or_path,
+                    peft=load_path,
+                )
+            except ValueError as e:
+                print(
+                    f"Unable to load model as adapter: {e}. "
+                    "This is expected if the checkpoint does not contain adapter weights."
+                )
+            return loader(pretrained=load_path, tokenizer=load_path, peft=None)
         elif isinstance(config.model) == InferenceServerConfig:
             return OpenaiCompletionsLM(
                 model=model,
                 base_url=base_url,
                 tokenizer=tokenizer,
             )
-
-    # We don't know if the checkpoint is adapter weights or merged model weights
-    # Try to load as an adapter and fall back to the checkpoint containing the full model
-    load_path, revision = resolve_loadable_path(config.model.load_from)
-    try:
-        peft_config = PeftConfig.from_pretrained(load_path, revision=revision)
-        return loader(
-            pretrained=peft_config.base_model_name_or_path,
-            tokenizer=peft_config.base_model_name_or_path,
-            peft=load_path,
-        )
-    except ValueError as e:
-        print(
-            f"Unable to load model as adapter: {e}. "
-            "This is expected if the checkpoint does not contain adapter weights."
-        )
-        return loader(pretrained=load_path, tokenizer=load_path, peft=None)
 
 
 def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:

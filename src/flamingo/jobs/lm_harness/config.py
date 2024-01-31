@@ -1,6 +1,6 @@
 import datetime
 
-from pydantic import Field, conlist, validator
+from pydantic import Field, conlist
 
 from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
 from flamingo.integrations.vllm import InferenceServerConfig
