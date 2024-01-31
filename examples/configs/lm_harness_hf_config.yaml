@@ -22,3 +22,4 @@ tracking:
 ray:
   num_cpus: 1
   num_gpus: 1
+  timeout: 3600
