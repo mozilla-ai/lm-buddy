@@ -109,7 +109,7 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
 
 
 def run_lm_harness(config: LMHarnessJobConfig):
-    print(f"Received job configuration:\n {config.model_dump(mode='json')}")
+    print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
 
     # Using .options() to dynamically specify resource requirements
     eval_func = evaluation_task.options(num_cpus=config.ray.num_cpus, num_gpus=config.ray.num_gpus)
