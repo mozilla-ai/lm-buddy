@@ -69,7 +69,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
             tokenizer=config.model.tokenizer,
             base_url=config.model.base_url,
             tokenizer_backend=config.model.tokenizer_backend,
-
+        )
 
     else:
         raise ValueError(f"Unexpected model config type: {type(config.model)}")
@@ -109,7 +109,7 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
 
 
 def run_lm_harness(config: LMHarnessJobConfig):
-    print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
+    print(f"Received job configuration:\n {config.model_dump(mode='json')}")
 
     # Using .options() to dynamically specify resource requirements
     eval_func = evaluation_task.options(num_cpus=config.ray.num_cpus, num_gpus=config.ray.num_gpus)
