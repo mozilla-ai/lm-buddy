@@ -1,7 +1,7 @@
 import dataclasses
 
 from peft import PeftConfig, PeftType, TaskType
-from pydantic import Extra, root_validator, validator
+from pydantic import field_validator, model_validator
 
 from flamingo.types import BaseFlamingoConfig
 
@@ -13,7 +13,7 @@ def _get_peft_config_class(peft_type: PeftType) -> type[PeftConfig]:
     return PEFT_TYPE_TO_CONFIG_MAPPING[peft_type]
 
 
-class AdapterConfig(BaseFlamingoConfig):
+class AdapterConfig(BaseFlamingoConfig, extra="allow"):
     """Configuration containing PEFT adapter settings.
 
     The type of adapter is controlled by the required `peft_type` field,
@@ -27,34 +27,30 @@ class AdapterConfig(BaseFlamingoConfig):
     See the allowed values in the PEFT `TaskType` enumeration.
     """
 
-    class Config:
-        extra = Extra.allow
-
     peft_type: PeftType
     task_type: TaskType = TaskType.CAUSAL_LM
 
-    @validator("peft_type", "task_type", pre=True, always=True)
+    @field_validator("peft_type", "task_type", mode="before")
     def sanitize_enum_args(cls, x):
         if isinstance(x, str):
             x = x.strip().upper()
         return x
 
-    @root_validator
-    def validate_adapter_args(cls, values):
-        peft_type = values["peft_type"]
+    @model_validator(mode="after")
+    def validate_adapter_args(cls, config: "AdapterConfig"):
+        peft_type = config.peft_type
 
         # PeftConfigs are standard dataclasses so can extract their allowed field names
         adapter_cls = _get_peft_config_class(peft_type)
         allowed_fields = {x.name for x in dataclasses.fields(adapter_cls)}
 
         # Filter fields to those found on the PeftConfig
-        extra_fields = set(values.keys()).difference(allowed_fields)
+        extra_fields = config.model_fields_set.difference(allowed_fields)
         if extra_fields:
             raise ValueError(f"Unknowon arguments for {peft_type} adapter: {extra_fields}")
 
-        return values
+        return config
 
     def as_huggingface(self) -> PeftConfig:
         adapter_cls = _get_peft_config_class(self.peft_type)
-        adapter_args = self.dict(exclude={"peft_type"})
-        return adapter_cls(**adapter_args)
+        return adapter_cls(**self.model_dump())

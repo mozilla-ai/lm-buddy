@@ -1,4 +1,4 @@
-from pydantic import Field, root_validator, validator
+from pydantic import Field, field_validator, model_validator
 
 from flamingo.integrations.huggingface import (
     AdapterConfig,
@@ -35,7 +35,7 @@ class FinetuningJobConfig(BaseFlamingoConfig):
     trainer: TrainerConfig = Field(default_factory=TrainerConfig)
     ray: FinetuningRayConfig = Field(default_factory=FinetuningRayConfig)
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def ensure_tokenizer_config(cls, values):
         """Set the tokenizer to the model path when not explicitly provided."""
         if values.get("tokenizer") is None:
@@ -50,14 +50,14 @@ class FinetuningJobConfig(BaseFlamingoConfig):
                 # No fallback necessary, downstream validation will flag invalid model types
         return values
 
-    @validator("model", pre=True, always=True)
+    @field_validator("model", mode="before")
     def validate_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
             return AutoModelConfig(load_from=x)
         return x
 
-    @validator("tokenizer", pre=True, always=True)
+    @field_validator("tokenizer", mode="before")
     def validate_tokenizer_arg(cls, x):
         """Allow for passing just a path string as the tokenizer argument."""
         if isinstance(x, str):
