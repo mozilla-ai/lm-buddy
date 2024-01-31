@@ -1,7 +1,5 @@
 """
-Tests for the Flamingo.
-
-This file is used to provide fixtures for the test session that are accessible to all submodules.
+This file is used to provide fixtures for the test session accessible to all Flamingo submodules.
 """
 from pathlib import Path
 
