@@ -1,7 +1,7 @@
 import os
 import warnings
 
-from pydantic import root_validator
+from pydantic import model_validator
 from wandb.apis.public import Run
 from wandb.util import random_string
 
@@ -29,7 +29,7 @@ class WandbRunConfig(BaseFlamingoConfig):
     run_group: str | None = None
     entity: str | None = None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def warn_missing_api_key(cls, values):
         if not os.environ.get("WANDB_API_KEY", None):
             warnings.warn(
@@ -38,7 +38,7 @@ class WandbRunConfig(BaseFlamingoConfig):
             )
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def ensure_run_id(cls, values):
         if values.get("run_id", None) is None:
             # Generate an random 8-digit alphanumeric string, analogous to W&B platform

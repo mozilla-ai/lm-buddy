@@ -1,4 +1,4 @@
-from pydantic import validator
+from pydantic import field_validator
 
 from flamingo.integrations.huggingface import HuggingFaceRepoConfig, convert_string_to_repo_config
 from flamingo.integrations.wandb import WandbArtifactConfig
@@ -15,6 +15,6 @@ class AutoModelConfig(BaseFlamingoConfig):
     trust_remote_code: bool = False
     torch_dtype: TorchDtypeString | None = None
 
-    _validate_load_from_string = validator("load_from", pre=True, allow_reuse=True)(
+    _validate_load_from_string = field_validator("load_from", mode="before")(
         convert_string_to_repo_config
     )

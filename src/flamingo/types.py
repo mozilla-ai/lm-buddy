@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
 
@@ -14,12 +15,14 @@ class TorchDtypeString(str):
     Only strings corresponding to a `dtype` instance within the `torch` module are allowed.
 
     This class has validation and schema definitions for use in Pydantic models.
-    Ref: https://docs.pydantic.dev/1.10/usage/types/#custom-data-types
+    Ref: https://docs.pydantic.dev/latest/concepts/types/#custom-types
     """
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_before_validator_function(cls.validate, handler(str))
 
     @classmethod
     def validate(cls, x):
@@ -32,25 +35,21 @@ class TorchDtypeString(str):
             case _:
                 raise ValueError(f"{x} is not a valid torch.dtype.")
 
-    @classmethod
-    def __modify_schema__(cls, field_schema: dict[str, Any]):
-        field_schema.update(type="string", examples=["float16", "bfloat16", "int8"])
-
     def as_torch(self) -> torch.dtype:
         """Return the actual `torch.dtype` instance."""
         return getattr(torch, self)
 
 
-class BaseFlamingoConfig(BaseModel):
+class BaseFlamingoConfig(
+    BaseModel,
+    extra="forbid",
+    arbitrary_types_allowed=True,
+    validate_assignment=True,
+):
     """Base class for all Pydantic configs in the library.
 
     Defines some common settings used by all subclasses.
     """
-
-    class Config:
-        extra = Extra.forbid
-        arbitrary_types_allowed = True
-        validate_assignment = True
 
     @classmethod
     def from_yaml_file(cls, path: Path | str):

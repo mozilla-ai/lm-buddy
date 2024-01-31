@@ -19,7 +19,7 @@ class LMHarnessRayConfig(BaseFlamingoConfig):
 class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     """Misc settings provided to an lm-harness evaluation job."""
 
-    tasks: conlist(str, min_items=1)
+    tasks: conlist(str, min_length=1)
     batch_size: int | None = None
     num_fewshot: int | None = None
     limit: int | float | None = None

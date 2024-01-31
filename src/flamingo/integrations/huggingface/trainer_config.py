@@ -27,4 +27,4 @@ class TrainerConfig(BaseFlamingoConfig):
 
     def training_args(self) -> dict[str, Any]:
         """Return the arguments to the HuggingFace `TrainingArguments` class."""
-        return self.dict(exclude={"max_seq_length"}, exclude_none=True)
+        return self.model_dump(exclude={"max_seq_length"}, exclude_none=True)
