@@ -4,7 +4,7 @@ model:
 
 # Settings specific to lm_harness.evaluate
 evaluator:
-  tasks: ["gsk8"]
+  tasks: ["gsm8k"]
   num_fewshot: 5
 
 tracking:
