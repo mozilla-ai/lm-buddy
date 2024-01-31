@@ -3,7 +3,7 @@ repos:
     rev: v1.2.0
     hooks:
       - id: detect-secrets
-        exclude: requirements_lock.txt|tests/resources/datasets/xyz.hf/state.json
+        exclude: tests/integration/.+
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0

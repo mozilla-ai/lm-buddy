@@ -23,7 +23,8 @@ def model_config_with_artifact():
     return AutoModelConfig(load_from=artifact, trust_remote_code=True)
 
 
-def model_config_with_vllm():
+@pytest.fixture
+def inference_server_config():
     return InferenceServerConfig(base_url="1.2.3.4:8000/v1/completions")
 
 
