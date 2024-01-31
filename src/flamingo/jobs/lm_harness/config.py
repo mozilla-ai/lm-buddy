@@ -1,11 +1,31 @@
 import datetime
+from typing import Literal
 
 from pydantic import Field, conlist
 
-from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
-from flamingo.integrations.vllm import InferenceServerConfig
+from flamingo.integrations.huggingface import (
+    AutoModelConfig,
+    HuggingFacePathReference,
+    QuantizationConfig,
+)
 from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
+
+
+class LocalChatCompletionsConfig(BaseFlamingoConfig):
+    """Configuration for a "local-chat-completions" model in lm-harness.
+
+    The "local-chat-completions" model connects to a locally hosted inference server
+    provided by the `base_url`. It is also necessary to provide the `engine` of
+    the locally hosted inference server, which can be a raw string, HF repo config,
+    or a W&B artifact config.
+    """
+
+    __match_args__ = ("base_url", "engine", "tokenizer_backend")
+
+    base_url: str
+    engine: str | HuggingFacePathReference
+    tokenizer_backend: Literal["huggingface", "tiktoken"] = "huggingface"
 
 
 class LMHarnessRayConfig(BaseFlamingoConfig):
@@ -28,7 +48,7 @@ class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
 class LMHarnessJobConfig(BaseFlamingoConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
-    model: AutoModelConfig | InferenceServerConfig
+    model: AutoModelConfig | LocalChatCompletionsConfig
     evaluator: LMHarnessEvaluatorConfig
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None

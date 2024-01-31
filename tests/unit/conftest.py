@@ -8,7 +8,6 @@ from flamingo.integrations.huggingface import (
     QuantizationConfig,
     TextDatasetConfig,
 )
-from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
 
@@ -21,16 +20,6 @@ def model_config_with_repo_id():
 def model_config_with_artifact():
     artifact = WandbArtifactConfig(name="model", project="project")
     return AutoModelConfig(load_from=artifact, trust_remote_code=True)
-
-
-@pytest.fixture
-def inference_server_config():
-    return InferenceServerConfig(
-        base_url="1.2.3.4:8000/v1",
-        model_name="mistralai/Mistral-7B-v0.1",
-        tokenizer="mistralai/Mistral-7B-v0.1",
-        tokenizer_backend="huggingface",
-    )
 
 
 @pytest.fixture

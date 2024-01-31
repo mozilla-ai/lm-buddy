@@ -4,7 +4,18 @@ from flamingo.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
     LMHarnessRayConfig,
+    LocalChatCompletionsConfig,
 )
+from tests.test_utils import copy_pydantic_json
+
+
+@pytest.fixture
+def local_completions_config():
+    return LocalChatCompletionsConfig(
+        base_url="1.2.3.4:8000/v1",
+        engine="mistralai/Mistral-7B-v0.1",
+        tokenizer_backend="huggingface",
+    )
 
 
 @pytest.fixture
@@ -28,7 +39,7 @@ def lm_harness_ray_config():
 def lm_harness_job_config(
     request,
     model_config_with_artifact,
-    inference_server_config,
+    local_completions_config,
     quantization_config,
     wandb_run_config,
     lm_harness_evaluator_config,
@@ -42,9 +53,9 @@ def lm_harness_job_config(
             tracking=wandb_run_config,
             quantization=quantization_config,
         )
-    elif request.param == "inference_server_config":
+    elif request.param == "local_completions_config":
         return LMHarnessJobConfig(
-            model=inference_server_config,
+            model=local_completions_config,
             evaluator=lm_harness_evaluator_config,
             ray=lm_harness_ray_config,
             tracking=wandb_run_config,
@@ -54,16 +65,16 @@ def lm_harness_job_config(
 
 @pytest.mark.parametrize(
     "lm_harness_job_config",
-    ["model_config_with_artifact", "inference_server_config"],
+    ["model_config_with_artifact", "local_completions_config"],
     indirect=True,
 )
 def test_serde_round_trip(lm_harness_job_config):
-    assert LMHarnessJobConfig.parse_raw(lm_harness_job_config.json()) == lm_harness_job_config
+    assert copy_pydantic_json(lm_harness_job_config) == lm_harness_job_config
 
 
 @pytest.mark.parametrize(
     "lm_harness_job_config",
-    ["model_config_with_artifact", "inference_server_config"],
+    ["model_config_with_artifact", "local_completions_config"],
     indirect=True,
 )
 def test_parse_yaml_file(lm_harness_job_config):

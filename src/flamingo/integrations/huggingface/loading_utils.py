@@ -1,6 +1,9 @@
+import warnings
+
 import torch
 from accelerate import Accelerator
 from datasets import Dataset, DatasetDict, load_dataset, load_from_disk
+from peft import PeftConfig
 from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
@@ -15,28 +18,55 @@ from flamingo.integrations.huggingface import (
     AutoTokenizerConfig,
     DatasetConfig,
     HuggingFaceRepoConfig,
-    LoadFromConfig,
     QuantizationConfig,
 )
 from flamingo.integrations.wandb import WandbArtifactConfig, get_artifact_filesystem_path
 
+HuggingFacePathReference = HuggingFaceRepoConfig | WandbArtifactConfig
+"""Config that can be resolved to a HuggingFace name/path."""
 
-def resolve_loadable_path(load_from: LoadFromConfig) -> (str, str | None):
+
+def resolve_path_reference(ref: HuggingFacePathReference) -> (str, str | None):
     """Resolve the loadable path and revision from configuration.
 
     If a `HuggingFaceRepoConfig` is provided, return the values directly.
     If a `WandbArtifactConfig` is provided, resolve the path from the artifact manifest.
     """
-
-    match load_from:
+    match ref:
         case HuggingFaceRepoConfig(repo_id, revision):
             load_path, revision = repo_id, revision
         case WandbArtifactConfig() as artifact_config:
             load_path = get_artifact_filesystem_path(artifact_config)
             revision = None
         case _:
-            raise ValueError(f"Unable to resolve load path from {load_from}.")
+            raise ValueError(f"Unable to resolve load path from {ref}.")
     return str(load_path), revision
+
+
+def resolve_peft_or_pretrained(path: str) -> (str, str | None):
+    """Helper method for determining if a path corresponds to a PEFT model.
+
+    A PEFT model contains an `adapter_config.json` in its directory.
+    If this file can be loaded, we know the path is a for a PEFT model.
+    If not, we assume the provided path corresponds to a base HF model.
+
+    Args:
+        path (str): Name/path to a HuggingFace directory
+
+    Returns:
+        Tuple of (base model path, optional PEFT path)
+    """
+    # We don't know if the checkpoint is adapter weights or merged model weights
+    # Try to load as an adapter and fall back to the checkpoint containing the full model
+    try:
+        peft_config = PeftConfig.from_pretrained(path)
+        return peft_config.base_model_name_or_path, path
+    except ValueError as e:
+        warnings.warn(
+            f"Unable to load model as adapter: {e}. "
+            "This is expected if the checkpoint does not contain adapter weights."
+        )
+        return path, None
 
 
 def load_pretrained_model_config(config: AutoModelConfig) -> PretrainedConfig:
@@ -44,7 +74,7 @@ def load_pretrained_model_config(config: AutoModelConfig) -> PretrainedConfig:
 
     An exception is raised if the HuggingFace repo does not contain a `config.json` file.
     """
-    model_path, revision = resolve_loadable_path(config.load_from)
+    model_path, revision = resolve_path_reference(config.load_from)
     return AutoConfig.from_pretrained(pretrained_model_name_or_path=model_path, revision=revision)
 
 
@@ -68,7 +98,7 @@ def load_pretrained_model(
 
     # TODO: HuggingFace has many AutoModel classes with different "language model heads"
     #   Can we abstract this to load with any type of AutoModel class?
-    model_path, revision = resolve_loadable_path(config.load_from)
+    model_path, revision = resolve_path_reference(config.load_from)
     return AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=model_path,
         revision=revision,
@@ -84,7 +114,7 @@ def load_pretrained_tokenizer(config: AutoTokenizerConfig) -> PreTrainedTokenize
 
     An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
     """
-    tokenizer_path, revision = resolve_loadable_path(config.load_from)
+    tokenizer_path, revision = resolve_path_reference(config.load_from)
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=tokenizer_path,
         revision=revision,
@@ -104,7 +134,7 @@ def load_dataset_from_config(config: DatasetConfig) -> Dataset:
     When loading from HuggingFace directly, the `Dataset` is for the provided split.
     When loading from disk, the saved files must be for a dataset else an exception is raised.
     """
-    dataset_path, revision = resolve_loadable_path(config.load_from)
+    dataset_path, revision = resolve_path_reference(config.load_from)
     # Dataset loading requires a different method if from a HF vs. disk
     if isinstance(config.load_from, HuggingFaceRepoConfig):
         return load_dataset(dataset_path, revision=revision, split=config.split)
