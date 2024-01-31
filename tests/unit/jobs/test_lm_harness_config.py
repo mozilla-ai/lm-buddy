@@ -26,9 +26,32 @@ def lm_harness_ray_config():
     )
 
 
+""" Test for HuggingFace model"""
+
+
 @pytest.fixture
 def lm_harness_job_config(
     model_config_with_artifact,
+    quantization_config,
+    wandb_run_config,
+    lm_harness_evaluator_config,
+    lm_harness_ray_config,
+):
+    return LMHarnessJobConfig(
+        model=model_config_with_artifact,
+        evaluator=lm_harness_evaluator_config,
+        ray=lm_harness_ray_config,
+        tracking=wandb_run_config,
+        quantization=quantization_config,
+    )
+
+
+"""test for vLLM-loaded model"""
+
+
+@pytest.fixture
+def lm_harness_vllm_job_config(
+    model_config_with_vllm,
     quantization_config,
     wandb_run_config,
     lm_harness_evaluator_config,
@@ -52,8 +75,11 @@ def test_parse_yaml_file(lm_harness_job_config):
         assert lm_harness_job_config == LMHarnessJobConfig.from_yaml_file(config_path)
 
 
-def test_load_example_config(examples_dir):
+@pytest.mark.parametrize(
+    "file_suffix", ["lm_harness_hf_config.yaml", "lm_harness_vllm_config.yaml"]
+)
+def test_load_example_config(examples_dir, file_suffix):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_dir / "configs" / "lm_harness_hf_config.yaml"
+    config_file = examples_dir / "configs" / file_suffix
     config = LMHarnessJobConfig.from_yaml_file(config_file)
     assert LMHarnessJobConfig.parse_raw(config.json()) == config
