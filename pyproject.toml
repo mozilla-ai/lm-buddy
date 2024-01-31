@@ -41,6 +41,8 @@ bitsandbytes = "0.42.0"
 [tool.poetry.group.evaluation.dependencies]
 lm-eval = "0.4.1"
 einops = "0.7.0"
+openai = "1.10.0"
+tiktoken = "0.5.2"
 
 [tool.poetry.scripts]
 flamingo = "flamingo.cli:cli"

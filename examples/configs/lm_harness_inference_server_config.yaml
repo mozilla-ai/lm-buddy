@@ -2,6 +2,9 @@
 model:
     base_url: "1.2.3.4:8000/v1/completions"
     tokenizer: "mistralai/Mistral-7B-v0.1"
+    model_name: "mistralai/Mistral-7B-v0.1"
+    #huggingface or tiktoken depending on model type
+    tokenizer_backend: "huggingface"
 
 # Settings specific to lm_harness.evaluate
 evaluator:
