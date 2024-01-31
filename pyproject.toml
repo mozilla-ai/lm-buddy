@@ -40,7 +40,7 @@ bitsandbytes = "0.42.0"
 
 [tool.poetry.group.evaluation.dependencies]
 lm-eval = { version = "0.4.1", extras = ["openai"] }
-einops = "0.7.0"
+
 
 [tool.poetry.scripts]
 flamingo = "flamingo.cli:cli"

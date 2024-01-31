@@ -8,3 +8,4 @@ class InferenceServerConfig(BaseFlamingoConfig):
     tokenizer: str
     model_name: str
     tokenizer_backend: str
+

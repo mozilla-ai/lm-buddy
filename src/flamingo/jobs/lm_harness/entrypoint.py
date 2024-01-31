@@ -69,7 +69,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
             tokenizer=config.model.tokenizer,
             base_url=config.model.base_url,
             tokenizer_backend=config.model.tokenizer_backend,
-        )
+
 
     else:
         raise ValueError(f"Unexpected model config type: {type(config.model)}")
