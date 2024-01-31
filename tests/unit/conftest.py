@@ -25,7 +25,9 @@ def model_config_with_artifact():
 
 @pytest.fixture
 def inference_server_config():
-    return InferenceServerConfig(base_url="1.2.3.4:8000/v1/completions")
+    return InferenceServerConfig(
+        base_url="1.2.3.4:8000/v1/completions", tokenizer="mistralai/Mistral-7B-v0.1"
+    )
 
 
 @pytest.fixture
