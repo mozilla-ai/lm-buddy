@@ -5,9 +5,12 @@ import ray
 import wandb
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
-from peft import PeftConfig
 
-from flamingo.integrations.huggingface import AutoModelConfig, resolve_loadable_path
+from flamingo.integrations.huggingface import (
+    AutoModelConfig,
+    resolve_path_reference,
+    resolve_peft_or_pretrained,
+)
 from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.integrations.wandb import (
     ArtifactType,
@@ -33,45 +36,34 @@ def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -
 
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
-    if isinstance(config.model, AutoModelConfig):
-        # We don't know if the checkpoint is adapter weights or merged model weights
-        # Try to load as an adapter and fall back to the checkpoint containing the full model
-        path, revision = resolve_loadable_path(config.model.load_from)
-        try:
-            peft_config = PeftConfig.from_pretrained(path, revision=revision)
-            peft_path = path
-            pretrained_model_path = peft_config.base_model_name_or_path
-        except ValueError as e:
-            print(
-                f"Unable to load model as adapter: {e}. "
-                "This is expected if the checkpoint does not contain adapter weights."
+    # Instantiate the lm-harness LM class based on the provided model config type
+    match config.model:
+        case AutoModelConfig() as model_config:
+            model_path, revision = resolve_path_reference(model_config.load_from)
+            model_path, peft_path = resolve_peft_or_pretrained(model_path)
+            quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
+            return HFLM(
+                pretrained=model_path,
+                tokenizer=model_path,
+                peft=peft_path,
+                revision=revision,
+                device="cuda" if config.ray.num_gpus > 0 else None,
+                trust_remote_code=config.model.trust_remote_code,
+                dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
+                **quantization_kwargs,
             )
-            peft_path = None
-            pretrained_model_path = path
 
-        # Return the lm-harness version of a HuggingFace LLM
-        quantization_kwargs = config.quantization.dict() if config.quantization else {}
-        return HFLM(
-            pretrained=pretrained_model_path,
-            tokenizer=pretrained_model_path,
-            peft=peft_path,
-            revision=revision,
-            device="cuda" if config.ray.num_gpus > 0 else None,
-            trust_remote_code=config.model.trust_remote_code,
-            dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
-            **quantization_kwargs,
-        )
+        case InferenceServerConfig() as inference_config:
+            model_path, _ = resolve_path_reference(inference_config.model_backend)
+            return OpenaiCompletionsLM(
+                base_url=config.model.base_url,
+                model=model_path,
+                tokenizer=model_path,
+                tokenizer_backend="huggingface",
+            )
 
-    elif isinstance(config.model, InferenceServerConfig):
-        # Return the lm-harness version of a model endpoint
-        return OpenaiCompletionsLM(
-            model="vllm-model",
-            tokenizer=config.model.tokenizer,
-            base_url=config.model.base_url,
-        )
-
-    else:
-        raise ValueError(f"Unexpected model config type: {type(config.model)}")
+        case _:
+            raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
 def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:
