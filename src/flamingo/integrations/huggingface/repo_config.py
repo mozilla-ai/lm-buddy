@@ -44,4 +44,4 @@ class HuggingFaceRepoConfig(BaseFlamingoConfig):
 
 
 LoadFromConfig = HuggingFaceRepoConfig | WandbArtifactConfig
-"""Config that can be resolved to a HuggingFace name/path or a local path."""
+"""Config that can be resolved to a HuggingFace name/path."""
