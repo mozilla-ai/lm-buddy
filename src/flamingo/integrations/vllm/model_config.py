@@ -6,3 +6,6 @@ class InferenceServerConfig(BaseFlamingoConfig):
 
     base_url: str
     tokenizer: str
+    model_name: str
+    tokenizer_backend: str
+

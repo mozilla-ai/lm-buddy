@@ -1,7 +1,7 @@
 from typing import Any
 
 from huggingface_hub.utils import HFValidationError, validate_repo_id
-from pydantic import validator
+from pydantic import field_validator
 
 from flamingo.integrations.wandb import WandbArtifactConfig
 from flamingo.types import BaseFlamingoConfig
@@ -36,9 +36,9 @@ class HuggingFaceRepoConfig(BaseFlamingoConfig):
     repo_id: str
     revision: str | None = None
 
-    @validator("repo_id", pre=True)
-    def validate_repo_id(cls, x):
-        if isinstance(x, str) and not is_valid_huggingface_repo_id(x):
+    @field_validator("repo_id", mode="after")
+    def validate_repo_id(cls, x: str):
+        if not is_valid_huggingface_repo_id(x):
             raise ValueError(f"{x} is not a valid HuggingFace repo ID.")
         return x
 
