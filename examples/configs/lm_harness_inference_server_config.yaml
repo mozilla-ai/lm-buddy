@@ -2,10 +2,15 @@
 model:
   inference:
     base_url: "http://1.2.3.4:8000/v1"
-    # HuggingFace config for the actual model being hosted
+    # HuggingFace repo for the engine model being hosted
     engine:
-      name: artifact-name
-      project: artifact-project --> str
+      repo_id: "distilgpt2"
+      revision: "main"
+    # # W&B artifact can also be specified as the engine model to generate a lineage
+    # engine:
+    #   name: "wandb-artifact-name"
+    #   project: "flamingo-examples"
+    #   entity: "mozilla-ai"
   # 'huggingface' or 'tiktoken' depending on model type
   tokenizer_backend: "huggingface"
 
