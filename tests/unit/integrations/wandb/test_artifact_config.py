@@ -1,6 +1,7 @@
 import pytest
 
 from flamingo.integrations.wandb import WandbArtifactConfig
+from tests.test_utils import copy_pydantic_json
 
 
 @pytest.fixture
@@ -14,7 +15,7 @@ def wandb_artifact_config():
 
 
 def test_serde_round_trip(wandb_artifact_config):
-    assert WandbArtifactConfig.parse_raw(wandb_artifact_config.json()) == wandb_artifact_config
+    assert copy_pydantic_json(wandb_artifact_config) == wandb_artifact_config
 
 
 def test_wandb_path(wandb_artifact_config):

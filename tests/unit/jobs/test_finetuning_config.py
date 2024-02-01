@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from flamingo.integrations.huggingface import HuggingFaceRepoConfig, TextDatasetConfig
 from flamingo.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
+from tests.test_utils import copy_pydantic_json
 
 
 @pytest.fixture
@@ -35,7 +36,7 @@ def finetuning_job_config(
 
 
 def test_serde_round_trip(finetuning_job_config):
-    assert FinetuningJobConfig.parse_raw(finetuning_job_config.json()) == finetuning_job_config
+    assert copy_pydantic_json(finetuning_job_config) == finetuning_job_config
 
 
 def test_parse_yaml_file(finetuning_job_config):
@@ -45,9 +46,9 @@ def test_parse_yaml_file(finetuning_job_config):
 
 def test_load_example_config(examples_dir):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_dir / "configs" / "finetuning.yaml"
+    config_file = examples_dir / "configs" / "finetuning_config.yaml"
     config = FinetuningJobConfig.from_yaml_file(config_file)
-    assert FinetuningJobConfig.parse_raw(config.json()) == config
+    assert copy_pydantic_json(config) == config
 
 
 def test_argument_validation():

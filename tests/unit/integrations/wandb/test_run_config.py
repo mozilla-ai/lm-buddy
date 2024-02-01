@@ -5,6 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from flamingo.integrations.wandb import WandbRunConfig
+from tests.test_utils import copy_pydantic_json
 
 
 @pytest.fixture
@@ -25,7 +26,7 @@ def wandb_run_config():
 
 
 def test_serde_round_trip(wandb_run_config):
-    assert WandbRunConfig.parse_raw(wandb_run_config.json()) == wandb_run_config
+    assert copy_pydantic_json(wandb_run_config) == wandb_run_config
 
 
 def test_wandb_path(wandb_run_config):

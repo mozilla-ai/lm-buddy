@@ -4,16 +4,21 @@ import lm_eval
 import ray
 import wandb
 from lm_eval.models.huggingface import HFLM
-from peft import PeftConfig
+from lm_eval.models.openai_completions import OpenaiCompletionsLM
 
-from flamingo.integrations.huggingface import resolve_loadable_path
+from flamingo.integrations.huggingface import (
+    AutoModelConfig,
+    HuggingFaceAssetPath,
+    resolve_asset_path,
+    resolve_peft_and_pretrained,
+)
 from flamingo.integrations.wandb import (
     ArtifactType,
     WandbResumeMode,
     default_artifact_name,
     wandb_init_from_config,
 )
-from flamingo.jobs.lm_harness import LMHarnessJobConfig
+from flamingo.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsConfig
 from flamingo.jobs.utils import FlamingoJobType
 
 
@@ -30,36 +35,39 @@ def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -
     return wandb.log_artifact(artifact)
 
 
-def load_harness_model(config: LMHarnessJobConfig) -> HFLM:
-    # Helper method to return lm-harness model wrapper
-    def loader(pretrained: str, tokenizer: str, peft: str | None):
-        quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
-        return HFLM(
-            pretrained=pretrained,
-            tokenizer=tokenizer,
-            peft=peft,
-            device="cuda" if config.ray.num_gpus > 0 else None,
-            trust_remote_code=config.model.trust_remote_code,
-            dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
-            **quantization_kwargs,
-        )
+def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
+    # Instantiate the lm-harness LM class based on the provided model config type
+    match config.model:
+        case AutoModelConfig() as model_config:
+            model_path, revision = resolve_asset_path(model_config.load_from)
+            model_path, peft_path = resolve_peft_and_pretrained(model_path)
+            quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
+            return HFLM(
+                pretrained=model_path,
+                tokenizer=model_path,
+                peft=peft_path,
+                revision=revision,
+                device="cuda" if config.ray.num_gpus > 0 else None,
+                trust_remote_code=config.model.trust_remote_code,
+                dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
+                **quantization_kwargs,
+            )
 
-    # We don't know if the checkpoint is adapter weights or merged model weights
-    # Try to load as an adapter and fall back to the checkpoint containing the full model
-    load_path, revision = resolve_loadable_path(config.model.load_from)
-    try:
-        peft_config = PeftConfig.from_pretrained(load_path, revision=revision)
-        return loader(
-            pretrained=peft_config.base_model_name_or_path,
-            tokenizer=peft_config.base_model_name_or_path,
-            peft=load_path,
-        )
-    except ValueError as e:
-        print(
-            f"Unable to load model as adapter: {e}. "
-            "This is expected if the checkpoint does not contain adapter weights."
-        )
-        return loader(pretrained=load_path, tokenizer=load_path, peft=None)
+        case LocalChatCompletionsConfig() as local_config:
+            model = local_config.inference.engine
+            if isinstance(model, HuggingFaceAssetPath):
+                model, _ = resolve_asset_path(model)
+            # If tokenizer is not provided, it is set to the value of model internally
+            return OpenaiCompletionsLM(
+                model=model,
+                base_url=local_config.inference.base_url,
+                tokenizer_backend=local_config.tokenizer_backend,
+                truncate=local_config.truncate,
+                max_gen_toks=local_config.max_tokens,
+            )
+
+        case _:
+            raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
 def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:
@@ -96,7 +104,7 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
 
 
 def run_lm_harness(config: LMHarnessJobConfig):
-    print(f"Received job configuration:\n {config.json(indent=2)}")
+    print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
 
     # Using .options() to dynamically specify resource requirements
     eval_func = evaluation_task.options(num_cpus=config.ray.num_cpus, num_gpus=config.ray.num_gpus)

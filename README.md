@@ -15,33 +15,16 @@ cluster environment (Ray cluster is running 3.10.8).
 
 ### Installation
 
-run 
-
 ```
 pip install flamingo (TODO-name update)
 ```
-
-This will install an editable version of the package along with all of its dependency groups.
-
-Poetry should recognize your active virtual environment during installation
-If you have an active Conda environment, Poetry should recognize it during installation
-and install the package dependencies there. 
-This hasn't been explicitly tested with other virtual python environments, but will likely work.
-
-Alternatively, you can use poetry's own environment by running
-```
-poetry lock
-poetry env use python3.10
-poetry install
-```
-where `python3.10` is your python interpreter.
 
 See the [contributing](CONTRIBUTING.md) guide for more information on development workflows and/or building locally.
 
 ### Usage
 
 `flamingo` exposes a simple CLI with a few commands, one for each Ray job type.
-Jobs are expected to take as input a YAML configuration file 
+Jobs are expected to take as input a YAML configuration file
 that contains all necessary parameters/settings for the work.
 See the `examples/configs` folder for examples of the configuration structure.
 
