@@ -24,16 +24,6 @@ def model_config_with_artifact():
 
 
 @pytest.fixture
-def inference_server_config():
-    return InferenceServerConfig(
-        base_url="1.2.3.4:8000/v1",
-        model_name="mistralai/Mistral-7B-v0.1",
-        tokenizer="mistralai/Mistral-7B-v0.1",
-        tokenizer_backend="huggingface",
-    )
-
-
-@pytest.fixture
 def tokenizer_config_with_repo_id():
     return AutoTokenizerConfig(load_from="mistral-ai/mistral-7", trust_remote_code=True)
 
@@ -74,3 +64,9 @@ def adapter_config():
 @pytest.fixture
 def wandb_run_config():
     return WandbRunConfig(name="run", run_id="12345", project="research", entity="mzai")
+
+
+@pytest.fixture
+def inference_server_config():
+    artifact = WandbArtifactConfig(name="model", project="project")
+    return InferenceServerConfig(base_url="http://0.0.0.0:8000", engine=artifact)

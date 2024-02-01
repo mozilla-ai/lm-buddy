@@ -3,7 +3,6 @@ from typing import Any
 from huggingface_hub.utils import HFValidationError, validate_repo_id
 from pydantic import field_validator
 
-from flamingo.integrations.wandb import WandbArtifactConfig
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -41,7 +40,3 @@ class HuggingFaceRepoConfig(BaseFlamingoConfig):
         if not is_valid_huggingface_repo_id(x):
             raise ValueError(f"{x} is not a valid HuggingFace repo ID.")
         return x
-
-
-LoadFromConfig = HuggingFaceRepoConfig | WandbArtifactConfig
-"""Config that can be resolved to a HuggingFace name/path."""

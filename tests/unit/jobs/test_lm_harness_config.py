@@ -1,10 +1,24 @@
 import pytest
+from pydantic import ValidationError
 
+from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
     LMHarnessRayConfig,
+    LocalChatCompletionsConfig,
 )
+from tests.test_utils import copy_pydantic_json
+
+
+@pytest.fixture
+def local_completions_config(inference_server_config):
+    return LocalChatCompletionsConfig(
+        inference=inference_server_config,
+        tokenizer_backend="huggingface",
+        max_tokens=256,
+        truncate=True,
+    )
 
 
 @pytest.fixture
@@ -28,7 +42,7 @@ def lm_harness_ray_config():
 def lm_harness_job_config(
     request,
     model_config_with_artifact,
-    inference_server_config,
+    local_completions_config,
     quantization_config,
     wandb_run_config,
     lm_harness_evaluator_config,
@@ -42,9 +56,9 @@ def lm_harness_job_config(
             tracking=wandb_run_config,
             quantization=quantization_config,
         )
-    elif request.param == "inference_server_config":
+    elif request.param == "local_completions_config":
         return LMHarnessJobConfig(
-            model=inference_server_config,
+            model=local_completions_config,
             evaluator=lm_harness_evaluator_config,
             ray=lm_harness_ray_config,
             tracking=wandb_run_config,
@@ -54,16 +68,16 @@ def lm_harness_job_config(
 
 @pytest.mark.parametrize(
     "lm_harness_job_config",
-    ["model_config_with_artifact", "inference_server_config"],
+    ["model_config_with_artifact", "local_completions_config"],
     indirect=True,
 )
 def test_serde_round_trip(lm_harness_job_config):
-    assert LMHarnessJobConfig.parse_raw(lm_harness_job_config.json()) == lm_harness_job_config
+    assert copy_pydantic_json(lm_harness_job_config) == lm_harness_job_config
 
 
 @pytest.mark.parametrize(
     "lm_harness_job_config",
-    ["model_config_with_artifact", "inference_server_config"],
+    ["model_config_with_artifact", "local_completions_config"],
     indirect=True,
 )
 def test_parse_yaml_file(lm_harness_job_config):
@@ -78,4 +92,13 @@ def test_load_example_config(examples_dir, file_suffix):
     """Load the example configs to make sure they stay up to date."""
     config_file = examples_dir / "configs" / file_suffix
     config = LMHarnessJobConfig.from_yaml_file(config_file)
-    assert LMHarnessJobConfig.parse_raw(config.json()) == config
+    assert copy_pydantic_json(config) == config
+
+
+def test_inference_engine_provided():
+    with pytest.raises(ValidationError):
+        LocalChatCompletionsConfig(
+            inference=InferenceServerConfig(base_url="url", engine=None),
+            tokenizer_backend="huggingface",
+            max_tokens=256,
+        )
