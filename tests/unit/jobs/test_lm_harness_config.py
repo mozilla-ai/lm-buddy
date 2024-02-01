@@ -10,11 +10,12 @@ from tests.test_utils import copy_pydantic_json
 
 
 @pytest.fixture
-def local_completions_config():
+def local_completions_config(inference_server_config):
     return LocalChatCompletionsConfig(
-        base_url="1.2.3.4:8000/v1",
-        engine="mistralai/Mistral-7B-v0.1",
+        inference=inference_server_config,
         tokenizer_backend="huggingface",
+        max_tokens=256,
+        truncate=True,
     )
 
 

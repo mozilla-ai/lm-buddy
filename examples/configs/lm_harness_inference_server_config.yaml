@@ -1,9 +1,10 @@
 # Model to evaluate, specified as a W&B artifact
 model:
-  base_url: "http://1.2.3.4:8000/v1"
-  # Reference to actual model being hosted
-  engine:
-    repo_id: "mistralai/Mistral-7B-v0.1"
+  inference:
+    base_url: "http://1.2.3.4:8000/v1"
+    # HuggingFace config for the actual model being hosted
+    engine:
+      repo_id: "mistralai/Mistral-7B-v0.1"
   # 'huggingface' or 'tiktoken' depending on model type
   tokenizer_backend: "huggingface"
 
@@ -14,8 +15,8 @@ evaluator:
   limit: 10
 
 tracking:
-  name: "mistral-finetune"
-  project: "mistral-finetune"
+  name: "flamingo-example-lm-harness-inference"
+  project: "flamingo-examples"
   entity: "mozilla-ai"
 
 ray:

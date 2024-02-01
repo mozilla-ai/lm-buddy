@@ -53,13 +53,16 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
                 **quantization_kwargs,
             )
 
-        case LocalChatCompletionsConfig(base_url, model, tokenizer_backend):
+        case LocalChatCompletionsConfig() as local_config:
+            model = local_config.inference.engine
             if isinstance(model, HuggingFacePathReference):
                 model, _ = resolve_path_reference(model)
             return OpenaiCompletionsLM(
-                base_url=base_url,
-                tokenizer_backend=tokenizer_backend,
                 model=model,
+                base_url=local_config.inference.base_url,
+                tokenizer_backend=local_config.tokenizer_backend,
+                truncate=local_config.truncate,
+                max_gen_toks=local_config.max_tokens,
             )
 
         case _:

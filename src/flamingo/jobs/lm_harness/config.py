@@ -1,13 +1,13 @@
 import datetime
 from typing import Literal
 
-from pydantic import Field, conlist
+from pydantic import Field, conlist, model_validator
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
-    HuggingFacePathReference,
     QuantizationConfig,
 )
+from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
@@ -15,17 +15,23 @@ from flamingo.types import BaseFlamingoConfig
 class LocalChatCompletionsConfig(BaseFlamingoConfig):
     """Configuration for a "local-chat-completions" model in lm-harness.
 
-    The "local-chat-completions" model connects to a locally hosted inference server
-    provided by the `base_url`. It is also necessary to provide the `engine` of
-    the locally hosted inference server, which can be a raw string, HF repo config,
-    or a W&B artifact config.
+    The "local-chat-completions" model is powered by a self-hosted inference server,
+    specified as an `InferenceServerConfig`. Additional arguments are also provided
     """
 
-    __match_args__ = ("base_url", "engine", "tokenizer_backend")
-
-    base_url: str
-    engine: str | HuggingFacePathReference
+    inference: InferenceServerConfig
+    truncate: bool = False
+    max_tokens: int = 256
     tokenizer_backend: Literal["huggingface", "tiktoken"] = "huggingface"
+
+    @model_validator(mode="after")
+    def validate_inference_engine(cls, config: "LocalChatCompletionsConfig"):
+        if config.inference.engine is None:
+            raise ValueError(
+                "Inference config `engine` must be provided for use in "
+                "lm-harness 'local-chat-completions' model."
+            )
+        return config
 
 
 class LMHarnessRayConfig(BaseFlamingoConfig):

@@ -27,10 +27,11 @@ HuggingFacePathReference = HuggingFaceRepoConfig | WandbArtifactConfig
 
 
 def resolve_path_reference(ref: HuggingFacePathReference) -> (str, str | None):
-    """Resolve the loadable path and revision from configuration.
+    """Resolve the actual HuggingFace name/path from a config.
 
-    If a `HuggingFaceRepoConfig` is provided, return the values directly.
-    If a `WandbArtifactConfig` is provided, resolve the path from the artifact manifest.
+    Currently, two config types contain references to a loadable HuggingFace path:
+      (1) A `HuggingFaceRepoConfig` that contains the repo path directly
+      (2) A `WandbArtifactConfig` where the filesystem path is resolved from the artifact
     """
     match ref:
         case HuggingFaceRepoConfig(repo_id, revision):
