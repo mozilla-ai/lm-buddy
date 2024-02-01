@@ -22,29 +22,29 @@ from flamingo.integrations.huggingface import (
 )
 from flamingo.integrations.wandb import WandbArtifactConfig, get_artifact_filesystem_path
 
-HuggingFacePathReference = HuggingFaceRepoConfig | WandbArtifactConfig
+HuggingFaceAssetPath = HuggingFaceRepoConfig | WandbArtifactConfig
 """Config that can be resolved to a HuggingFace name/path."""
 
 
-def resolve_path_reference(ref: HuggingFacePathReference) -> (str, str | None):
+def resolve_asset_path(path: HuggingFaceAssetPath) -> (str, str | None):
     """Resolve the actual HuggingFace name/path from a config.
 
     Currently, two config types contain references to a loadable HuggingFace path:
       (1) A `HuggingFaceRepoConfig` that contains the repo path directly
       (2) A `WandbArtifactConfig` where the filesystem path is resolved from the artifact
     """
-    match ref:
+    match path:
         case HuggingFaceRepoConfig(repo_id, revision):
             load_path, revision = repo_id, revision
         case WandbArtifactConfig() as artifact_config:
             load_path = get_artifact_filesystem_path(artifact_config)
             revision = None
         case _:
-            raise ValueError(f"Unable to resolve load path from {ref}.")
+            raise ValueError(f"Unable to resolve load path from {path}.")
     return str(load_path), revision
 
 
-def resolve_peft_or_pretrained(path: str) -> (str, str | None):
+def resolve_peft_and_pretrained(path: str) -> (str, str | None):
     """Helper method for determining if a path corresponds to a PEFT model.
 
     A PEFT model contains an `adapter_config.json` in its directory.
@@ -75,7 +75,7 @@ def load_pretrained_model_config(config: AutoModelConfig) -> PretrainedConfig:
 
     An exception is raised if the HuggingFace repo does not contain a `config.json` file.
     """
-    model_path, revision = resolve_path_reference(config.load_from)
+    model_path, revision = resolve_asset_path(config.load_from)
     return AutoConfig.from_pretrained(pretrained_model_name_or_path=model_path, revision=revision)
 
 
@@ -99,7 +99,7 @@ def load_pretrained_model(
 
     # TODO: HuggingFace has many AutoModel classes with different "language model heads"
     #   Can we abstract this to load with any type of AutoModel class?
-    model_path, revision = resolve_path_reference(config.load_from)
+    model_path, revision = resolve_asset_path(config.load_from)
     return AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=model_path,
         revision=revision,
@@ -115,7 +115,7 @@ def load_pretrained_tokenizer(config: AutoTokenizerConfig) -> PreTrainedTokenize
 
     An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
     """
-    tokenizer_path, revision = resolve_path_reference(config.load_from)
+    tokenizer_path, revision = resolve_asset_path(config.load_from)
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=tokenizer_path,
         revision=revision,
@@ -135,7 +135,7 @@ def load_dataset_from_config(config: DatasetConfig) -> Dataset:
     When loading from HuggingFace directly, the `Dataset` is for the provided split.
     When loading from disk, the saved files must be for a dataset else an exception is raised.
     """
-    dataset_path, revision = resolve_path_reference(config.load_from)
+    dataset_path, revision = resolve_asset_path(config.load_from)
     # Dataset loading requires a different method if from a HF vs. disk
     if isinstance(config.load_from, HuggingFaceRepoConfig):
         return load_dataset(dataset_path, revision=revision, split=config.split)

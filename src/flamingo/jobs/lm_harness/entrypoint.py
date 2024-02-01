@@ -8,9 +8,9 @@ from lm_eval.models.openai_completions import OpenaiCompletionsLM
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
-    HuggingFacePathReference,
-    resolve_path_reference,
-    resolve_peft_or_pretrained,
+    HuggingFaceAssetPath,
+    resolve_asset_path,
+    resolve_peft_and_pretrained,
 )
 from flamingo.integrations.wandb import (
     ArtifactType,
@@ -39,8 +39,8 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
     # Instantiate the lm-harness LM class based on the provided model config type
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path, revision = resolve_path_reference(model_config.load_from)
-            model_path, peft_path = resolve_peft_or_pretrained(model_path)
+            model_path, revision = resolve_asset_path(model_config.load_from)
+            model_path, peft_path = resolve_peft_and_pretrained(model_path)
             quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
             return HFLM(
                 pretrained=model_path,
@@ -55,9 +55,9 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
 
         case LocalChatCompletionsConfig() as local_config:
             model = local_config.inference.engine
-            if isinstance(model, HuggingFacePathReference):
-                model, _ = resolve_path_reference(model)
-            # If `tokenizer` is not provided, it is set to the value of `model` internally
+            if isinstance(model, HuggingFaceAssetPath):
+                model, _ = resolve_asset_path(model)
+            # If tokenizer is not provided, it is set to the value of model internally
             return OpenaiCompletionsLM(
                 model=model,
                 base_url=local_config.inference.base_url,

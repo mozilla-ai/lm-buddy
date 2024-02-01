@@ -1,4 +1,4 @@
-from flamingo.integrations.huggingface import HuggingFacePathReference
+from flamingo.integrations.huggingface import HuggingFaceAssetPath
 from flamingo.types import BaseFlamingoConfig
 
 
@@ -16,4 +16,4 @@ class InferenceServerConfig(BaseFlamingoConfig):
     """
 
     base_url: str
-    engine: str | HuggingFacePathReference | None = None
+    engine: str | HuggingFaceAssetPath | None = None

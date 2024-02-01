@@ -1,5 +1,7 @@
 import pytest
+from pydantic import ValidationError
 
+from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
@@ -91,3 +93,12 @@ def test_load_example_config(examples_dir, file_suffix):
     config_file = examples_dir / "configs" / file_suffix
     config = LMHarnessJobConfig.from_yaml_file(config_file)
     assert copy_pydantic_json(config) == config
+
+
+def test_inference_engine_provided():
+    with pytest.raises(ValidationError):
+        LocalChatCompletionsConfig(
+            inference=InferenceServerConfig(base_url="url", engine=None),
+            tokenizer_backend="huggingface",
+            max_tokens=256,
+        )
