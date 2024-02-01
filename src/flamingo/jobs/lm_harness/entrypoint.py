@@ -1,7 +1,7 @@
 from typing import Any
 
 import lm_eval
-import ray
+import torch
 import wandb
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
@@ -42,12 +42,13 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
             model_path, revision = resolve_asset_path(model_config.load_from)
             model_path, peft_path = resolve_peft_and_pretrained(model_path)
             quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
+            # TODO: Fix this up by passing in the instantiated model directly
             return HFLM(
                 pretrained=model_path,
                 tokenizer=model_path,
                 peft=peft_path,
-                revision=revision,
-                device="cuda" if config.ray.num_gpus > 0 else None,
+                revision=revision if revision else "main",
+                device="cuda" if torch.cuda.device_count() > 0 else "cpu",
                 trust_remote_code=config.model.trust_remote_code,
                 dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
                 **quantization_kwargs,
@@ -88,8 +89,9 @@ def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:
     return eval_results
 
 
-@ray.remote
-def evaluation_task(config: LMHarnessJobConfig) -> None:
+def run_lm_harness(config: LMHarnessJobConfig):
+    print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
+
     if config.tracking is not None:
         with wandb_init_from_config(
             config.tracking,
@@ -101,24 +103,3 @@ def evaluation_task(config: LMHarnessJobConfig) -> None:
             log_evaluation_artifact(run.name, eval_results)
     else:
         load_and_evaluate(config)
-
-
-def run_lm_harness(config: LMHarnessJobConfig):
-    print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
-
-    # Using .options() to dynamically specify resource requirements
-    eval_func = evaluation_task.options(num_cpus=config.ray.num_cpus, num_gpus=config.ray.num_gpus)
-    eval_future = eval_func.remote(config)
-
-    timeout_seconds = config.ray.timeout.seconds if config.ray.timeout else None
-    try:
-        print("Waiting on evaluation task...")
-        ray.get(eval_future, timeout=timeout_seconds)
-        print("Evaluation successfully completed!")
-    except TimeoutError:
-        print(
-            f"Evaluation task timed out after {timeout_seconds} sec. "
-            "If the evaluation runner finished but the task failed to shut down, "
-            "please check if your results were still generated and persisted."
-        )
-        raise
