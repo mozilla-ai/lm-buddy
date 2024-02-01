@@ -1,5 +1,30 @@
 # Contributing
 
+## Setup
+
+This project is built using the [Poetry](https://python-poetry.org/docs/) build tool.
+First, install Poetry in your local environment via
+```
+curl -sSL https://install.python-poetry.org | python3 - -y
+```
+or see the [installation guide](https://python-poetry.org/docs/#installation)
+for alternate installation methods.
+
+Once Poetry is installed, you can install `flamingo` for development by running
+```
+poetry lock
+poetry install
+```
+This will install an editable version of the package along with all of its dependency groups.
+Poetry should recognize your active virtual environment during installation
+and install the package dependencies there.
+
+The `pyproject.toml` file defines dependency groups for the logical job types in the package.
+Individual dependency groups can be installed by running 
+`poetry install --with <group1>,<group2>` or `poetry install --only <group>`.
+
+Python should be [3.10, 3.11).
+
 ## Code style
 
 This repository uses [Ruff](https://docs.astral.sh/ruff/) for Python formatting and linting.
