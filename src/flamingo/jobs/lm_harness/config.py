@@ -17,6 +17,7 @@ class LocalChatCompletionsConfig(BaseFlamingoConfig):
 
     The "local-chat-completions" model is powered by a self-hosted inference server,
     specified as an `InferenceServerConfig`. Additional arguments are also provided
+    to control the tokenizer type and generation parameters.
     """
 
     inference: InferenceServerConfig
