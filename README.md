@@ -15,19 +15,12 @@ cluster environment (Ray cluster is running 3.10.8).
 
 ### Installation
 
-This project is built using the [Poetry](https://python-poetry.org/docs/) build tool.
-First, install Poetry in your local environment via
-```
-curl -sSL https://install.python-poetry.org | python3 - -y
-```
-or see the [installation guide](https://python-poetry.org/docs/#installation)
-for more instructions.
+run 
 
-Once Poetry is installed, you can install `flamingo` for development by running
 ```
-poetry lock
-poetry install
+pip install flamingo (TODO-name update)
 ```
+
 This will install an editable version of the package along with all of its dependency groups.
 
 Poetry should recognize your active virtual environment during installation
@@ -43,11 +36,7 @@ poetry install
 ```
 where `python3.10` is your python interpreter.
 
-The `pyproject.toml` file defines dependency groups for the logical job types in the package.
-Individual dependency groups can be installed by running 
-`poetry install --with <group1>,<group2>` or `poetry install --only <group>`.
-
-See the [contributing](CONTRIBUTING.md) guide for more information on development workflows.
+See the [contributing](CONTRIBUTING.md) guide for more information on development workflows and/or building locally.
 
 ### Usage
 
