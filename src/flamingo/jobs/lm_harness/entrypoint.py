@@ -57,6 +57,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
             model = local_config.inference.engine
             if isinstance(model, HuggingFacePathReference):
                 model, _ = resolve_path_reference(model)
+            # If `tokenizer` is not provided, it is set to the value of `model` internally
             return OpenaiCompletionsLM(
                 model=model,
                 base_url=local_config.inference.base_url,
