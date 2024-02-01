@@ -45,7 +45,7 @@ def wandb_init_from_config(
         project=config.project,
         entity=config.entity,
         group=config.run_group,
-        config=parameters.model_dump() if parameters else None,
+        config=parameters.model_dump(mode="json") if parameters else None,
         job_type=job_type,
         resume=resume,
     )

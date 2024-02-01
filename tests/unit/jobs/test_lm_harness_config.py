@@ -5,7 +5,6 @@ from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
-    LMHarnessRayConfig,
     LocalChatCompletionsConfig,
 )
 from tests.test_utils import copy_pydantic_json
@@ -30,15 +29,6 @@ def lm_harness_evaluator_config():
 
 
 @pytest.fixture
-def lm_harness_ray_config():
-    return LMHarnessRayConfig(
-        num_cpus=2,
-        num_gpus=4,
-        timeout=3600,
-    )
-
-
-@pytest.fixture
 def lm_harness_job_config(
     request,
     model_config_with_artifact,
@@ -46,13 +36,11 @@ def lm_harness_job_config(
     quantization_config,
     wandb_run_config,
     lm_harness_evaluator_config,
-    lm_harness_ray_config,
 ):
     if request.param == "model_config_with_artifact":
         return LMHarnessJobConfig(
             model=model_config_with_artifact,
             evaluator=lm_harness_evaluator_config,
-            ray=lm_harness_ray_config,
             tracking=wandb_run_config,
             quantization=quantization_config,
         )
@@ -60,7 +48,6 @@ def lm_harness_job_config(
         return LMHarnessJobConfig(
             model=local_completions_config,
             evaluator=lm_harness_evaluator_config,
-            ray=lm_harness_ray_config,
             tracking=wandb_run_config,
             quantization=quantization_config,
         )

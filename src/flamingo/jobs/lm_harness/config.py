@@ -1,7 +1,6 @@
-import datetime
 from typing import Literal
 
-from pydantic import Field, conlist, model_validator
+from pydantic import conlist, model_validator
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
@@ -35,14 +34,6 @@ class LocalChatCompletionsConfig(BaseFlamingoConfig):
         return config
 
 
-class LMHarnessRayConfig(BaseFlamingoConfig):
-    """Misc settings for Ray compute in the LM harness job."""
-
-    num_cpus: int | float = 1
-    num_gpus: int | float = 1
-    timeout: datetime.timedelta | None = None
-
-
 class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
     """Misc settings provided to an lm-harness evaluation job."""
 
@@ -59,4 +50,3 @@ class LMHarnessJobConfig(BaseFlamingoConfig):
     evaluator: LMHarnessEvaluatorConfig
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None
-    ray: LMHarnessRayConfig = Field(default_factory=LMHarnessRayConfig)
