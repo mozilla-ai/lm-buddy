@@ -78,3 +78,40 @@ To do so, follow the steps:
     but does not install its entrypoint in the environment path.
 
 An example of this workflow can be found in the `examples/dev_workflow.ipynb` notebook.
+
+
+# Publishing
+
+This is only relevant for maintainers / Mozilla.ai internal people.
+Use the local installable package workflow above for iteration locally.
+
+## Setup
+
+This only needs to be done once.
+You should have access to the API key via 1password. Make sure the 1password cli is installed (`brew install 1password-cli`).
+
+Set up poetry to use the key(s):
+
+```
+poetry config repositories.testpypi https://test.pypi.org/legacy/
+poetry config pypi-token.testpypi $(op read "op://<VAULT>/PyPI-test/pypi/api_key")
+poetry config pypi-token.pypi $(op read "op://<VAULT>/PyPI/pypi/api_key")
+```
+
+## Test 
+
+Then build and publish to PyPI Test:
+
+```
+
+poetry publish --repository testpypi --dry-run --build
+poetry publish --repository testpypi --build
+```
+
+## Publish
+
+When you're ready, run:
+
+```
+poetry publish --build
+```

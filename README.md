@@ -16,7 +16,7 @@ cluster environment (Ray cluster is running 3.10.8).
 ### Installation
 
 ```
-pip install flamingo (TODO-name update)
+pip install mzai-flamingo
 ```
 
 See the [contributing](CONTRIBUTING.md) guide for more information on development workflows and/or building locally.
