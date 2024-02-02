@@ -85,7 +85,7 @@ An example of this workflow can be found in the `examples/dev_workflow.ipynb` no
 This is only relevant for maintainers / Mozilla.ai internal people.
 Use the local installable package workflow above for iteration locally.
 
-## setup
+## Setup
 
 This only needs to be done once.
 You should have access to the API key via 1password. Make sure the 1password cli is installed (`brew install 1password-cli`).
