@@ -3,8 +3,8 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "flamingo-ray"
-version = "0.1.2"
+name = "mzai-flamingo"
+version = "0.1.0"
 description = "Ray-centric job library for training and evaluation."
 repository = "https://github.com/mozilla-ai/flamingo"
 readme = "README.md"

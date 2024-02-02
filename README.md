@@ -18,7 +18,7 @@ cluster environment (Ray cluster is running 3.10.8).
 run 
 
 ```
-pip install flamingo-ray
+pip install mzai-flamingo
 ```
 
 This will install an editable version of the package along with all of its dependency groups.
