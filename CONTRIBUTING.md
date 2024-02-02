@@ -90,7 +90,7 @@ Use the local installable package workflow above for iteration locally.
 This only needs to be done once.
 You should have access to the API key via 1password. Make sure the 1password cli is installed (`brew install 1password-cli`).
 
-set up poetry to use the key(s):
+Set up poetry to use the key(s):
 
 ```
 poetry config repositories.testpypi https://test.pypi.org/legacy/
