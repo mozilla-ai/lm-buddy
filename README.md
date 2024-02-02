@@ -4,11 +4,10 @@
     <img src="https://github.com/mozilla-ai/flamingo/blob/main/assets/flamingo.png" width="300">
 </p>
 
-Flamingo is a library of tools for managing fine-tuning and evaluation lifecycle for open-source large language models, making use of YAML-based configs as input jobs for Ray on Kubernetes.
+Flamingo is a library of tools for managing the finetuning and evaluation lifecycle of open-source large language models, making use of YAML-based configs as input to jobs for Ray on Kubernetes.
 
 The package currently allows users to launch either a:
-1. **fine-tuning job** using HuggingFace style model paths or WeightsandBiases artifact locations
-1. **fine-tuning job** [here] using HuggingFace style model paths or WeightsandBiases artifact locations
+1. **fine-tuning job** using HuggingFace style model paths or Weights&Biases artifact locations
 2. **evaluation job** using [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) against either a HuggingFace Hub model, or on a local model inference server via vLLM
 3. **simple job** as an example job
 
