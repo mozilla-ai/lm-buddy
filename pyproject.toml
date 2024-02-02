@@ -24,7 +24,7 @@ pydantic-yaml = "1.2.0"
 ray = { version = "2.9.1", extras = ["default"] }
 
 [tool.poetry.dev-dependencies]
-ruff = "0.1.7"
+ruff = "0.2.0"
 pytest = "7.4.3"
 pytest-cov = "4.1.0"
 jupyter = "1.0.0"
