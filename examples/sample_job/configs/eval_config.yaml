@@ -1,0 +1,20 @@
+# Model to evaluate, specificed as a vLLM endpoint
+model:
+    base_url: "http://your.cluster.ip:8000/v1/"
+    tokenizer: "mistralai/Mistral-7B-v0.1"
+    model_name: "mistralai/Mistral-7B-v0.1"
+    tokenizer_backend: "huggingface"
+
+# Settings specific to lm_harness.evaluate
+evaluator:
+  tasks: ["gsm8k"]
+  num_fewshot: 5
+
+tracking:
+  name: "mistral-finetune"
+  project: "mistral-finetune"
+  entity: "your-org"
+
+ray:
+  num_cpus: 1
+  timeout: 3600

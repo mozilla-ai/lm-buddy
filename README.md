@@ -4,7 +4,20 @@
     <img src="https://github.com/mozilla-ai/flamingo/blob/main/assets/flamingo.png" width="300">
 </p>
 
-## Getting started
+Flamingo is a library of tools for managing fine-tuning and evaluation lifecycle for open-source large language models, making use of YAML-based configs as input jobs for Ray on Kubernetes.
+
+The package currently allows users to launch either a:
+1. **fine-tuning job** using HuggingFace style model paths or WeightsandBiases artifact locations
+1. **fine-tuning job** [here] using HuggingFace style model paths or WeightsandBiases artifact locations
+2. **evaluation job** using [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) against either a HuggingFace Hub model, or on a local model inference server via vLLM
+3. **simple job** as an example job
+
+## Workflow
+For all workflow examples, (see `/examples`)
+
+The user starts by writing a YAML config file (see `/examples`) and an accompanying Ray job entrypoint. See the `examples/configs` folder for examples of the configuration structure. For a full end-to-end interactive workflow running from within Flamingo, see the sample notebooks. For a full sample job with the correct directory structure that you can run as a stand-alone if you have flaimgo installed in your Python environment , see the `sample_job` directory.
+
+## Usage
 
 ### Minimum Python version
 
@@ -19,16 +32,12 @@ cluster environment (Ray cluster is running 3.10.8).
 pip install mzai-flamingo
 ```
 
-See the [contributing](CONTRIBUTING.md) guide for more information on development workflows and/or building locally.
+### CLI Usage
 
-### Usage
+`flamingo` exposes a CLI with a few commands, one for each Ray job type.
+To see all commands, run `flamingo run --help`
 
-`flamingo` exposes a simple CLI with a few commands, one for each Ray job type.
-Jobs are expected to take as input a YAML configuration file
-that contains all necessary parameters/settings for the work.
-See the `examples/configs` folder for examples of the configuration structure.
-
-Once installed in your environment, usage is as follows:
+Once flamingo is installed in your local Python environment, usage is as follows:
 ```
 # Simple test
 flamingo run simple --config simple_config.yaml
@@ -39,4 +48,9 @@ flamingo run finetuning --config finetuning_config.yaml
 # LLM evaluation
 flamingo run lm-harness --config lm_harness_config.yaml
 ```
+
 When submitting a job to Ray, the above commands should be used as your job entrypoints.
+
+### Development
+
+See the [contributing](CONTRIBUTING.md) guide for more information on development workflows and/or building locally.

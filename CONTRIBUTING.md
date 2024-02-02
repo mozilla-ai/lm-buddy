@@ -31,7 +31,7 @@ poetry install
 where `python3.10` is your python interpreter.
 
 The `pyproject.toml` file defines dependency groups for the logical job types in the package.
-Individual dependency groups can be installed by running 
+Individual dependency groups can be installed by running
 `poetry install --with <group1>,<group2>` or `poetry install --only <group>`.
 
 Python should be [3.10, 3.11).
@@ -63,7 +63,7 @@ To do so, follow the steps:
     The following command will create a `requirements.txt` file in the repository
     that contains the dependencies for the `finetuning` and `evaluation` job groups:
 
-2. When submitting a job to cluster, specify in the Ray runtime environment the following:
+2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
 
     - `py_modules`: Local path to the `flamingo` module folder (located at `src/flamingo` in the workspace).
     - `pip`: Local path to the `requirements.txt` file generated above.
