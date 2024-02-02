@@ -1,6 +1,6 @@
 from transformers import BitsAndBytesConfig
 
-from flamingo.types import BaseFlamingoConfig, TorchDtypeString
+from flamingo.types import BaseFlamingoConfig, SerializableTorchDtype
 
 
 class QuantizationConfig(BaseFlamingoConfig):
@@ -15,7 +15,7 @@ class QuantizationConfig(BaseFlamingoConfig):
     load_in_8bit: bool | None = None
     load_in_4bit: bool | None = None
     bnb_4bit_quant_type: str = "fp4"
-    bnb_4bit_compute_dtype: TorchDtypeString | None = None
+    bnb_4bit_compute_dtype: SerializableTorchDtype | None = None
 
     def as_huggingface(self) -> BitsAndBytesConfig:
         return BitsAndBytesConfig(

@@ -20,7 +20,7 @@ def model_config_with_repo_id():
 @pytest.fixture
 def model_config_with_artifact():
     artifact = WandbArtifactConfig(name="model", project="project")
-    return AutoModelConfig(load_from=artifact, trust_remote_code=True)
+    return AutoModelConfig(load_from=artifact, trust_remote_code=True, torch_dtype="float16")
 
 
 @pytest.fixture
