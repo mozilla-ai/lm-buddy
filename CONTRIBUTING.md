@@ -110,7 +110,7 @@ poetry publish --repository testpypi --build
 
 ## Publish
 
-when you're ready, run:
+When you're ready, run:
 
 ```
 poetry publish --build
