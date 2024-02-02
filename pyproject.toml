@@ -3,12 +3,17 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "flamingo"
-version = "0.1.0"
+name = "flamingo-ray"
+version = "0.1.2"
 description = "Ray-centric job library for training and evaluation."
 repository = "https://github.com/mozilla-ai/flamingo"
 readme = "README.md"
-authors = []
+authors = [
+    "Sean Friedowitz <sean@mozilla.ai>",
+    "Aaron Gonzales <aaron@mozilla.ai>",
+    "Vicki Boykis <vicki@mozilla.ai>",
+]
+license = "Apache-2.0"
 packages = [{ include = "flamingo", from = "src" }]
 
 [tool.poetry.dependencies]

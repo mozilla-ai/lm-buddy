@@ -18,7 +18,7 @@ cluster environment (Ray cluster is running 3.10.8).
 run 
 
 ```
-pip install flamingo (TODO-name update)
+pip install flamingo-ray
 ```
 
 This will install an editable version of the package along with all of its dependency groups.

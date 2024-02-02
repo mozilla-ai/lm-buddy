@@ -68,3 +68,34 @@ To do so, follow the steps:
 
 An example of this workflow can be found in the `examples/dev_workflow.ipynb` notebook.
 
+
+# Publishing
+
+First, test on test pypi:
+
+
+You should have access to the API key via 1password. Make sure the 1password cli is installed (`brew install 1password-cli`)
+
+
+set up poetry to use the key(s):
+
+```
+poetry config repositories.testpypi https://test.pypi.org/legacy/
+poetry config pypi-token.testpypi $(op read "op://<VAULT>/PyPI-test/pypi/api_key")
+poetry config pypi-token.pypi $(op read "op://<VAULT>/PyPI/pypi/api_key")
+```
+
+Then test on PyPI Test:
+
+```
+poetry build
+poetry publish --repository testpypi --dry-run
+poetry publish --repository testpypi
+```
+
+when ready to publish for real, use:
+
+```
+poetry publish --build
+```
+
