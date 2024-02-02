@@ -3,7 +3,7 @@ import torch
 from pydantic import ValidationError
 
 from flamingo.jobs.simple import SimpleJobConfig
-from flamingo.types import BaseFlamingoConfig, TorchDtypeString
+from flamingo.types import BaseFlamingoConfig, SerializableTorchDtype
 
 
 def test_base_config_settings():
@@ -20,19 +20,18 @@ def test_base_config_settings():
         DummyConfig(value=42, foo="bar")
 
 
-def test_torch_dtype_validation():
-    # Valid dtype strings
-    x = TorchDtypeString.validate("int64")
-    assert x == "int64"
-    assert x.as_torch() == torch.int64
-    x = TorchDtypeString.validate(torch.int64)
-    assert x == "int64"
-    assert x.as_torch() == torch.int64
-    # Invalid dtype strings
+def test_serializable_torch_dtype():
+    class DummyConfig(BaseFlamingoConfig):
+        torch_dtype: SerializableTorchDtype
+
+    config = DummyConfig(torch_dtype="bfloat16")
+    assert config.torch_dtype == torch.bfloat16
+
+    # Invalid dtypes
     with pytest.raises(ValueError):
-        TorchDtypeString.validate(5)
+        DummyConfig(torch_dtype=5)
     with pytest.raises(ValueError):
-        TorchDtypeString.validate("dogs")
+        DummyConfig(torch_dtype="dogs")
 
 
 def test_config_as_tempfile():

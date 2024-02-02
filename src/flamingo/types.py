@@ -1,43 +1,35 @@
 import contextlib
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import torch
-from pydantic import BaseModel, GetCoreSchemaHandler
-from pydantic_core import CoreSchema, core_schema
+from pydantic import BaseModel, BeforeValidator, PlainSerializer, WithJsonSchema
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
 
-class TorchDtypeString(str):
-    """String representation of a `torch.dtype`.
+def validate_torch_dtype(x: Any) -> torch.dtype:
+    match x:
+        case torch.dtype():
+            return x
+        case str() if hasattr(torch, x) and isinstance(getattr(torch, x), torch.dtype):
+            return getattr(torch, x)
+        case _:
+            raise ValueError(f"{x} is not a valid torch.dtype.")
 
-    Only strings corresponding to a `dtype` instance within the `torch` module are allowed.
 
-    This class has validation and schema definitions for use in Pydantic models.
-    Ref: https://docs.pydantic.dev/latest/concepts/types/#custom-types
-    """
+SerializableTorchDtype = Annotated[
+    torch.dtype,
+    BeforeValidator(lambda x: validate_torch_dtype(x)),
+    PlainSerializer(lambda x: str(x).split(".")[1]),
+    WithJsonSchema({"type": "string"}, mode="validation"),
+    WithJsonSchema({"type": "string"}, mode="serialization"),
+]
+"""Custom type validator for a `torch.dtype` object.
 
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        return core_schema.no_info_before_validator_function(cls.validate, handler(str))
-
-    @classmethod
-    def validate(cls, x):
-        match x:
-            case torch.dtype():
-                x = str(x).split(".")[1]
-                return cls(x)
-            case str() if hasattr(torch, x) and isinstance(getattr(torch, x), torch.dtype):
-                return cls(x)
-            case _:
-                raise ValueError(f"{x} is not a valid torch.dtype.")
-
-    def as_torch(self) -> torch.dtype:
-        """Return the actual `torch.dtype` instance."""
-        return getattr(torch, self)
+Accepts `torch.dtype` instances or strings representing a valid dtype from the `torch` package.
+Ref: https://docs.pydantic.dev/latest/concepts/types/#custom-types
+"""
 
 
 class BaseFlamingoConfig(

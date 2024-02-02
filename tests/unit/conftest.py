@@ -8,6 +8,7 @@ from flamingo.integrations.huggingface import (
     QuantizationConfig,
     TextDatasetConfig,
 )
+from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
 
@@ -19,7 +20,7 @@ def model_config_with_repo_id():
 @pytest.fixture
 def model_config_with_artifact():
     artifact = WandbArtifactConfig(name="model", project="project")
-    return AutoModelConfig(load_from=artifact, trust_remote_code=True)
+    return AutoModelConfig(load_from=artifact, trust_remote_code=True, torch_dtype="float16")
 
 
 @pytest.fixture
@@ -63,3 +64,9 @@ def adapter_config():
 @pytest.fixture
 def wandb_run_config():
     return WandbRunConfig(name="run", run_id="12345", project="research", entity="mzai")
+
+
+@pytest.fixture
+def inference_server_config():
+    artifact = WandbArtifactConfig(name="model", project="project")
+    return InferenceServerConfig(base_url="http://0.0.0.0:8000", engine=artifact)

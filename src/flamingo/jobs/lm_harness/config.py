@@ -1,18 +1,37 @@
-import datetime
+from typing import Literal
 
-from pydantic import Field, conlist, field_validator
+from pydantic import conlist, model_validator
 
-from flamingo.integrations.huggingface import AutoModelConfig, QuantizationConfig
+from flamingo.integrations.huggingface import (
+    AutoModelConfig,
+    QuantizationConfig,
+)
+from flamingo.integrations.vllm import InferenceServerConfig
 from flamingo.integrations.wandb import WandbRunConfig
 from flamingo.types import BaseFlamingoConfig
 
 
-class LMHarnessRayConfig(BaseFlamingoConfig):
-    """Misc settings for Ray compute in the LM harness job."""
+class LocalChatCompletionsConfig(BaseFlamingoConfig):
+    """Configuration for a "local-chat-completions" model in lm-harness.
 
-    num_cpus: int | float = 1
-    num_gpus: int | float = 1
-    timeout: datetime.timedelta | None = None
+    The "local-chat-completions" model is powered by a self-hosted inference server,
+    specified as an `InferenceServerConfig`. Additional arguments are also provided
+    to control the tokenizer type and generation parameters.
+    """
+
+    inference: InferenceServerConfig
+    truncate: bool = False
+    max_tokens: int = 256
+    tokenizer_backend: Literal["huggingface", "tiktoken"] = "huggingface"
+
+    @model_validator(mode="after")
+    def validate_inference_engine(cls, config: "LocalChatCompletionsConfig"):
+        if config.inference.engine is None:
+            raise ValueError(
+                "Inference config `engine` must be provided for use in "
+                "lm-harness 'local-chat-completions' model."
+            )
+        return config
 
 
 class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
@@ -27,15 +46,7 @@ class LMHarnessEvaluatorConfig(BaseFlamingoConfig):
 class LMHarnessJobConfig(BaseFlamingoConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
-    model: AutoModelConfig
+    model: AutoModelConfig | LocalChatCompletionsConfig
     evaluator: LMHarnessEvaluatorConfig
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None
-    ray: LMHarnessRayConfig = Field(default_factory=LMHarnessRayConfig)
-
-    @field_validator("model", mode="before")
-    def validate_model_arg(cls, x):
-        """Allow for passing just a path string as the model argument."""
-        if isinstance(x, str):
-            return AutoModelConfig(load_from=x)
-        return x
