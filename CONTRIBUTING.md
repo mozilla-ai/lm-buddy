@@ -49,6 +49,7 @@ Ruff will pick up the configuration defined in the `pyproject.toml` file automat
 
 `flamingo` is intended to be installed as a pip requirement in the runtime environment of a Ray job.
 However, it is often desirable to test local branches on Ray before publishing a new version of the library.
+
 This is possible submitting a Ray job with a runtime environment that points to your
 development branch of the `flamingo` repo.
 

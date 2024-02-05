@@ -14,7 +14,3 @@ tracking:
   name: "mistral-finetune"
   project: "mistral-finetune"
   entity: "your-org"
-
-ray:
-  num_cpus: 1
-  timeout: 3600
