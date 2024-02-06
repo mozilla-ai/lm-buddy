@@ -78,7 +78,9 @@ To do so, follow the steps:
     This is necessary because `py_modules` uploads the `flamingo` module
     but does not install its entrypoint in the environment path.
 
-An example of this workflow can be found in the `examples/dev_workflow.ipynb` notebook.
+An example of this workflow can be found in the `examples/notebooks/dev_workflow.ipynb` notebook.
+
+For a full sample job with a directory structure that you can run as a part of stand-alone repo with a simple Python script that is [run locally to submit to the Job Submission SDK](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#submitting-a-ray-job), see the `examples/dev_submission` directory.
 
 
 # Publishing

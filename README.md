@@ -17,23 +17,6 @@ The package currently allows users to launch either a:
 pip install mzai-flamingo
 ```
 
-## Workflow
-
-There are several possible workflows:
-
-1) A workflow for users on Ray
-2) A workflow for users on GPU-based machines
-3) A workflow for library developers and maintainers.
-
-For all workflow examples, (see `/examples`)
-
-## User Ray Workflow
-
-The user starts by pip-installing `mzai-flamingo` into a new project environment and creating a directory for their experiment jobs. In that new directory, create a a YAML config file
-(see `/examples`).
-
-This file can then be passed as an argument via Flamingo CLI.
-
 ### CLI Usage
 
 `flamingo` exposes a CLI with a few commands, one for each Ray job type.
@@ -53,6 +36,23 @@ flamingo run lm-harness --config lm_harness_config.yaml
 
 See the `examples/configs` folder for examples of the configuration structure. For a full end-to-end interactive workflow running from within Flamingo, see the sample notebooks.
 
+## Workflow
+
+There are several possible workflows:
+
+1) A workflow for users on Ray
+2) A workflow for users on GPU-based machines
+3) A workflow for library developers and maintainers.
+
+For all workflow examples, (see `/examples`)
+
+## User Ray Workflow
+
+The user starts by pip-installing `mzai-flamingo` into a new project environment and creating a directory for their experiment jobs. In that new directory, create a a YAML config file
+(see `/examples`).
+
+This file can then be passed as an argument via Flamingo CLI.
+
 ### Ray Usage
 When submitting a job to Ray, the above commands should be used as your job entrypoints. An additional option is to wrap the Flamingo submission in a Python script that sets up the Ray client and additional parameters and is then passed to Ray's Job Submission SDK.
 
@@ -60,9 +60,6 @@ When submitting a job to Ray, the above commands should be used as your job entr
 client.submit_job(
     entrypoint="python -m flamingo run lm-harness --config lm_harness.yaml", runtime_env=runtime_env
 )```
-
-For a full sample job with the correct directory structure that you can run as a stand-alone if you have flamingo installed in your Python environment , see the `sample_job` directory.
-
 
 ### Minimum Python version
 

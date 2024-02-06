@@ -6,7 +6,6 @@ Submitting a Flamingo job includes two parts: a YAML file that specifies configu
 
 For a full end-to-end interactive workflow running from within Flamingo, see the sample notebooks under `notebooks`.
 
-For a full sample job with the correct directory structure that you can run as a part of stand-alone repo with a simple Python script that is [run locally to submit to the Job Submission SDK](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#submitting-a-ray-job), see the `sample_job` directory.
 
 ## Fine-tuning Details
 
