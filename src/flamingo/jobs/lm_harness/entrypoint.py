@@ -7,8 +7,8 @@ from lm_eval.models.openai_completions import OpenaiCompletionsLM
 
 from flamingo.integrations.huggingface import (
     AutoModelConfig,
+    HuggingFaceAssetLoader,
     HuggingFaceAssetPath,
-    resolve_asset_path,
     resolve_peft_and_pretrained,
 )
 from flamingo.integrations.wandb import (
@@ -39,9 +39,10 @@ def load_harness_model(
     artifact_loader: WandbArtifactLoader,
 ) -> HFLM | OpenaiCompletionsLM:
     # Instantiate the lm-harness LM class based on the provided model config type
+    hf_loader = HuggingFaceAssetLoader(artifact_loader)
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path, revision = resolve_asset_path(model_config.load_from, artifact_loader)
+            model_path, revision = hf_loader.resolve_asset_path(model_config.load_from)
             model_path, peft_path = resolve_peft_and_pretrained(model_path)
             quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
             # TODO: Fix this up by passing in the instantiated model directly
@@ -59,7 +60,7 @@ def load_harness_model(
         case LocalChatCompletionsConfig() as local_config:
             model = local_config.inference.engine
             if isinstance(model, HuggingFaceAssetPath):
-                model, _ = resolve_asset_path(model, artifact_loader)
+                model, _ = hf_loader.resolve_asset_path(model)
             # If tokenizer is not provided, it is set to the value of model internally
             return OpenaiCompletionsLM(
                 model=model,
@@ -111,6 +112,7 @@ def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: WandbArtifactLoa
                 columns=["metric", "value"],
                 tables=eval_results,
             )
+            print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(eval_artifact)
     else:
         load_and_evaluate(config, artifact_loader)

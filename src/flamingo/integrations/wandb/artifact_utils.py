@@ -5,7 +5,7 @@ from urllib.parse import ParseResult, urlparse
 
 import wandb
 
-from flamingo.integrations.wandb import WandbArtifactConfig
+from flamingo.integrations.wandb.artifact_config import WandbArtifactConfig
 
 
 class ArtifactType(str, Enum):
@@ -88,74 +88,15 @@ def build_table_artifact(
     return artifact
 
 
-def log_directory_contents(
-    dir_path: str | Path,
-    artifact_name: str,
-    artifact_type: ArtifactType,
-    *,
-    entry_name: str | None = None,
-) -> wandb.Artifact:
-    """Log the contents of a directory as an artifact of the active run.
-
-    A run should already be initialized before calling this method.
-    If not, an exception will be thrown.
-
-    Args:
-        dir_path (str | Path): Path to the artifact directory.
-        artifact_name (str): Name of the artifact.
-        artifact_type (ArtifactType): Type of the artifact to create.
-        entry_name (str, optional): Name within the artifact to add the directory contents.
-
-    Returns:
-        The `wandb.Artifact` that was produced
-
-    """
-    artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
-    artifact.add_dir(str(dir_path), name=entry_name)
-    return wandb.log_artifact(artifact)
-
-
-def log_directory_reference(
-    dir_path: str | Path,
-    artifact_name: str,
-    artifact_type: ArtifactType,
-    *,
-    scheme: ArtifactURIScheme = ArtifactURIScheme.FILE,
-    entry_name: str | None = None,
-    max_objects: int | None = None,
-) -> wandb.Artifact:
-    """Log a reference to a directory's contents as an artifact of the active run.
-
-    A run should already be initialized before calling this method.
-    If not, an exception will be thrown.
-
-    Args:
-        dir_path (str | Path): Path to the artifact directory.
-        artifact_name (str): Name of the artifact.
-        artifact_type (ArtifactType): Type of the artifact to create.
-        scheme (ArtifactURIScheme): URI scheme to prepend to the artifact path.
-            Defaults to `ArtifactURIScheme.FILE` for filesystem references.
-        entry_name (str, optional): Name within the artifact to add the directory reference.
-        max_objects (int, optional): Max number of objects allowed in the artifact.
-
-    Returns:
-        The `wandb.Artifact` that was produced
-
-    """
-    artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
-    artifact.add_reference(
-        uri=f"{scheme}://{dir_path}",
-        name=entry_name,
-        max_objects=max_objects,
-    )
-    return wandb.log_artifact(artifact)
-
-
 class WandbArtifactLoader:
-    """Abstraction around using and logging W&B artifacts."""
+    """Simple wrapper around using and logging W&B artifacts.
+
+    This class wraps calls to the W&B artifacts API so that those interactions
+    can be easily faked during testing.
+    """
 
     def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
-        """Load an artifact from the artifact config.
+        """Load an artifact from its W&B path.
 
         If a W&B run is active, the artifact is used as an input to the run.
         If not, the artifact is pulled from the W&B API outside of the run.

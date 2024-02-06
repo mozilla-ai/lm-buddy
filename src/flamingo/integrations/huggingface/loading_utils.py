@@ -31,6 +31,12 @@ HuggingFaceAssetPath = HuggingFaceRepoConfig | WandbArtifactConfig
 
 
 class HuggingFaceAssetLoader:
+    """Utility methods for loading HuggingFace assets from Flamingo configurations.
+
+    This class depends on a `WandbArtifactLoader` in order to resolve actual paths from
+    artifact references.
+    """
+
     def __init__(self, artifact_loader: WandbArtifactLoader):
         self._artifact_loader = artifact_loader
 
@@ -73,6 +79,8 @@ class HuggingFaceAssetLoader:
         """Load a `PreTrainedModel` with optional quantization from the flamingo configuration.
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
+
+        TODO(RD2024-87): Handle PEFT adapter loading directly in this method
         """
         device_map, bnb_config = None, None
         if quantization is not None:
@@ -115,7 +123,7 @@ class HuggingFaceAssetLoader:
             tokenizer.pad_token_id = tokenizer.eos_token_id
         return tokenizer
 
-    def load_dataset_from_config(self, config: DatasetConfig) -> Dataset:
+    def load_dataset(self, config: DatasetConfig) -> Dataset:
         """Load a HuggingFace `Dataset` from the flamingo configuration.
 
         This method always returns a single `Dataset` object.
@@ -141,7 +149,7 @@ class HuggingFaceAssetLoader:
 
         The split is performed when a `test_size` is specified on the configuration.
         """
-        match self.load_dataset_from_config(config):
+        match self.load_dataset(config):
             case Dataset() as dataset if config.test_size is not None:
                 # We need to specify a fixed seed to load the datasets on each worker
                 # Under the hood, HuggingFace uses `accelerate` to create a data loader shards
