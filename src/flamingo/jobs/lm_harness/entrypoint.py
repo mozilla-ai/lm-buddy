@@ -2,7 +2,6 @@ from typing import Any
 
 import lm_eval
 import torch
-import wandb
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
 
@@ -14,7 +13,9 @@ from flamingo.integrations.huggingface import (
 )
 from flamingo.integrations.wandb import (
     ArtifactType,
+    WandbArtifactLoader,
     WandbResumeMode,
+    build_table_artifact,
     default_artifact_name,
     wandb_init_from_config,
 )
@@ -22,24 +23,22 @@ from flamingo.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsCon
 from flamingo.jobs.utils import FlamingoJobType
 
 
-# TODO: Should this also be abstracted to a helper method like log_artifact_from_path?
-def log_evaluation_artifact(run_name: str, results: dict[str, dict[str, Any]]) -> wandb.Artifact:
-    print("Building artifact for evaluation results...")
-    artifact_name = default_artifact_name(run_name, ArtifactType.EVALUATION)
-    artifact = wandb.Artifact(artifact_name, type=ArtifactType.EVALUATION)
-    for task_name, task_results in results.items():
-        # Filter down to numeric metrics from task dict
-        task_data = [(k, v) for k, v in task_results.items() if isinstance(v, int | float)]
-        task_table = wandb.Table(data=task_data, columns=["metric", "value"])
-        artifact.add(task_table, name=f"task-{task_name}")
-    return wandb.log_artifact(artifact)
+def filter_numeric_results(results: dict[str, dict[str, Any]]) -> dict[str, dict[str, float]]:
+    numeric_results = {}
+    for key, data in results.items():
+        numeric_data = [(k, v) for k, v in data.items() if isinstance(v, int | float)]
+        numeric_results[key] = numeric_data
+    return numeric_results
 
 
-def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
+def load_harness_model(
+    config: LMHarnessJobConfig,
+    artifact_loader: WandbArtifactLoader,
+) -> HFLM | OpenaiCompletionsLM:
     # Instantiate the lm-harness LM class based on the provided model config type
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path, revision = resolve_asset_path(model_config.load_from)
+            model_path, revision = resolve_asset_path(model_config.load_from, artifact_loader)
             model_path, peft_path = resolve_peft_and_pretrained(model_path)
             quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
             # TODO: Fix this up by passing in the instantiated model directly
@@ -57,7 +56,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
         case LocalChatCompletionsConfig() as local_config:
             model = local_config.inference.engine
             if isinstance(model, HuggingFaceAssetPath):
-                model, _ = resolve_asset_path(model)
+                model, _ = resolve_asset_path(model, artifact_loader)
             # If tokenizer is not provided, it is set to the value of model internally
             return OpenaiCompletionsLM(
                 model=model,
@@ -71,11 +70,14 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
             raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
-def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:
+def load_and_evaluate(
+    config: LMHarnessJobConfig,
+    artifact_loader: WandbArtifactLoader,
+) -> dict[str, dict[str, float]]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
-    llm = load_harness_model(config)
+    llm = load_harness_model(config, artifact_loader)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
         tasks=config.evaluator.tasks,
@@ -84,12 +86,12 @@ def load_and_evaluate(config: LMHarnessJobConfig) -> dict[str, Any]:
         limit=config.evaluator.limit,
         log_samples=False,
     )
-    eval_results = eval_results["results"]
+    eval_results = filter_numeric_results(eval_results["results"])
     print(f"Obtained evaluation results: {eval_results}")
     return eval_results
 
 
-def run_lm_harness(config: LMHarnessJobConfig):
+def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: WandbArtifactLoader):
     print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
 
     if config.tracking is not None:
@@ -99,7 +101,12 @@ def run_lm_harness(config: LMHarnessJobConfig):
             resume=WandbResumeMode.ALLOW,
             job_type=FlamingoJobType.EVALUATION,
         ) as run:
-            eval_results = load_and_evaluate(config)
-            log_evaluation_artifact(run.name, eval_results)
+            eval_results = load_and_evaluate(config, artifact_loader)
+            eval_artifact = build_table_artifact(
+                table_data=eval_results,
+                artifact_type=ArtifactType.EVALUATION,
+                artifact_name=default_artifact_name(run.name, ArtifactType.EVALUATION),
+            )
+            artifact_loader.log_artifact(eval_artifact)
     else:
-        load_and_evaluate(config)
+        load_and_evaluate(config, artifact_loader)

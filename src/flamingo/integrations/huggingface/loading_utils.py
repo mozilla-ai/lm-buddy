@@ -20,13 +20,20 @@ from flamingo.integrations.huggingface import (
     HuggingFaceRepoConfig,
     QuantizationConfig,
 )
-from flamingo.integrations.wandb import WandbArtifactConfig, get_artifact_filesystem_path
+from flamingo.integrations.wandb import (
+    WandbArtifactConfig,
+    WandbArtifactLoader,
+    get_artifact_filesystem_path,
+)
 
 HuggingFaceAssetPath = HuggingFaceRepoConfig | WandbArtifactConfig
 """Config that can be resolved to a HuggingFace name/path."""
 
 
-def resolve_asset_path(path: HuggingFaceAssetPath) -> (str, str | None):
+def resolve_asset_path(
+    path: HuggingFaceAssetPath,
+    artifact_loader: WandbArtifactLoader,
+) -> (str, str | None):
     """Resolve the actual HuggingFace name/path from a config.
 
     Currently, two config types contain references to a loadable HuggingFace path:
@@ -37,7 +44,8 @@ def resolve_asset_path(path: HuggingFaceAssetPath) -> (str, str | None):
         case HuggingFaceRepoConfig(repo_id, revision):
             load_path, revision = repo_id, revision
         case WandbArtifactConfig() as artifact_config:
-            load_path = get_artifact_filesystem_path(artifact_config)
+            artifact = artifact_loader.load_artifact(artifact_config)
+            load_path = get_artifact_filesystem_path(artifact)
             revision = None
         case _:
             raise ValueError(f"Unable to resolve load path from {path}.")

@@ -31,23 +31,8 @@ def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
     return f"{name}-{artifact_type}"
 
 
-def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
-    """Load an artifact from the artifact config.
-
-    If a W&B run is active, the artifact is loaded via the run as an input.
-    If not, the artifact is pulled from the W&B API outside of the run.
-    """
-    if wandb.run is not None:
-        # Retrieves the artifact and links it as an input to the run
-        return wandb.use_artifact(config.wandb_path())
-    else:
-        # Retrieves the artifact outside of the run
-        api = wandb.Api()
-        return api.artifact(config.wandb_path())
-
-
 def get_artifact_filesystem_path(
-    config: WandbArtifactConfig,
+    artifact: wandb.Artifact,
     *,
     download_root_path: str | None = None,
 ) -> Path:
@@ -57,7 +42,6 @@ def get_artifact_filesystem_path(
     If not, downloads the artifact (with the specified `download_root_path`)
     and returns the newly created artifact directory path.
     """
-    artifact = get_wandb_artifact(config)
     for entry in artifact.manifest.entries.values():
         match urlparse(entry.ref):
             case ParseResult(scheme="file", path=file_path):
@@ -65,6 +49,41 @@ def get_artifact_filesystem_path(
     # No filesystem references found in the manifest -> download the artifact
     download_path = artifact.download(root=download_root_path)
     return Path(download_path)
+
+
+def build_directory_artifact(
+    dir_path: str | Path,
+    artifact_name: str,
+    artifact_type: ArtifactType,
+    *,
+    reference: bool = False,
+    entry_name: str | None = None,
+    max_objects: int | None = None,
+) -> wandb.Artifact:
+    artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
+    if reference:
+        # Right now, we are assuming a fixed "file" URI scheme
+        # We can pass the URI scheme if necessary later
+        artifact.add_reference(
+            uri=f"{ArtifactURIScheme.FILE}://{dir_path}",
+            max_objects=max_objects,
+            name=entry_name,
+        )
+    else:
+        artifact.add_dir(str(dir_path), name=entry_name)
+    return artifact
+
+
+def build_table_artifact(
+    table_data: dict[str, dict[str, float]],
+    artifact_name: str,
+    artifact_type: ArtifactType,
+) -> wandb.Artifact:
+    artifact = wandb.Artifact(artifact_name, type=artifact_type)
+    for table_name, data in table_data.items():
+        table = wandb.Table(data=data, columns=["metric", "value"])
+        artifact.add(table, name=f"{table_name}-table")
+    return artifact
 
 
 def log_directory_contents(
@@ -128,3 +147,28 @@ def log_directory_reference(
         max_objects=max_objects,
     )
     return wandb.log_artifact(artifact)
+
+
+class WandbArtifactLoader:
+    """Abstraction around using and logging W&B artifacts."""
+
+    def load_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
+        """Load an artifact from the artifact config.
+
+        If a W&B run is active, the artifact is used as an input to the run.
+        If not, the artifact is pulled from the W&B API outside of the run.
+        """
+        if wandb.run is not None:
+            # Retrieves the artifact and links it as an input to the run
+            return wandb.use_artifact(config.wandb_path())
+        else:
+            # Retrieves the artifact outside of the run
+            api = wandb.Api()
+            return api.artifact(config.wandb_path())
+
+    def log_artifact(self, artifact: wandb.Artifact) -> None:
+        """Log an artifact as an output of the currently active W&B run.
+
+        An exception is raised if a run is not active.
+        """
+        return wandb.log_artifact(artifact)
