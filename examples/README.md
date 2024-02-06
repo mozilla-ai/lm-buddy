@@ -1,6 +1,6 @@
 ## Working with Flamingo
 
-A Flamingo job includes two parts: a YAML file that specifies configuration for your finetuning or evaluation job, and a Ray Python driver script that invokes the Flamingo CLI to parse the input configurations, and send them to your Ray cluster.
+Submitting a Flamingo job includes two parts: a YAML file that specifies configuration for your finetuning or evaluation job, and a driver script that either invokes the Flamingo CLI directly or submits a job to Ray that invokes Flamingo as its entrypoint.
 
 ## Examples
 
