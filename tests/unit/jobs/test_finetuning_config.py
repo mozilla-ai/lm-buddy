@@ -46,7 +46,7 @@ def test_parse_yaml_file(finetuning_job_config):
 
 def test_load_example_config(examples_dir):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_dir / "configs" / "finetuning_config.yaml"
+    config_file = examples_dir / "configs" / "finetuning" / "finetuning_config.yaml"
     config = FinetuningJobConfig.from_yaml_file(config_file)
     assert copy_pydantic_json(config) == config
 
