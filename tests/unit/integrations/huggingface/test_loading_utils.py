@@ -1,11 +1,7 @@
 import pytest
 from datasets import Dataset, DatasetDict
 
-from flamingo.integrations.huggingface import (
-    DatasetConfig,
-    load_and_split_dataset,
-    load_dataset_from_config,
-)
+from flamingo.integrations.huggingface import DatasetConfig, HuggingFaceAssetLoader
 from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, build_directory_artifact
 from tests.test_utils import FakeWandbArtifactLoader
 
@@ -29,9 +25,11 @@ def test_dataset_loading(xyz_dataset_artifact):
     artifact_config = WandbArtifactConfig(name=xyz_dataset_artifact.name, project="project")
     dataset_config = DatasetConfig(load_from=artifact_config, test_size=0.2, seed=0)
 
-    dataset = load_dataset_from_config(dataset_config, artifact_loader)
+    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+
+    dataset = hf_loader.load_dataset_from_config(dataset_config)
     assert type(dataset) is Dataset
 
-    datasets = load_and_split_dataset(dataset_config, artifact_loader)
+    datasets = hf_loader.load_and_split_dataset(dataset_config)
     assert type(datasets) is DatasetDict
     assert "train" in datasets and "test" in datasets
