@@ -44,7 +44,7 @@ def resolve_asset_path(
         case HuggingFaceRepoConfig(repo_id, revision):
             load_path, revision = repo_id, revision
         case WandbArtifactConfig() as artifact_config:
-            artifact = artifact_loader.load_artifact(artifact_config)
+            artifact = artifact_loader.use_artifact(artifact_config)
             load_path = get_artifact_filesystem_path(artifact)
             revision = None
         case _:
@@ -78,17 +78,21 @@ def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
         return path, None
 
 
-def load_pretrained_model_config(config: AutoModelConfig) -> PretrainedConfig:
+def load_pretrained_config(
+    config: AutoModelConfig,
+    artifact_loader: WandbArtifactLoader,
+) -> PretrainedConfig:
     """Load a `PretrainedConfig` from the flamingo configuration.
 
     An exception is raised if the HuggingFace repo does not contain a `config.json` file.
     """
-    model_path, revision = resolve_asset_path(config.load_from)
+    model_path, revision = resolve_asset_path(config.load_from, artifact_loader)
     return AutoConfig.from_pretrained(pretrained_model_name_or_path=model_path, revision=revision)
 
 
 def load_pretrained_model(
     config: AutoModelConfig,
+    artifact_loader: WandbArtifactLoader,
     quantization: QuantizationConfig | None = None,
 ) -> PreTrainedModel:
     """Load a `PreTrainedModel` with optional quantization from the flamingo configuration.
@@ -107,7 +111,7 @@ def load_pretrained_model(
 
     # TODO: HuggingFace has many AutoModel classes with different "language model heads"
     #   Can we abstract this to load with any type of AutoModel class?
-    model_path, revision = resolve_asset_path(config.load_from)
+    model_path, revision = resolve_asset_path(config.load_from, artifact_loader)
     return AutoModelForCausalLM.from_pretrained(
         pretrained_model_name_or_path=model_path,
         revision=revision,
@@ -118,12 +122,15 @@ def load_pretrained_model(
     )
 
 
-def load_pretrained_tokenizer(config: AutoTokenizerConfig) -> PreTrainedTokenizer:
+def load_pretrained_tokenizer(
+    config: AutoTokenizerConfig,
+    artifact_loader: WandbArtifactLoader,
+) -> PreTrainedTokenizer:
     """Load a `PreTrainedTokenizer` from the flamingo configuration.
 
     An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
     """
-    tokenizer_path, revision = resolve_asset_path(config.load_from)
+    tokenizer_path, revision = resolve_asset_path(config.load_from, artifact_loader)
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=tokenizer_path,
         revision=revision,
@@ -136,14 +143,17 @@ def load_pretrained_tokenizer(config: AutoTokenizerConfig) -> PreTrainedTokenize
     return tokenizer
 
 
-def load_dataset_from_config(config: DatasetConfig) -> Dataset:
+def load_dataset_from_config(
+    config: DatasetConfig,
+    artifact_loader: WandbArtifactLoader,
+) -> Dataset:
     """Load a HuggingFace `Dataset` from the flamingo configuration.
 
     This method always returns a single `Dataset` object.
     When loading from HuggingFace directly, the `Dataset` is for the provided split.
     When loading from disk, the saved files must be for a dataset else an exception is raised.
     """
-    dataset_path, revision = resolve_asset_path(config.load_from)
+    dataset_path, revision = resolve_asset_path(config.load_from, artifact_loader)
     # Dataset loading requires a different method if from a HF vs. disk
     if isinstance(config.load_from, HuggingFaceRepoConfig):
         return load_dataset(dataset_path, revision=revision, split=config.split)
@@ -158,12 +168,15 @@ def load_dataset_from_config(config: DatasetConfig) -> Dataset:
                 )
 
 
-def load_and_split_dataset(config: DatasetConfig) -> DatasetDict:
+def load_and_split_dataset(
+    config: DatasetConfig,
+    artifact_loader: WandbArtifactLoader,
+) -> DatasetDict:
     """Load a HuggingFace dataset and optionally perform a train/test split.
 
     The split is performed when a `test_size` is specified on the configuration.
     """
-    match load_dataset_from_config(config):
+    match load_dataset_from_config(config, artifact_loader):
         case Dataset() as dataset if config.test_size is not None:
             # We need to specify a fixed seed to load the datasets on each worker
             # Under the hood, HuggingFace uses `accelerate` to create a data loader shards

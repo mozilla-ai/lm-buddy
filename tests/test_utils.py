@@ -13,7 +13,7 @@ class FakeWandbArtifactLoader(WandbArtifactLoader):
     def __init__(self):
         self._storage = dict()
 
-    def load_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
+    def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
         return self._storage[config.name]
 
     def log_artifact(self, artifact: wandb.Artifact) -> None:

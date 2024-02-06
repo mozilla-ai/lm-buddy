@@ -154,7 +154,7 @@ def log_directory_reference(
 class WandbArtifactLoader:
     """Abstraction around using and logging W&B artifacts."""
 
-    def load_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
+    def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
         """Load an artifact from the artifact config.
 
         If a W&B run is active, the artifact is used as an input to the run.
