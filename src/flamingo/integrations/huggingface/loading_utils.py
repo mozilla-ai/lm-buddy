@@ -33,7 +33,7 @@ HuggingFaceAssetPath = HuggingFaceRepoConfig | WandbArtifactConfig
 def resolve_asset_path(
     path: HuggingFaceAssetPath,
     artifact_loader: WandbArtifactLoader,
-) -> (str, str | None):
+) -> tuple[str, str | None]:
     """Resolve the actual HuggingFace name/path from a config.
 
     Currently, two config types contain references to a loadable HuggingFace path:
@@ -52,7 +52,7 @@ def resolve_asset_path(
     return str(load_path), revision
 
 
-def resolve_peft_and_pretrained(path: str) -> (str, str | None):
+def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
     """Helper method for determining if a path corresponds to a PEFT model.
 
     A PEFT model contains an `adapter_config.json` in its directory.
