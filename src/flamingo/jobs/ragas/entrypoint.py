@@ -55,7 +55,7 @@ def evaluation_task(config: RagasEvaluationJobConfig) -> None:
         update_wandb_summary(config.wandb_env, result)
 
 
-def run_ragas_evaluation(config: RagasEvaluationConfig):
+def run_ragas_evaluation(config: RagasEvaluationJobConfig):
     print(f"Received job configuration: {config}")
 
     # Resolve path and ensure exists
