@@ -1,32 +1,9 @@
-import pytest
 import torch
 from datasets import Dataset, DatasetDict
 
 from flamingo.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
-from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, build_directory_artifact
+from flamingo.integrations.wandb import WandbArtifactConfig
 from tests.test_utils import FakeWandbArtifactLoader
-
-
-@pytest.fixture
-def xyz_dataset_artifact(resources_dir):
-    dataset_path = resources_dir / "datasets" / "xyz"
-    return build_directory_artifact(
-        artifact_name="xyz-dataset",
-        artifact_type=ArtifactType.DATASET,
-        dir_path=dataset_path,
-        reference=True,
-    )
-
-
-@pytest.fixture
-def bert_model_artifact(resources_dir):
-    model_path = resources_dir / "models" / "bert_tiniest"
-    return build_directory_artifact(
-        artifact_name="bert-tiniest-model",
-        artifact_type=ArtifactType.MODEL,
-        dir_path=model_path,
-        reference=True,
-    )
 
 
 def test_dataset_loading(xyz_dataset_artifact):
