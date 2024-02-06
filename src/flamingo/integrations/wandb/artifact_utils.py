@@ -1,5 +1,6 @@
 from enum import Enum
 from pathlib import Path
+from typing import Any
 from urllib.parse import ParseResult, urlparse
 
 import wandb
@@ -52,9 +53,9 @@ def get_artifact_filesystem_path(
 
 
 def build_directory_artifact(
-    dir_path: str | Path,
     artifact_name: str,
     artifact_type: ArtifactType,
+    dir_path: str | Path,
     *,
     reference: bool = False,
     entry_name: str | None = None,
@@ -75,14 +76,15 @@ def build_directory_artifact(
 
 
 def build_table_artifact(
-    table_data: dict[str, dict[str, float]],
     artifact_name: str,
     artifact_type: ArtifactType,
+    columns: list[str],
+    tables: dict[str, list[list[Any]]],
 ) -> wandb.Artifact:
     artifact = wandb.Artifact(artifact_name, type=artifact_type)
-    for table_name, data in table_data.items():
-        table = wandb.Table(data=data, columns=["metric", "value"])
-        artifact.add(table, name=f"{table_name}-table")
+    for table_name, table_data in tables.items():
+        table = wandb.Table(data=table_data, columns=columns)
+        artifact.add(table, name=table_name)
     return artifact
 
 

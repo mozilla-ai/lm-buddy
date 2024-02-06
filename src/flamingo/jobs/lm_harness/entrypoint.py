@@ -23,11 +23,14 @@ from flamingo.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsCon
 from flamingo.jobs.utils import FlamingoJobType
 
 
-def filter_numeric_results(results: dict[str, dict[str, Any]]) -> dict[str, dict[str, float]]:
+def filter_numeric_metrics(
+    results: dict[str, dict[str, Any]],
+) -> dict[str, list[tuple[str, float]]]:
+    """Filter evaluation results to the metrics with numeric values."""
     numeric_results = {}
     for key, data in results.items():
-        numeric_data = [(k, v) for k, v in data.items() if isinstance(v, int | float)]
-        numeric_results[key] = numeric_data
+        numeric_rows = [(k, v) for k, v in data.items() if isinstance(v, int | float)]
+        numeric_results[key] = numeric_rows
     return numeric_results
 
 
@@ -73,7 +76,7 @@ def load_harness_model(
 def load_and_evaluate(
     config: LMHarnessJobConfig,
     artifact_loader: WandbArtifactLoader,
-) -> dict[str, dict[str, float]]:
+) -> dict[str, list[tuple[str, float]]]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
@@ -86,7 +89,7 @@ def load_and_evaluate(
         limit=config.evaluator.limit,
         log_samples=False,
     )
-    eval_results = filter_numeric_results(eval_results["results"])
+    eval_results = filter_numeric_metrics(eval_results["results"])
     print(f"Obtained evaluation results: {eval_results}")
     return eval_results
 
@@ -103,9 +106,10 @@ def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: WandbArtifactLoa
         ) as run:
             eval_results = load_and_evaluate(config, artifact_loader)
             eval_artifact = build_table_artifact(
-                table_data=eval_results,
-                artifact_type=ArtifactType.EVALUATION,
                 artifact_name=default_artifact_name(run.name, ArtifactType.EVALUATION),
+                artifact_type=ArtifactType.EVALUATION,
+                columns=["metric", "value"],
+                tables=eval_results,
             )
             artifact_loader.log_artifact(eval_artifact)
     else:
