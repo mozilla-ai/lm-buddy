@@ -1,7 +1,7 @@
 import wandb
 from pydantic import BaseModel
 
-from flamingo.integrations.wandb import WandbArtifactConfig, WandbArtifactLoader
+from flamingo.integrations.wandb import WandbArtifactConfig
 
 
 def copy_pydantic_json(model: BaseModel) -> BaseModel:
@@ -9,8 +9,8 @@ def copy_pydantic_json(model: BaseModel) -> BaseModel:
     return model.__class__.model_validate_json(model.model_dump_json())
 
 
-class FakeWandbArtifactLoader(WandbArtifactLoader):
-    """Fake artifact loader with in-memory storage.
+class FakeArtifactLoader:
+    """Fake implementation of a `WandbArtifactLoader` with in-memory artifact storage.
 
     This class bypasses calls to the W&B SDK for using/logging artifacts,
     making it suitable for use in testing when W&B is disabled.

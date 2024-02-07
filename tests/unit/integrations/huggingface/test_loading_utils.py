@@ -3,12 +3,12 @@ from datasets import Dataset, DatasetDict
 
 from flamingo.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
 from flamingo.integrations.wandb import WandbArtifactConfig
-from tests.test_utils import FakeWandbArtifactLoader
+from tests.test_utils import FakeArtifactLoader
 
 
 def test_dataset_loading(xyz_dataset_artifact):
     # Preload fake artifact for testing
-    artifact_loader = FakeWandbArtifactLoader()
+    artifact_loader = FakeArtifactLoader()
     artifact_loader.log_artifact(xyz_dataset_artifact)
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
 
@@ -25,7 +25,7 @@ def test_dataset_loading(xyz_dataset_artifact):
 
 def test_model_loading(gpt2_model_artifact):
     # Preload fake artifact for testing
-    artifact_loader = FakeWandbArtifactLoader()
+    artifact_loader = FakeArtifactLoader()
     artifact_loader.log_artifact(gpt2_model_artifact)
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
 

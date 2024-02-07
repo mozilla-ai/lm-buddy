@@ -21,10 +21,10 @@ class WandbArtifactLoader(Protocol):
         pass
 
 
-class LiveWandbArtifactLoader:
+class ExternalArtifactLoader:
     """Live implementation of the `WandbArtifactLoader` protocol.
 
-    This class makes calls to the W&B artifacts API and is not suitable for test environments.
+    This class makes external calls to the W&B API and is not suitable for test environments.
     """
 
     def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:

@@ -1,6 +1,6 @@
 import click
 
-from flamingo.integrations.wandb import LiveWandbArtifactLoader
+from flamingo.integrations.wandb import ExternalArtifactLoader
 
 
 @click.group(name="run", help="Run a Flamingo job.")
@@ -31,6 +31,6 @@ def run_finetuning(config: str) -> None:
 def run_lm_harness(config: str) -> None:
     from flamingo.jobs.lm_harness import LMHarnessJobConfig, run_lm_harness
 
-    artifact_loader = LiveWandbArtifactLoader()
+    artifact_loader = ExternalArtifactLoader()
     config = LMHarnessJobConfig.from_yaml_file(config)
     run_lm_harness(config, artifact_loader)

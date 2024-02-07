@@ -3,7 +3,7 @@ import pytest
 from flamingo.integrations.huggingface import AutoModelConfig
 from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 from flamingo.jobs.lm_harness import LMHarnessEvaluatorConfig, LMHarnessJobConfig, run_lm_harness
-from tests.test_utils import FakeWandbArtifactLoader
+from tests.test_utils import FakeArtifactLoader
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def job_config(gpt2_model_artifact):
 
 def test_lm_harness_job_with_tracking(gpt2_model_artifact, job_config):
     # Preload input artifact in loader
-    artifact_loader = FakeWandbArtifactLoader()
+    artifact_loader = FakeArtifactLoader()
     artifact_loader.log_artifact(gpt2_model_artifact)
 
     # Run test job
@@ -37,7 +37,7 @@ def test_lm_harness_job_no_tracking(gpt2_model_artifact, job_config):
     job_config.tracking = None
 
     # Preload input artifact in loader
-    artifact_loader = FakeWandbArtifactLoader()
+    artifact_loader = FakeArtifactLoader()
     artifact_loader.log_artifact(gpt2_model_artifact)
 
     # Run test job

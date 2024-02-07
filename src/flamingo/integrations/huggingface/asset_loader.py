@@ -57,7 +57,7 @@ def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
 
 
 class HuggingFaceAssetLoader:
-    """Utility methods for loading HuggingFace assets from Flamingo configurations.
+    """Helper class for loading HuggingFace assets from Flamingo configurations.
 
     This class depends on a `WandbArtifactLoader` in order to resolve actual paths from
     artifact references.
