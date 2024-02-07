@@ -1,12 +1,13 @@
+"""Script to generate the `fake_gpt2` model and tokenizer files."""
 from pathlib import Path
 
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 if __name__ == "__main__":
-    # Load base config and tokenizer
-    base_path = "openai-community/gpt2"
-    config = AutoConfig.from_pretrained(base_path)
-    tokenizer = AutoTokenizer.from_pretrained(base_path)
+    # Load base HF config and tokenizer
+    hf_model_name = "openai-community/gpt2"
+    config = AutoConfig.from_pretrained(hf_model_name)
+    tokenizer = AutoTokenizer.from_pretrained(hf_model_name)
 
     # Make the config super tiny
     config._name_or_path = "fake-gpt2"

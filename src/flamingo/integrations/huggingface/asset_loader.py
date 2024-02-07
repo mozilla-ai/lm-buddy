@@ -30,6 +30,32 @@ HuggingFaceAssetPath = HuggingFaceRepoConfig | WandbArtifactConfig
 """Config that can be resolved to a HuggingFace name/path."""
 
 
+def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
+    """Helper method for determining if a path corresponds to a PEFT model.
+
+    A PEFT model contains an `adapter_config.json` in its directory.
+    If this file can be loaded, we know the path is a for a PEFT model.
+    If not, we assume the provided path corresponds to a base HF model.
+
+    Args:
+        path (str): Name/path to a HuggingFace directory
+
+    Returns:
+        Tuple of (base model path, optional PEFT path)
+    """
+    # We don't know if the checkpoint is adapter weights or merged model weights
+    # Try to load as an adapter and fall back to the checkpoint containing the full model
+    try:
+        peft_config = PeftConfig.from_pretrained(path)
+        return peft_config.base_model_name_or_path, path
+    except ValueError as e:
+        warnings.warn(
+            f"Unable to load model as adapter: {e}. "
+            "This is expected if the checkpoint does not contain adapter weights."
+        )
+        return path, None
+
+
 class HuggingFaceAssetLoader:
     """Utility methods for loading HuggingFace assets from Flamingo configurations.
 
@@ -54,15 +80,15 @@ class HuggingFaceAssetLoader:
                 artifact = self._artifact_loader.use_artifact(artifact_config)
                 load_path = get_artifact_filesystem_path(artifact)
                 revision = None
-            case _:
-                raise ValueError(f"Unable to resolve load path from {path}.")
+            case unknown_path:
+                raise ValueError(f"Unable to resolve asset path from {unknown_path}.")
         return str(load_path), revision
 
     def load_pretrained_config(
         self,
         config: AutoModelConfig,
     ) -> PretrainedConfig:
-        """Load a `PretrainedConfig` from the flamingo configuration.
+        """Load a `PretrainedConfig` from the model configuration.
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
@@ -76,7 +102,7 @@ class HuggingFaceAssetLoader:
         config: AutoModelConfig,
         quantization: QuantizationConfig | None = None,
     ) -> PreTrainedModel:
-        """Load a `PreTrainedModel` with optional quantization from the flamingo configuration.
+        """Load a `PreTrainedModel` with optional quantization from the model configuration.
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
 
@@ -107,7 +133,7 @@ class HuggingFaceAssetLoader:
         )
 
     def load_pretrained_tokenizer(self, config: AutoTokenizerConfig) -> PreTrainedTokenizer:
-        """Load a `PreTrainedTokenizer` from the flamingo configuration.
+        """Load a `PreTrainedTokenizer` from the model configuration.
 
         An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
         """
@@ -124,7 +150,7 @@ class HuggingFaceAssetLoader:
         return tokenizer
 
     def load_dataset(self, config: DatasetConfig) -> Dataset:
-        """Load a HuggingFace `Dataset` from the flamingo configuration.
+        """Load a HuggingFace `Dataset` from the dataset configuration.
 
         This method always returns a single `Dataset` object.
         When loading from HuggingFace directly, the `Dataset` is for the provided split.
@@ -159,29 +185,3 @@ class HuggingFaceAssetLoader:
                 return dataset.train_test_split(test_size=config.test_size, seed=split_seed)
             case dataset:
                 return DatasetDict({"train": dataset})
-
-
-def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
-    """Helper method for determining if a path corresponds to a PEFT model.
-
-    A PEFT model contains an `adapter_config.json` in its directory.
-    If this file can be loaded, we know the path is a for a PEFT model.
-    If not, we assume the provided path corresponds to a base HF model.
-
-    Args:
-        path (str): Name/path to a HuggingFace directory
-
-    Returns:
-        Tuple of (base model path, optional PEFT path)
-    """
-    # We don't know if the checkpoint is adapter weights or merged model weights
-    # Try to load as an adapter and fall back to the checkpoint containing the full model
-    try:
-        peft_config = PeftConfig.from_pretrained(path)
-        return peft_config.base_model_name_or_path, path
-    except ValueError as e:
-        warnings.warn(
-            f"Unable to load model as adapter: {e}. "
-            "This is expected if the checkpoint does not contain adapter weights."
-        )
-        return path, None

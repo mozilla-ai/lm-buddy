@@ -23,10 +23,16 @@ from flamingo.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsCon
 from flamingo.jobs.utils import FlamingoJobType
 
 
-def filter_numeric_metrics(
+def get_numeric_metrics(
     results: dict[str, dict[str, Any]],
 ) -> dict[str, list[tuple[str, float]]]:
-    """Filter evaluation results to the metrics with numeric values."""
+    """Filter non-numeric values from the evaluation results.
+
+    This is necessary because artifact tables must have a single datatype for each column.
+
+    lm-harness returns mostly numeric values, but there are also some misc string-valued metrics.
+    Filtering down to only numeric values allows us to produce a valid table artifact.
+    """
     numeric_results = {}
     for key, data in results.items():
         numeric_rows = [(k, v) for k, v in data.items() if isinstance(v, int | float)]
@@ -90,7 +96,7 @@ def load_and_evaluate(
         limit=config.evaluator.limit,
         log_samples=False,
     )
-    eval_results = filter_numeric_metrics(eval_results["results"])
+    eval_results = get_numeric_metrics(eval_results["results"])
     print(f"Obtained evaluation results: {eval_results}")
     return eval_results
 

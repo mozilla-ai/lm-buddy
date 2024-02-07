@@ -1,3 +1,4 @@
+"""Script to generate the `xyz` dataset files."""
 from pathlib import Path
 
 from datasets import Dataset

@@ -5,8 +5,6 @@ from urllib.parse import ParseResult, urlparse
 
 import wandb
 
-from flamingo.integrations.wandb.artifact_config import WandbArtifactConfig
-
 
 class ArtifactType(str, Enum):
     """Enumeration of artifact types used by the Flamingo."""
@@ -86,32 +84,3 @@ def build_table_artifact(
         table = wandb.Table(data=table_data, columns=columns)
         artifact.add(table, name=table_name)
     return artifact
-
-
-class WandbArtifactLoader:
-    """Simple wrapper around using and logging W&B artifacts.
-
-    This class wraps calls to the W&B artifacts API so that those interactions
-    can be easily faked during testing.
-    """
-
-    def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
-        """Load an artifact from its W&B path.
-
-        If a W&B run is active, the artifact is used as an input to the run.
-        If not, the artifact is pulled from the W&B API outside of the run.
-        """
-        if wandb.run is not None:
-            # Retrieves the artifact and links it as an input to the run
-            return wandb.use_artifact(config.wandb_path())
-        else:
-            # Retrieves the artifact outside of the run
-            api = wandb.Api()
-            return api.artifact(config.wandb_path())
-
-    def log_artifact(self, artifact: wandb.Artifact) -> None:
-        """Log an artifact as an output of the currently active W&B run.
-
-        An exception is raised if a run is not active.
-        """
-        return wandb.log_artifact(artifact)

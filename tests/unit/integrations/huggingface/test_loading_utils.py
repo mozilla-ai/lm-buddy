@@ -32,7 +32,7 @@ def test_model_loading(gpt2_model_artifact):
     artifact_config = WandbArtifactConfig(name=gpt2_model_artifact.name, project="project")
     model_config = AutoModelConfig(load_from=artifact_config, torch_dtype=torch.bfloat16)
 
-    bert_config = hf_loader.load_pretrained_config(model_config)
-    bert_model = hf_loader.load_pretrained_model(model_config)
-    assert bert_config._name_or_path == bert_model.name_or_path
-    assert bert_model.dtype == torch.bfloat16
+    hf_config = hf_loader.load_pretrained_config(model_config)
+    hf_model = hf_loader.load_pretrained_model(model_config)
+    assert hf_config._name_or_path == hf_model.name_or_path
+    assert hf_model.dtype == torch.bfloat16

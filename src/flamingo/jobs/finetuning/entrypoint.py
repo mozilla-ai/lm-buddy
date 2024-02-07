@@ -8,7 +8,7 @@ from trl import SFTTrainer
 from flamingo.integrations.huggingface import HuggingFaceAssetLoader
 from flamingo.integrations.wandb import (
     ArtifactType,
-    WandbArtifactLoader,
+    LiveWandbArtifactLoader,
     WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
@@ -27,7 +27,7 @@ def is_tracking_enabled(config: FinetuningJobConfig):
 def load_and_train(config: FinetuningJobConfig):
     # Load the input artifacts, potentially linking them to the active W&B run
     # TODO(RD2024-89): Inject this into Ray workers somehow
-    hf_loader = HuggingFaceAssetLoader(WandbArtifactLoader())
+    hf_loader = HuggingFaceAssetLoader(LiveWandbArtifactLoader())
     model = hf_loader.load_pretrained_model(config.model, config.quantization)
     tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
     datasets = hf_loader.load_and_split_dataset(config.dataset)
@@ -101,5 +101,5 @@ def run_finetuning(config: FinetuningJobConfig):
                 reference=True,
             )
             print("Logging artifact for model checkpoint...")
-            artifact_loader = WandbArtifactLoader()
+            artifact_loader = LiveWandbArtifactLoader()
             artifact_loader.log_artifact(model_artifact)
