@@ -33,7 +33,7 @@ def test_lm_harness_job_with_tracking(gpt2_model_artifact, job_config):
 
 
 def test_lm_harness_job_no_tracking(gpt2_model_artifact, job_config):
-    # Disable trackign on job config
+    # Disable tracking on job config
     job_config.tracking = None
 
     # Preload input artifact in loader
