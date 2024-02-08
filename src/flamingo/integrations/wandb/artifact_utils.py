@@ -62,17 +62,17 @@ def build_directory_artifact(
     """Build an artifact containing the contents of a directory.
 
     Args:
-        artifact_name (str): Name of the artifact
-        artifact_type (ArtifactType): Type of artifact
-        dir_path (str | Path): Directory path to include in the artifact
+        artifact_name (str): Name of the artifact.
+        artifact_type (ArtifactType): Type of artifact.
+        dir_path (str | Path): Directory path to include in the artifact.
 
     Keyword Args:
-        reference (bool): Whether to only reference the directory contents (default: False)
-        entry_name (str, optional): Name of the entry within the artifact (default: None)
-        max_bojects (int, optional): Max objects to include in the artifact (default: None)
+        reference (bool): Only reference the directory, do not copy contents. Defaults to False.
+        entry_name (str | None): Name for directory within the artifact. Defaults to None.
+        max_objects (int | None): Max objects to include in the artifact. Defaults to None.
 
     Returns:
-        The artifact containing the directory contents
+        wandb.Artifact: The generated artifact.
     """
     artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
     if reference:
@@ -97,13 +97,13 @@ def build_table_artifact(
     """Build an artifact containing one or more table entries.
 
     Args:
-        artifact_name (str): Name of the artifact
-        artifact_type (ArtifactType): Type of artifact
-        columns (list[str]): Column names for the tables
-        tables (dict[str, list[list[Any]]]): Mapping from table name to table rows
+        artifact_name (str): Name of the artifact.
+        artifact_type (ArtifactType): Type of artifact.
+        columns (list[str]): Column names for the tables.
+        tables (dict[str, list[list[Any]]]): Mapping from table name to table rows.
 
     Returns:
-        The artifact containing the table(s)
+        wandb.Artifact: The artifact containing the table(s).
     """
     artifact = wandb.Artifact(artifact_name, type=artifact_type)
     for table_name, table_data in tables.items():
