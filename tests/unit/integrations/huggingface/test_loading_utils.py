@@ -1,30 +1,38 @@
-from unittest import mock
-
+import torch
 from datasets import Dataset, DatasetDict
 
-from flamingo.integrations.huggingface import (
-    DatasetConfig,
-    load_and_split_dataset,
-    load_dataset_from_config,
-)
+from flamingo.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
 from flamingo.integrations.wandb import WandbArtifactConfig
+from tests.test_utils import FakeArtifactLoader
 
 
-def test_dataset_loading(resources_dir):
-    xyz_dataset_path = resources_dir / "datasets" / "xyz.hf"
+def test_dataset_loading(xyz_dataset_artifact):
+    # Preload fake artifact for testing
+    artifact_loader = FakeArtifactLoader()
+    artifact_loader.log_artifact(xyz_dataset_artifact)
+    hf_loader = HuggingFaceAssetLoader(artifact_loader)
 
-    # The mock function is imported inside the `loading_utils` module
-    # so we mock that path rather than where it is defined
-    with mock.patch(
-        "flamingo.integrations.huggingface.loading_utils.get_artifact_filesystem_path",
-        return_value=xyz_dataset_path,
-    ):
-        artifact = WandbArtifactConfig(name="xyz-dataset", project="project")
-        dataset_config = DatasetConfig(load_from=artifact, test_size=0.2, seed=0)
+    artifact_config = WandbArtifactConfig(name=xyz_dataset_artifact.name, project="project")
+    dataset_config = DatasetConfig(load_from=artifact_config, test_size=0.2, seed=0)
 
-        dataset = load_dataset_from_config(dataset_config)
-        assert type(dataset) is Dataset
+    dataset = hf_loader.load_dataset(dataset_config)
+    assert type(dataset) is Dataset
 
-        datasets = load_and_split_dataset(dataset_config)
-        assert type(datasets) is DatasetDict
-        assert "train" in datasets and "test" in datasets
+    datasets = hf_loader.load_and_split_dataset(dataset_config)
+    assert type(datasets) is DatasetDict
+    assert "train" in datasets and "test" in datasets
+
+
+def test_model_loading(gpt2_model_artifact):
+    # Preload fake artifact for testing
+    artifact_loader = FakeArtifactLoader()
+    artifact_loader.log_artifact(gpt2_model_artifact)
+    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+
+    artifact_config = WandbArtifactConfig(name=gpt2_model_artifact.name, project="project")
+    model_config = AutoModelConfig(load_from=artifact_config, torch_dtype=torch.bfloat16)
+
+    hf_config = hf_loader.load_pretrained_config(model_config)
+    hf_model = hf_loader.load_pretrained_model(model_config)
+    assert hf_config._name_or_path == hf_model.name_or_path
+    assert hf_model.dtype == torch.bfloat16
