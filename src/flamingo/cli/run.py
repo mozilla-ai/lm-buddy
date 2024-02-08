@@ -23,7 +23,8 @@ def run_finetuning(config: str) -> None:
     from flamingo.jobs.finetuning import FinetuningJobConfig, run_finetuning
 
     config = FinetuningJobConfig.from_yaml_file(config)
-    run_finetuning(config)
+    artifact_loader = WandbArtifactLoader()
+    run_finetuning(config, artifact_loader)
 
 
 @group.command("lm-harness", help="Run the lm-harness evaluation job.")
@@ -31,6 +32,6 @@ def run_finetuning(config: str) -> None:
 def run_lm_harness(config: str) -> None:
     from flamingo.jobs.lm_harness import LMHarnessJobConfig, run_lm_harness
 
-    artifact_loader = WandbArtifactLoader()
     config = LMHarnessJobConfig.from_yaml_file(config)
+    artifact_loader = WandbArtifactLoader()
     run_lm_harness(config, artifact_loader)
