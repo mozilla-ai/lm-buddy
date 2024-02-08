@@ -12,8 +12,8 @@ from flamingo.integrations.huggingface import (
     resolve_peft_and_pretrained,
 )
 from flamingo.integrations.wandb import (
+    ArtifactLoader,
     ArtifactType,
-    WandbArtifactLoader,
     WandbResumeMode,
     build_table_artifact,
     default_artifact_name,
@@ -42,7 +42,7 @@ def get_numeric_metrics(
 
 def load_harness_model(
     config: LMHarnessJobConfig,
-    artifact_loader: WandbArtifactLoader,
+    artifact_loader: ArtifactLoader,
 ) -> HFLM | OpenaiCompletionsLM:
     # Instantiate the lm-harness LM class based on the provided model config type
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
@@ -82,7 +82,7 @@ def load_harness_model(
 
 def load_and_evaluate(
     config: LMHarnessJobConfig,
-    artifact_loader: WandbArtifactLoader,
+    artifact_loader: ArtifactLoader,
 ) -> dict[str, list[tuple[str, float]]]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
@@ -101,7 +101,7 @@ def load_and_evaluate(
     return eval_results
 
 
-def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: WandbArtifactLoader):
+def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: ArtifactLoader):
     print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
 
     if config.tracking is not None:

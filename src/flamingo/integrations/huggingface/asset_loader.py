@@ -21,8 +21,8 @@ from flamingo.integrations.huggingface import (
     QuantizationConfig,
 )
 from flamingo.integrations.wandb import (
+    ArtifactLoader,
     WandbArtifactConfig,
-    WandbArtifactLoader,
     get_artifact_filesystem_path,
 )
 
@@ -59,11 +59,11 @@ def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
 class HuggingFaceAssetLoader:
     """Helper class for loading HuggingFace assets from Flamingo configurations.
 
-    This class depends on a `WandbArtifactLoader` in order to resolve actual paths from
+    This class depends on an `ArtifactLoader` in order to resolve actual paths from
     artifact references.
     """
 
-    def __init__(self, artifact_loader: WandbArtifactLoader):
+    def __init__(self, artifact_loader: ArtifactLoader):
         self._artifact_loader = artifact_loader
 
     def resolve_asset_path(self, path: HuggingFaceAssetPath) -> tuple[str, str | None]:

@@ -10,7 +10,7 @@ def copy_pydantic_json(model: BaseModel) -> BaseModel:
 
 
 class FakeArtifactLoader:
-    """Fake implementation of a `WandbArtifactLoader` with in-memory artifact storage.
+    """Fake implementation of an `ArtifactLoader` with in-memory artifact storage.
 
     This class bypasses calls to the W&B SDK for using/logging artifacts,
     making it suitable for use in testing when W&B is disabled.

@@ -5,8 +5,12 @@ import wandb
 from flamingo.integrations.wandb import WandbArtifactConfig
 
 
-class WandbArtifactLoader(Protocol):
-    """Base interface for using/logging artifacts on W&B."""
+class ArtifactLoader(Protocol):
+    """Base interface for using/logging artifacts.
+
+    Note: If/when we decide to support other tracking services (e.g., MLFlow, CometML),
+    this interface should be abstracted to handle the types for those respective services.
+    """
 
     def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
         """Load an artifact from its configuration.
@@ -21,8 +25,8 @@ class WandbArtifactLoader(Protocol):
         pass
 
 
-class ExternalArtifactLoader:
-    """Live implementation of the `WandbArtifactLoader` protocol.
+class WandbArtifactLoader:
+    """Weights & Biases implementation of the `ArtifactLoader` protocol.
 
     This class makes external calls to the W&B API and is not suitable for test environments.
     """
