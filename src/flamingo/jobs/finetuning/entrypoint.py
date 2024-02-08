@@ -62,24 +62,24 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
     trainer.train()
 
 
-def training_function(data: dict[str, Any]):
-    artifact_loader = ray.get(data["artifact_loader"])
-    config = FinetuningJobConfig(**data["config"])
-    if is_tracking_enabled(config):
-        with wandb_init_from_config(
-            config.tracking, resume=WandbResumeMode.NEVER, job_type=FlamingoJobType.FINETUNING
-        ):
-            load_and_train(config, artifact_loader)
-    else:
-        load_and_train(config, artifact_loader)
-
-
 def run_finetuning(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
-    # Construct input data to pass to training workers
-    train_loop_config = {
-        "config": config.model_dump(),
-        "artifact_loader": ray.put(artifact_loader),
-    }
+    # Place the artifact loader in Ray object storage
+    artifact_loader_ref = ray.put(artifact_loader)
+
+    # Define training function internally to capture the artifact loader ref as a closure
+    # Reference: https://docs.ray.io/en/latest/ray-core/objects.html#closure-capture-of-objects
+    def training_function(config_data: dict[str, Any]):
+        artifact_loader = ray.get(artifact_loader_ref)
+        config = FinetuningJobConfig(**config_data)
+        if is_tracking_enabled(config):
+            with wandb_init_from_config(
+                config.tracking,
+                resume=WandbResumeMode.NEVER,
+                job_type=FlamingoJobType.FINETUNING,
+            ):
+                load_and_train(config, artifact_loader)
+        else:
+            load_and_train(config, artifact_loader)
 
     # Construct Ray train configurations from input config
     scaling_config = ScalingConfig(
@@ -93,7 +93,7 @@ def run_finetuning(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
     )
     trainer = TorchTrainer(
         train_loop_per_worker=training_function,
-        train_loop_config=train_loop_config,
+        train_loop_config=config.model_dump(),
         scaling_config=scaling_config,
         run_config=run_config,
     )
