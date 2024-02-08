@@ -30,7 +30,7 @@ def xyz_dataset_artifact(resources_dir):
 
 
 @pytest.fixture
-def shakespeare_dataset_artifact(resources_dir):
+def text_dataset_artifact(resources_dir):
     dataset_path = resources_dir / "datasets" / "tiny_shakespeare"
     return build_directory_artifact(
         artifact_name="tiny-shakespeare-dataset",
@@ -41,7 +41,7 @@ def shakespeare_dataset_artifact(resources_dir):
 
 
 @pytest.fixture
-def gpt2_model_artifact(resources_dir):
+def llm_model_artifact(resources_dir):
     model_path = resources_dir / "models" / "fake_gpt2"
     return build_directory_artifact(
         artifact_name="fake-gpt2-model",

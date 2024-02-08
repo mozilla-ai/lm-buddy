@@ -23,13 +23,13 @@ def test_dataset_loading(xyz_dataset_artifact):
     assert "train" in datasets and "test" in datasets
 
 
-def test_model_loading(gpt2_model_artifact):
+def test_model_loading(llm_model_artifact):
     # Preload fake artifact for testing
     artifact_loader = FakeArtifactLoader()
-    artifact_loader.log_artifact(gpt2_model_artifact)
+    artifact_loader.log_artifact(llm_model_artifact)
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
 
-    artifact_config = WandbArtifactConfig(name=gpt2_model_artifact.name, project="project")
+    artifact_config = WandbArtifactConfig(name=llm_model_artifact.name, project="project")
     model_config = AutoModelConfig(load_from=artifact_config, torch_dtype=torch.bfloat16)
 
     hf_config = hf_loader.load_pretrained_config(model_config)
