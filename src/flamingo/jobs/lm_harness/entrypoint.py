@@ -50,7 +50,9 @@ def load_harness_model(
         case AutoModelConfig() as model_config:
             model_path, revision = hf_loader.resolve_asset_path(model_config.load_from)
             model_path, peft_path = resolve_peft_and_pretrained(model_path)
-            quantization_kwargs = config.quantization.model_dump() if config.quantization else {}
+            quantization_kwargs: dict[str, Any] = (
+                config.quantization.model_dump() if config.quantization else {}
+            )
             # TODO: Fix this up by passing in the instantiated model directly
             return HFLM(
                 pretrained=model_path,
