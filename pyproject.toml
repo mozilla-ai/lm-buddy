@@ -27,7 +27,7 @@ urllib3 = ">=1.26.18,<2"
 pydantic = "2.6.0"
 pydantic-yaml = "1.2.0"
 ray = { version = "2.9.1", extras = ["default"] }
-recommonmark = "^0.7.1"
+
 
 [tool.poetry.dev-dependencies]
 ruff = "0.2.0"
@@ -40,6 +40,7 @@ pre-commit = "3.6.0"
 Sphinx = "7.2.6"
 nbsphinx = "0.9.3"
 myst-parser = "2.0.0"
+recommonmark = "^0.7.1"
 
 [tool.poetry.group.finetuning.dependencies]
 datasets = "2.16.1"
