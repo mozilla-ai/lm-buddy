@@ -45,7 +45,7 @@ def create_gpt2_tokenizer() -> GPT2Tokenizer:
     merges_file = BASE_PATH / "merges.txt"
     merges_file.write_text("\n".join(merges))
 
-    tokenizer = GPT2Tokenizer.from_pretrained(BASE_PATH, special_tokens_map=special_tokens_map)
+    tokenizer = GPT2Tokenizer.from_pretrained(BASE_PATH, **special_tokens_map)
     return tokenizer
 
 

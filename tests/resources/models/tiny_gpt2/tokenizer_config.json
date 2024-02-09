@@ -2,6 +2,14 @@
   "add_bos_token": false,
   "add_prefix_space": false,
   "added_tokens_decoder": {
+    "19": {
+      "content": "<unk>",
+      "lstrip": false,
+      "normalized": true,
+      "rstrip": false,
+      "single_word": false,
+      "special": true
+    },
     "20": {
       "content": "<|endoftext|>",
       "lstrip": false,
@@ -20,8 +28,8 @@
   "special_tokens_map": {
     "bos_token": "<|endoftext|>",
     "eos_token": "<|endoftext|>",
-    "unk_token": "<|endoftext|>"
+    "unk_token": "<unk>"
   },
   "tokenizer_class": "GPT2Tokenizer",
-  "unk_token": "<|endoftext|>"
+  "unk_token": "<unk>"
 }

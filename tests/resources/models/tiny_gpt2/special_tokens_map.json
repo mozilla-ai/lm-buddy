@@ -14,7 +14,7 @@
     "single_word": false
   },
   "unk_token": {
-    "content": "<|endoftext|>",
+    "content": "<unk>",
     "lstrip": false,
     "normalized": true,
     "rstrip": false,
