@@ -27,6 +27,7 @@ urllib3 = ">=1.26.18,<2"
 pydantic = "2.6.0"
 pydantic-yaml = "1.2.0"
 ray = { version = "2.9.1", extras = ["default"] }
+recommonmark = "^0.7.1"
 
 [tool.poetry.dev-dependencies]
 ruff = "0.2.0"
@@ -51,6 +52,9 @@ bitsandbytes = "0.42.0"
 [tool.poetry.group.evaluation.dependencies]
 lm-eval = { version = "0.4.1", extras = ["openai"] }
 einops = "0.7.0"
+
+[tool.poetry.group.doc.dependencies]
+sphinx = "7.2.6"
 
 [tool.poetry.scripts]
 flamingo = "flamingo.cli:cli"

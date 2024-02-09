@@ -3,23 +3,46 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to flamingo's documentation!
+Welcome to the documentation!
 ====================================
+Flamingo is a library of tools for managing the finetuning and evaluation lifecycle of open-source large language models, using YAML-based configs and CLI primitives as input to jobs for Ray on Kubernetes.
 
-ReadMe
-------
+Getting Started
+---------------
 .. toctree::
    :maxdepth: 3
 
    readme_link
 
+Finetuning
+----------
 
-Finetuning Readme
-------
 .. toctree::
    :maxdepth: 3
 
    finetuning_concepts
+
+Evaluation
+----------
+
+.. toctree::
+   :maxdepth: 3
+
+   evaluation_concepts
+
+Examples
+----------
+.. toctree::
+   :maxdepth: 3
+
+   examples/README
+
+Tests
+----------
+.. toctree::
+   :maxdepth: 3
+
+   tests/README
 
 Indices and tables
 ==================
