@@ -63,7 +63,7 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
 
 
 def run_finetuning(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
-    # Place the artifact loader in Ray object storage
+    # Place the artifact loader in Ray object store
     artifact_loader_ref = ray.put(artifact_loader)
 
     # Define training function internally to capture the artifact loader ref as a closure
