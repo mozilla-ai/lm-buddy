@@ -1,7 +1,7 @@
 import pytest
 
 from flamingo.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
-from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
 from flamingo.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig, run_finetuning
 from tests.test_utils import FakeArtifactLoader
 
@@ -43,4 +43,8 @@ def test_finetuning_job(llm_model_artifact, text_dataset_artifact, job_config):
     run_finetuning(job_config, artifact_loader)
 
     # Two input artifacts, and one output model artifact produced
-    assert artifact_loader.num_artifacts() == 3
+    artifacts = artifact_loader.get_artifacts()
+    num_dataset_artifacts = len([a for a in artifacts if a.type == ArtifactType.DATASET])
+    num_model_artifacts = len([a for a in artifacts if a.type == ArtifactType.MODEL])
+    assert num_dataset_artifacts == 1
+    assert num_model_artifacts == 2
