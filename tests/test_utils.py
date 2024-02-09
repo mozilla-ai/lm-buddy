@@ -20,10 +20,13 @@ class FakeArtifactLoader:
     """
 
     def __init__(self):
-        self._storage = dict()
+        self._storage: dict[str, wandb.Artifact] = dict()
 
     def num_artifacts(self) -> int:
         return len(self._storage)
+
+    def get_artifacts(self) -> list[wandb.Artifact]:
+        return list(self._storage.values())
 
     def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
         return self._storage[config.name]

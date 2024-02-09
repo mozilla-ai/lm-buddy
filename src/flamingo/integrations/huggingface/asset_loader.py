@@ -106,7 +106,7 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
 
-        TODO(RD2024-87): Handle PEFT adapter loading directly in this method
+        TODO(RD2024-87): This fails if the checkpoint only contains a PEFT adapter config
         """
         device_map, bnb_config = None, None
         if quantization is not None:
