@@ -77,7 +77,7 @@ def test_parse_yaml_file(lm_harness_job_config):
 )
 def test_load_example_config(examples_dir, file_suffix):
     """Load the example configs to make sure they stay up to date."""
-    config_file = examples_dir / "configs" / file_suffix
+    config_file = examples_dir / "configs" / "evaluation" / file_suffix
     config = LMHarnessJobConfig.from_yaml_file(config_file)
     assert copy_pydantic_json(config) == config
 
