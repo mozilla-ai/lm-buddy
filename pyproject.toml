@@ -53,9 +53,6 @@ bitsandbytes = "0.42.0"
 lm-eval = { version = "0.4.1", extras = ["openai"] }
 einops = "0.7.0"
 
-[tool.poetry.group.doc.dependencies]
-sphinx = "7.2.6"
-
 [tool.poetry.scripts]
 flamingo = "flamingo.cli:cli"
 
