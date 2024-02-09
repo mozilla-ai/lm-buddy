@@ -6,11 +6,20 @@
 Welcome to flamingo's documentation!
 ====================================
 
+ReadMe
+------
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
 
    readme_link
+
+
+Finetuning Readme
+------
+.. toctree::
+   :maxdepth: 3
+
+   finetuning_concepts
 
 Indices and tables
 ==================
