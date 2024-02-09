@@ -85,12 +85,6 @@ extend-include = ["*.ipynb"]
 
 line-length = 100
 
-[tool.ruff.extend-per-file-ignores]
-"__init__.py" = [
-    "E402", # import violations
-    "F401", # import unused
-    "F403", # import undefined
-]
 
 [tool.ruff.lint]
 select = [
@@ -123,6 +117,13 @@ unfixable = ["B", "SIM", "TRY", "RUF"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["flamingo"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"__init__.py" = [
+    "E402", # import violations
+    "F401", # import unused
+    "F403", # import undefined
+]
 
 [tool.ruff.format]
 quote-style = "double"
