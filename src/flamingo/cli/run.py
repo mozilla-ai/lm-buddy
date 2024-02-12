@@ -1,5 +1,7 @@
 import click
 
+from flamingo.integrations.wandb import WandbArtifactLoader
+
 
 @click.group(name="run", help="Run a Flamingo job.")
 def group():
@@ -21,7 +23,8 @@ def run_finetuning(config: str) -> None:
     from flamingo.jobs.finetuning import FinetuningJobConfig, run_finetuning
 
     config = FinetuningJobConfig.from_yaml_file(config)
-    run_finetuning(config)
+    artifact_loader = WandbArtifactLoader()
+    run_finetuning(config, artifact_loader)
 
 
 @group.command("lm-harness", help="Run the lm-harness evaluation job.")
@@ -30,4 +33,5 @@ def run_lm_harness(config: str) -> None:
     from flamingo.jobs.lm_harness import LMHarnessJobConfig, run_lm_harness
 
     config = LMHarnessJobConfig.from_yaml_file(config)
-    run_lm_harness(config)
+    artifact_loader = WandbArtifactLoader()
+    run_lm_harness(config, artifact_loader)

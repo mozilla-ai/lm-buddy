@@ -1,10 +1,9 @@
 from enum import Enum
 from pathlib import Path
+from typing import Any
 from urllib.parse import ParseResult, urlparse
 
 import wandb
-
-from flamingo.integrations.wandb import WandbArtifactConfig
 
 
 class ArtifactType(str, Enum):
@@ -31,23 +30,8 @@ def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
     return f"{name}-{artifact_type}"
 
 
-def get_wandb_artifact(config: WandbArtifactConfig) -> wandb.Artifact:
-    """Load an artifact from the artifact config.
-
-    If a W&B run is active, the artifact is loaded via the run as an input.
-    If not, the artifact is pulled from the W&B API outside of the run.
-    """
-    if wandb.run is not None:
-        # Retrieves the artifact and links it as an input to the run
-        return wandb.use_artifact(config.wandb_path())
-    else:
-        # Retrieves the artifact outside of the run
-        api = wandb.Api()
-        return api.artifact(config.wandb_path())
-
-
 def get_artifact_filesystem_path(
-    config: WandbArtifactConfig,
+    artifact: wandb.Artifact,
     *,
     download_root_path: str | None = None,
 ) -> Path:
@@ -57,7 +41,6 @@ def get_artifact_filesystem_path(
     If not, downloads the artifact (with the specified `download_root_path`)
     and returns the newly created artifact directory path.
     """
-    artifact = get_wandb_artifact(config)
     for entry in artifact.manifest.entries.values():
         match urlparse(entry.ref):
             case ParseResult(scheme="file", path=file_path):
@@ -67,64 +50,63 @@ def get_artifact_filesystem_path(
     return Path(download_path)
 
 
-def log_directory_contents(
-    dir_path: str | Path,
+def build_directory_artifact(
     artifact_name: str,
     artifact_type: ArtifactType,
-    *,
-    entry_name: str | None = None,
-) -> wandb.Artifact:
-    """Log the contents of a directory as an artifact of the active run.
-
-    A run should already be initialized before calling this method.
-    If not, an exception will be thrown.
-
-    Args:
-        dir_path (str | Path): Path to the artifact directory.
-        artifact_name (str): Name of the artifact.
-        artifact_type (ArtifactType): Type of the artifact to create.
-        entry_name (str, optional): Name within the artifact to add the directory contents.
-
-    Returns:
-        The `wandb.Artifact` that was produced
-
-    """
-    artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
-    artifact.add_dir(str(dir_path), name=entry_name)
-    return wandb.log_artifact(artifact)
-
-
-def log_directory_reference(
     dir_path: str | Path,
-    artifact_name: str,
-    artifact_type: ArtifactType,
     *,
-    scheme: ArtifactURIScheme = ArtifactURIScheme.FILE,
+    reference: bool = False,
     entry_name: str | None = None,
     max_objects: int | None = None,
 ) -> wandb.Artifact:
-    """Log a reference to a directory's contents as an artifact of the active run.
-
-    A run should already be initialized before calling this method.
-    If not, an exception will be thrown.
+    """Build an artifact containing the contents of a directory.
 
     Args:
-        dir_path (str | Path): Path to the artifact directory.
         artifact_name (str): Name of the artifact.
-        artifact_type (ArtifactType): Type of the artifact to create.
-        scheme (ArtifactURIScheme): URI scheme to prepend to the artifact path.
-            Defaults to `ArtifactURIScheme.FILE` for filesystem references.
-        entry_name (str, optional): Name within the artifact to add the directory reference.
-        max_objects (int, optional): Max number of objects allowed in the artifact.
+        artifact_type (ArtifactType): Type of artifact.
+        dir_path (str | Path): Directory path to include in the artifact.
+
+    Keyword Args:
+        reference (bool): Only reference the directory, do not copy contents. Defaults to False.
+        entry_name (str | None): Name for directory within the artifact. Defaults to None.
+        max_objects (int | None): Max objects to include in the artifact. Defaults to None.
 
     Returns:
-        The `wandb.Artifact` that was produced
-
+        wandb.Artifact: The generated artifact.
     """
     artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
-    artifact.add_reference(
-        uri=f"{scheme}://{dir_path}",
-        name=entry_name,
-        max_objects=max_objects,
-    )
-    return wandb.log_artifact(artifact)
+    if reference:
+        # Right now, we are assuming a fixed "file" URI scheme
+        # We can pass the URI scheme if necessary later
+        artifact.add_reference(
+            uri=f"{ArtifactURIScheme.FILE}://{dir_path}",
+            max_objects=max_objects,
+            name=entry_name,
+        )
+    else:
+        artifact.add_dir(str(dir_path), name=entry_name)
+    return artifact
+
+
+def build_table_artifact(
+    artifact_name: str,
+    artifact_type: ArtifactType,
+    columns: list[str],
+    tables: dict[str, list[list[Any]]],
+) -> wandb.Artifact:
+    """Build an artifact containing one or more table entries.
+
+    Args:
+        artifact_name (str): Name of the artifact.
+        artifact_type (ArtifactType): Type of artifact.
+        columns (list[str]): Column names for the tables.
+        tables (dict[str, list[list[Any]]]): Mapping from table name to table rows.
+
+    Returns:
+        wandb.Artifact: The artifact containing the table(s).
+    """
+    artifact = wandb.Artifact(artifact_name, type=artifact_type)
+    for table_name, table_data in tables.items():
+        table = wandb.Table(data=table_data, columns=columns)
+        artifact.add(table, name=table_name)
+    return artifact

@@ -29,7 +29,7 @@ pydantic-yaml = "1.2.0"
 ray = { version = "2.9.1", extras = ["default"] }
 
 [tool.poetry.dev-dependencies]
-ruff = "0.2.0"
+ruff = "0.2.1"
 pytest = "7.4.3"
 pytest-cov = "4.1.0"
 jupyter = "1.0.0"
@@ -89,12 +89,6 @@ extend-include = ["*.ipynb"]
 
 line-length = 100
 
-[tool.ruff.extend-per-file-ignores]
-"__init__.py" = [
-    "E402", # import violations
-    "F401", # import unused
-    "F403", # import undefined
-]
 
 [tool.ruff.lint]
 select = [
@@ -127,6 +121,13 @@ unfixable = ["B", "SIM", "TRY", "RUF"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["flamingo"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"__init__.py" = [
+    "E402", # import violations
+    "F401", # import unused
+    "F403", # import undefined
+]
 
 [tool.ruff.format]
 quote-style = "double"
