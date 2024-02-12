@@ -3,7 +3,7 @@ import click
 from lm_buddy.integrations.wandb import WandbArtifactLoader
 
 
-@click.group(name="run", help="Run an lm-buddy job.")
+@click.group(name="run", help="Run an LM Buddy job.")
 def group():
     pass
 

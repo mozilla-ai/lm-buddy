@@ -57,7 +57,7 @@ def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
 
 
 class HuggingFaceAssetLoader:
-    """Helper class for loading HuggingFace assets from lm-buddy configurations.
+    """Helper class for loading HuggingFace assets from LM Buddy configurations.
 
     This class depends on an `ArtifactLoader` in order to resolve actual paths from
     artifact references.
@@ -166,7 +166,7 @@ class HuggingFaceAssetLoader:
                     return dataset
                 case other:
                     raise ValueError(
-                        "lm-buddy currently only supports loading `Dataset` objects from disk, "
+                        "LM Buddy currently only supports loading `Dataset` objects from disk, "
                         f"instead found a {type(other)}."
                     )
 

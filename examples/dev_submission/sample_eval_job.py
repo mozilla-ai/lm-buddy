@@ -11,12 +11,12 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-logger = logging.getLogger("lm-buddy")
+logger = logging.getLogger("LM Buddy")
 
 # Head node, also where dashboard is
 client = JobSubmissionClient("http://your.ray.cluster:8265")
 
-# Setting local repo if you're working outside of lm-buddy
+# Setting local repo if you're working outside of LM Buddy
 lm_buddy_repo = Path(lm_buddy.__file__).parents[1]
 lm_buddy_module = lm_buddy_repo / "src" / "lm_buddy"
 lm_buddy_requirements = lm_buddy_repo / "requirements.txt"

@@ -10,7 +10,7 @@ curl -sSL https://install.python-poetry.org | python3 - -y
 or see the [installation guide](https://python-poetry.org/docs/#installation)
 for alternate installation methods.
 
-Once Poetry is installed, you can install `lm-buddy` for development by running
+Once Poetry is installed, you can install LM Buddy for development by running
 ```
 poetry lock
 poetry install
@@ -47,11 +47,11 @@ Ruff will pick up the configuration defined in the `pyproject.toml` file automat
 
 ## Testing a development branch
 
-`lm-buddy` is intended to be installed as a pip requirement in the runtime environment of a Ray job.
+LM Buddy is intended to be installed as a pip requirement in the runtime environment of a Ray job.
 However, it is often desirable to test local branches on Ray before publishing a new version of the library.
 
 This is possible submitting a Ray job with a runtime environment that points to your
-development branch of the `lm-buddy` repo.
+development branch of the LM Buddy repo.
 
 To do so, follow the steps:
 
@@ -66,16 +66,16 @@ To do so, follow the steps:
 
 2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
 
-    - `py_modules`: Local path to the `lm-buddy` module folder (located at `src/lm_buddy` in the workspace).
+    - `py_modules`: Local path to the LM Buddy module folder (located at `src/lm_buddy` in the workspace).
     - `pip`: Local path to the `requirements.txt` file generated above.
 
-3. Submit your job with an entrypoint command that invokes `lm-buddy` directly as a module, eg:
+3. Submit your job with an entrypoint command that invokes `lm_buddy` directly as a module, eg:
 
     ```
     python -m lm_buddy run finetuning --config config.yaml
     ```
 
-    This is necessary because `py_modules` uploads the `lm-buddy` module
+    This is necessary because `py_modules` uploads the LM Buddy module
     but does not install its entrypoint in the environment path.
 
 An example of this workflow can be found in the `examples/notebooks/dev_workflow.ipynb` notebook.

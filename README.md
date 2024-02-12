@@ -1,6 +1,6 @@
-# lm-buddy
+# LM Buddy
 
-lm-buddy is a library of tools for managing the finetuning and evaluation lifecycle
+LM Buddy is a library of tools for managing the finetuning and evaluation lifecycle
 of open-source large language models, 
 using YAML-based configs and CLI primitives as input to jobs for Ray on Kubernetes.
 
@@ -17,10 +17,10 @@ pip install lm-buddy
 
 ### CLI Usage
 
-`lm-buddy` exposes a CLI with a few commands, one for each Ray job type.
+LM Buddy exposes a CLI with a few commands, one for each Ray job type.
 To see all commands, run `lm_buddy run --help`
 
-Once `lm-buddy` is installed in your local Python environment, usage is as follows:
+Once LM Buddy is installed in your local Python environment, usage is as follows:
 ```
 # Simple test
 lm_buddy run simple --config simple_config.yaml
@@ -32,7 +32,8 @@ lm_buddy run finetuning --config finetuning_config.yaml
 lm_buddy run lm-harness --config lm_harness_config.yaml
 ```
 
-See the `examples/configs` folder for examples of the configuration structure. For a full end-to-end interactive workflow running from within `lm-buddy`, see the sample notebooks.
+See the `examples/configs` folder for examples of the configuration structure. 
+For a full end-to-end interactive workflow for using the package, see the example notebooks.
 
 ## Workflow
 
@@ -49,11 +50,11 @@ For all workflow examples, (see `/examples`)
 The user starts by pip-installing `lm-buddy` into a new project environment and creating a directory for their experiment jobs. In that new directory, create a a YAML config file
 (see `/examples`).
 
-This file can then be passed as an argument via `lm-buddy` CLI.
+This file can then be passed as an argument via LM Buddy CLI.
 
 ### Ray Usage
 When submitting a job to Ray, the above commands should be used as your job entrypoints. 
-An additional option is to wrap the `lm-buddy` submission in a Python script 
+An additional option is to wrap the job submission in a Python script 
 that sets up the Ray client and additional parameters and is then passed to Ray's Job Submission SDK.
 
 ```

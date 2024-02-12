@@ -1,11 +1,11 @@
-.. lm-buddy documentation master file, created by
+.. LM Buddy documentation master file, created by
    sphinx-quickstart on Thu Feb  8 10:29:15 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 Welcome to the documentation!
 ====================================
-`lm-buddy` is a library of tools for managing the finetuning and evaluation lifecycle of open-source large language models, 
+LM Buddy is a library of tools for managing the finetuning and evaluation lifecycle of open-source large language models, 
 using YAML-based configs and CLI primitives as input to jobs for Ray on Kubernetes.
 
 Getting Started

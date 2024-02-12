@@ -1,5 +1,5 @@
 """
-This file is used to provide fixtures for the test session accessible to all lm-buddy submodules.
+This file is used to provide fixtures for the test session accessible to all LM Buddy submodules.
 """
 from pathlib import Path
 

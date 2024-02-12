@@ -3,7 +3,7 @@ import click
 from lm_buddy.cli import run, schema
 
 
-@click.group(name="lm-buddy CLI", help="Entrypoints for the lm-buddy.")
+@click.group(name="LM Buddy CLI", help="Entrypoints for the LM Buddy.")
 def cli():
     pass
 

@@ -7,7 +7,7 @@ import wandb
 
 
 class ArtifactType(str, Enum):
-    """Enumeration of artifact types used by the lm-buddy."""
+    """Enumeration of artifact types used by the LM Buddy."""
 
     DATASET = "dataset"
     MODEL = "model"

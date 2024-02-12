@@ -1,6 +1,6 @@
-"""Main entrypoint to the lm-buddy CLI.
+"""Main entrypoint to the LM Buddy CLI.
 
-Makes the lm-buddy CLI executable via `python -m buddy`.
+Makes the LM Buddy CLI executable via `python -m buddy`.
 """
 from lm_buddy.cli import cli
 
