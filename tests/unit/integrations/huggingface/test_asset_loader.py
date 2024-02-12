@@ -1,8 +1,8 @@
 import torch
 from datasets import Dataset, DatasetDict
 
-from flamingo.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
-from flamingo.integrations.wandb import WandbArtifactConfig
+from lm_buddy.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
+from lm_buddy.integrations.wandb import WandbArtifactConfig
 from tests.test_utils import FakeArtifactLoader
 
 

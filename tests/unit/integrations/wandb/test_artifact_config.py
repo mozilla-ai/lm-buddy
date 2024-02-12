@@ -1,6 +1,6 @@
 import pytest
 
-from flamingo.integrations.wandb import WandbArtifactConfig
+from lm_buddy.integrations.wandb import WandbArtifactConfig
 from tests.test_utils import copy_pydantic_json
 
 

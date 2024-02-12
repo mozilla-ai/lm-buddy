@@ -9,7 +9,7 @@ model:
     # # W&B artifact can also be specified as the engine model to generate a lineage
     # engine:
     #   name: "wandb-artifact-name"
-    #   project: "flamingo-examples"
+    #   project: "lm-buddy-examples"
     #   entity: "mozilla-ai"
   # 'huggingface' or 'tiktoken' depending on model type
   tokenizer_backend: "huggingface"
@@ -21,6 +21,6 @@ evaluator:
   limit: 10
 
 tracking:
-  name: "flamingo-example-lm-harness-inference"
-  project: "flamingo-examples"
+  name: "lm-buddy-lm-harness-inference"
+  project: "lm-buddy-examples"
   entity: "mozilla-ai"

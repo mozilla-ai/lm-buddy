@@ -2,8 +2,8 @@ import pytest
 from peft import PeftType, TaskType
 from pydantic import ValidationError
 
-from flamingo.integrations.huggingface import AdapterConfig
-from flamingo.integrations.huggingface.adapter_config import _get_peft_config_class
+from lm_buddy.integrations.huggingface import AdapterConfig
+from lm_buddy.integrations.huggingface.adapter_config import _get_peft_config_class
 
 
 def test_enum_sanitzation():

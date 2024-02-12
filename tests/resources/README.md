@@ -1,6 +1,6 @@
 # Test resources
 
-Static resources for Flamingo testing.
+Static resources for LM Buddy testing.
 
 These resources are manually created by developers and comitted to the repo
 so that they can be loaded during tests without making network calls.

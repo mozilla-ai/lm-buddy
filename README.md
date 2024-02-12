@@ -1,10 +1,8 @@
-# flamingo
+# LM Buddy
 
-<p align="center">
-    <img src="https://github.com/mozilla-ai/flamingo/blob/main/assets/flamingo.png" width="300">
-</p>
-
-Flamingo is a library of tools for managing the finetuning and evaluation lifecycle of open-source large language models, using YAML-based configs and CLI primitives as input to jobs for Ray on Kubernetes.
+LM Buddy is a library of tools for managing the finetuning and evaluation lifecycle
+of open-source large language models, 
+using YAML-based configs and CLI primitives as input to jobs for Ray on Kubernetes.
 
 The package currently allows users to launch either a:
 1. **finetuning job** using HuggingFace style model paths or Weights&Biases artifact locations
@@ -14,27 +12,28 @@ The package currently allows users to launch either a:
 ### Installation
 
 ```
-pip install mzai-flamingo
+pip install lm-buddy
 ```
 
 ### CLI Usage
 
-`flamingo` exposes a CLI with a few commands, one for each Ray job type.
-To see all commands, run `flamingo run --help`
+LM Buddy exposes a CLI with a few commands, one for each Ray job type.
+To see all commands, run `lm_buddy run --help`
 
-Once flamingo is installed in your local Python environment, usage is as follows:
+Once LM Buddy is installed in your local Python environment, usage is as follows:
 ```
 # Simple test
-flamingo run simple --config simple_config.yaml
+lm_buddy run simple --config simple_config.yaml
 
 # LLM finetuning
-flamingo run finetuning --config finetuning_config.yaml
+lm_buddy run finetuning --config finetuning_config.yaml
 
 # LLM evaluation
-flamingo run lm-harness --config lm_harness_config.yaml
+lm_buddy run lm-harness --config lm_harness_config.yaml
 ```
 
-See the `examples/configs` folder for examples of the configuration structure. For a full end-to-end interactive workflow running from within Flamingo, see the sample notebooks.
+See the `examples/configs` folder for examples of the configuration structure. 
+For a full end-to-end interactive workflow for using the package, see the example notebooks.
 
 ## Workflow
 
@@ -48,18 +47,22 @@ For all workflow examples, (see `/examples`)
 
 ## User Ray Workflow
 
-The user starts by pip-installing `mzai-flamingo` into a new project environment and creating a directory for their experiment jobs. In that new directory, create a a YAML config file
+The user starts by pip-installing `lm-buddy` into a new project environment and creating a directory for their experiment jobs. In that new directory, create a a YAML config file
 (see `/examples`).
 
-This file can then be passed as an argument via Flamingo CLI.
+This file can then be passed as an argument via LM Buddy CLI.
 
 ### Ray Usage
-When submitting a job to Ray, the above commands should be used as your job entrypoints. An additional option is to wrap the Flamingo submission in a Python script that sets up the Ray client and additional parameters and is then passed to Ray's Job Submission SDK.
+When submitting a job to Ray, the above commands should be used as your job entrypoints. 
+An additional option is to wrap the job submission in a Python script 
+that sets up the Ray client and additional parameters and is then passed to Ray's Job Submission SDK.
 
 ```
 client.submit_job(
-    entrypoint="python -m flamingo run lm-harness --config lm_harness.yaml", runtime_env=runtime_env
-)```
+    entrypoint="python -m lm_buddy run lm-harness --config lm_harness.yaml", 
+    runtime_env=runtime_env
+)
+```
 
 ### Minimum Python version
 

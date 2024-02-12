@@ -1,8 +1,8 @@
 import pytest
 
-from flamingo.integrations.huggingface import AutoModelConfig
-from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
-from flamingo.jobs.lm_harness import LMHarnessEvaluatorConfig, LMHarnessJobConfig, run_lm_harness
+from lm_buddy.integrations.huggingface import AutoModelConfig
+from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from lm_buddy.jobs.lm_harness import LMHarnessEvaluatorConfig, LMHarnessJobConfig, run_lm_harness
 from tests.test_utils import FakeArtifactLoader
 
 

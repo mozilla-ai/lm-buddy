@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.wandb import WandbRunConfig
+from lm_buddy.integrations.wandb import WandbRunConfig
 from tests.test_utils import copy_pydantic_json
 
 

@@ -1,7 +1,7 @@
 import wandb
 from pydantic import BaseModel
 
-from flamingo.integrations.wandb import WandbArtifactConfig
+from lm_buddy.integrations.wandb import WandbArtifactConfig
 
 
 def copy_pydantic_json(model: BaseModel) -> BaseModel:

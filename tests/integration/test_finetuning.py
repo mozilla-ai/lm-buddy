@@ -1,8 +1,8 @@
 import pytest
 
-from flamingo.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
-from flamingo.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
-from flamingo.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig, run_finetuning
+from lm_buddy.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
+from lm_buddy.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
+from lm_buddy.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig, run_finetuning
 from tests.test_utils import FakeArtifactLoader
 
 
