@@ -37,13 +37,6 @@ Examples
 
    examples/README
 
-Tests
-----------
-.. toctree::
-   :maxdepth: 3
-
-   tests/README
-
 Indices and tables
 ==================
 
