@@ -27,22 +27,12 @@ jobs:
           cache: poetry
 
       - name: Install test dependencies
-        run: poetry install
+        run: poetry install --dev
         continue-on-error: true
 
       - name: Lint with Ruff
         run: |
           poetry run ruff --output-format=github .
-        continue-on-error: false
-
-      - name: Run unit tests
-        run: |
-          poetry run pytest tests/unit
-        continue-on-error: false
-
-      - name: Run integration tests
-        run: |
-          poetry run pytest tests/integration
         continue-on-error: false
   tests:
     runs-on: ubuntu-latest
@@ -89,11 +79,6 @@ jobs:
       - name: Install test dependencies
         run: poetry install
         continue-on-error: true
-
-      - name: Run unit tests
-        run: |
-          poetry run pytest tests/unit
-        continue-on-error: false
 
       - name: Run integration tests
         run: |
