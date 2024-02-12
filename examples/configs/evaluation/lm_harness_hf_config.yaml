@@ -15,6 +15,6 @@ quantization:
 
 # Tracking info for where to log the run results
 tracking:
-  name: "flamingo-example-lm-harness"
-  project: "flamingo-examples"
+  name: "lm-buddy-lm-harness"
+  project: "lm-buddy-examples"
   entity: "mozilla-ai"

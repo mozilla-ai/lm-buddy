@@ -1,8 +1,16 @@
-# Test Resources
+# Test resources
 
-Collection of resources to load/parse during tests.
+Static resources for LM Buddy testing.
 
-These resources should be kept as small as possible to minimize the git repo size.
+These resources are manually created by developers and comitted to the repo
+so that they can be loaded during tests without making network calls.
+Test resources should be kept as small as possible to minimize the git repo size.
+Currently, this includes the sub-folders:
 
-When applicable, helper scripts for re-generating the resources
-can be added to the appropriate subfolders.
+- `datasets`: HuggingFace datasets
+- `models`: HuggingFace model and tokenizers
+
+## Generating new resources
+
+When possible, the script for creating a resource should be included in the committed files.
+See the current scripts in the `datasets` or `models` folders for an example.

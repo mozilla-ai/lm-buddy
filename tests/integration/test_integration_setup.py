@@ -3,7 +3,11 @@ import os
 import ray
 
 
-def test_wandb_disabled():
+def test_integration_env_vars():
+    assert "RAY_STORAGE" in os.environ
+    assert "WANDB_API_KEY" in os.environ
+    assert "OPENAI_API_KEY" in os.environ
+
     wandb_mode = os.environ.get("WANDB_MODE")
     assert wandb_mode == "disabled"
 

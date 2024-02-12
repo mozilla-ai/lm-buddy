@@ -41,8 +41,8 @@ adapter:
 
 # Tracking info for where to log the run results
 tracking:
-  name: "flamingo-example-finetuning"
-  project: "flamingo-examples"
+  name: "lm-buddy-finetuning"
+  project: "lm-buddy-examples"
   entity: "mozilla-ai"
 
 ray:

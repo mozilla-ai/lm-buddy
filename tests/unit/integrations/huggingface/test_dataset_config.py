@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.huggingface import DatasetConfig, HuggingFaceRepoConfig
+from lm_buddy.integrations.huggingface import DatasetConfig, HuggingFaceRepoConfig
 
 
 def test_split_is_required():

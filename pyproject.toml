@@ -3,10 +3,10 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "mzai-flamingo"
+name = "lm-buddy"
 version = "0.1.0"
-description = "Ray-centric job library for training and evaluation."
-repository = "https://github.com/mozilla-ai/flamingo"
+description = "Ray-centric library for finetuning and evaluation of (large) language models."
+repository = "https://github.com/mozilla-ai/lm-buddy"
 readme = "README.md"
 authors = [
     "Sean Friedowitz <sean@mozilla.ai>",
@@ -14,7 +14,7 @@ authors = [
     "Vicki Boykis <vicki@mozilla.ai>",
 ]
 license = "Apache-2.0"
-packages = [{ include = "flamingo", from = "src" }]
+packages = [{ include = "lm_buddy", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
@@ -34,6 +34,10 @@ pytest = "7.4.3"
 pytest-cov = "4.1.0"
 jupyter = "1.0.0"
 pre-commit = "3.6.0"
+Sphinx = "7.2.6"
+nbsphinx = "0.9.3"
+myst-parser = "2.0.0"
+recommonmark = "^0.7.1"
 
 [tool.poetry.group.finetuning.dependencies]
 datasets = "2.16.1"
@@ -48,7 +52,7 @@ lm-eval = { version = "0.4.1", extras = ["openai"] }
 einops = "0.7.0"
 
 [tool.poetry.scripts]
-flamingo = "flamingo.cli:cli"
+lm_buddy = "lm_buddy.cli:cli"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov src --no-cov-on-fail --disable-warnings"
@@ -85,12 +89,6 @@ extend-include = ["*.ipynb"]
 
 line-length = 100
 
-[tool.ruff.extend-per-file-ignores]
-"__init__.py" = [
-    "E402", # import violations
-    "F401", # import unused
-    "F403", # import undefined
-]
 
 [tool.ruff.lint]
 select = [
@@ -122,7 +120,14 @@ exclude = ["*.ipynb"]
 unfixable = ["B", "SIM", "TRY", "RUF"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["flamingo"]
+known-first-party = ["lm_buddy"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"__init__.py" = [
+    "E402", # import violations
+    "F401", # import unused
+    "F403", # import undefined
+]
 
 [tool.ruff.format]
 quote-style = "double"
