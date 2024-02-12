@@ -7,31 +7,31 @@ from lm_buddy.types import BaseLMBuddyConfig, SerializableTorchDtype
 
 
 def test_base_config_settings():
-    class DummyConfig(BaseLMBuddyConfig):
+    class TestConfig(BaseLMBuddyConfig):
         value: int
 
     # Validate assignment
-    config = DummyConfig(value=42)
+    config = TestConfig(value=42)
     with pytest.raises(ValidationError):
         config.value = "dogs"
 
     # Extra forbid
     with pytest.raises(ValidationError):
-        DummyConfig(value=42, foo="bar")
+        TestConfig(value=42, foo="bar")
 
 
 def test_serializable_torch_dtype():
-    class DummyConfig(BaseLMBuddyConfig):
+    class TestConfig(BaseLMBuddyConfig):
         torch_dtype: SerializableTorchDtype
 
-    config = DummyConfig(torch_dtype="bfloat16")
+    config = TestConfig(torch_dtype="bfloat16")
     assert config.torch_dtype == torch.bfloat16
 
     # Invalid dtypes
     with pytest.raises(ValueError):
-        DummyConfig(torch_dtype=5)
+        TestConfig(torch_dtype=5)
     with pytest.raises(ValueError):
-        DummyConfig(torch_dtype="dogs")
+        TestConfig(torch_dtype="dogs")
 
 
 def test_config_as_tempfile():
