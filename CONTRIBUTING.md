@@ -45,7 +45,7 @@ development dependencies.
 You can execute Ruff by calling `ruff --fix .` or `ruff format .` from the workspace root.
 Ruff will pick up the configuration defined in the `pyproject.toml` file automatically.
 
-## Testing a development branch
+## Testing a development branch on Ray
 
 LM Buddy is intended to be installed as a pip requirement in the runtime environment of a Ray job.
 However, it is often desirable to test local branches on Ray before publishing a new version of the library.
@@ -55,14 +55,12 @@ development branch of the LM Buddy repo.
 
 To do so, follow the steps:
 
-1. Export a copy of the package dependencies by running:
+1. Export a copy of the package dependencies by running. The following command will create a `requirements.txt` file in the repository
+    that contains the dependencies for the `finetuning` and `evaluation` job groups:
 
     ```
     poetry export --without-hashes --with finetuning,evaluation -o requirements.txt
     ```
-
-    The following command will create a `requirements.txt` file in the repository
-    that contains the dependencies for the `finetuning` and `evaluation` job groups:
 
 2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
 
@@ -106,7 +104,6 @@ poetry config pypi-token.pypi $(op read "op://<VAULT>/PyPI/pypi/api_key")
 Then build and publish to PyPI Test:
 
 ```
-
 poetry publish --repository testpypi --dry-run --build
 poetry publish --repository testpypi --build
 ```
