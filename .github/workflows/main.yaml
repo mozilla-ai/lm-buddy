@@ -9,7 +9,23 @@ on:
       - "**"
 
 jobs:
-  pytest_ruff:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Ruff
+        run: pipx install ruff
+
+      - name: Lint with Ruff
+        run: ruff --output-format=github .
+        continue-on-error: false
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,15 +46,30 @@ jobs:
         run: poetry install
         continue-on-error: true
 
-      - name: Lint with Ruff
-        run: |
-          poetry run ruff --output-format=github .
-        continue-on-error: false
-
       - name: Run unit tests
         run: |
           poetry run pytest tests/unit
         continue-on-error: false
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Lock Poetry
+        run: poetry lock
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: poetry
+
+      - name: Install test dependencies
+        run: poetry install
+        continue-on-error: true
 
       - name: Run integration tests
         run: |
