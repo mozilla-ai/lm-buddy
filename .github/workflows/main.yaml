@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.10"
           cache: poetry
-          cache-dependency-path: poetry.lock
+          #cache-dependency-path: poetry.lock
 
       - name: Install test dependencies
         run: poetry install
