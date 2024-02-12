@@ -14,25 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install poetry
-        run: pipx install poetry
-
-      - name: Lock Poetry
-        run: poetry lock
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-          cache: poetry
 
-      - name: Install test dependencies
-        run: poetry install --dev
-        continue-on-error: true
+      - name: Install Ruff
+        run: pipx install ruff
 
       - name: Lint with Ruff
-        run: |
-          poetry run ruff --output-format=github .
+        run: ruff --output-format=github .
         continue-on-error: false
   tests:
     runs-on: ubuntu-latest
