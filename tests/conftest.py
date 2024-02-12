@@ -42,9 +42,9 @@ def text_dataset_artifact(resources_dir):
 
 @pytest.fixture
 def llm_model_artifact(resources_dir):
-    model_path = resources_dir / "models" / "fake_gpt2"
+    model_path = resources_dir / "models" / "tiny_gpt2"
     return build_directory_artifact(
-        artifact_name="fake-gpt2-model",
+        artifact_name="tiny-gpt2-model",
         artifact_type=ArtifactType.MODEL,
         dir_path=model_path,
         reference=True,
