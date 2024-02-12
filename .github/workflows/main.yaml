@@ -17,6 +17,9 @@ jobs:
       - name: Install poetry
         run: pipx install poetry
 
+      - name: Lock Poetry
+        run: poetry lock
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
