@@ -2,7 +2,7 @@
 
 LM Buddy is a collection of jobs for finetuning and evaluating open-source (large) language models.
 The library makes use of YAML-based configuration files as inputs to CLI commands for each job,
-and tracks job inputs/outputs with [Weights & Biases](https://docs.wandb.ai/) artifacts.
+and tracks input/output data with [Weights & Biases](https://docs.wandb.ai/) artifacts.
 
 The package currently exposes two types of jobs:
 1. **finetuning job** using HuggingFace model/training implementations and 
@@ -11,7 +11,6 @@ for compute scaling, or an
 2. **evaluation job** using [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) 
 with inference performed via an in-process HuggingFace model or an externally-hosted 
 [vLLM](https://github.com/vllm-project/vllm) server.
-
 
 ## Installation
 

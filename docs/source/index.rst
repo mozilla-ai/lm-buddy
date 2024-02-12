@@ -7,7 +7,7 @@ Welcome to the documentation!
 ====================================
 LM Buddy is a collection of jobs for finetuning and evaluating open-source (large) language models.
 The library makes use of YAML-based configuration files as inputs to CLI commands for each job,
-and tracks job inputs/outputs with [Weights & Biases](https://docs.wandb.ai/) artifacts.
+and tracks input/output data with [Weights & Biases](https://docs.wandb.ai/) artifacts.
 
 Getting Started
 ---------------
