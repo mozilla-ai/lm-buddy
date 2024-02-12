@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from flamingo.integrations.vllm import InferenceServerConfig
-from flamingo.jobs.lm_harness import (
+from lm_buddy.integrations.vllm import InferenceServerConfig
+from lm_buddy.jobs.lm_harness import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
     LocalChatCompletionsConfig,

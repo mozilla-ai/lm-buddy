@@ -1,15 +1,15 @@
 import pytest
 from peft import PeftType, TaskType
 
-from flamingo.integrations.huggingface import (
+from lm_buddy.integrations.huggingface import (
     AdapterConfig,
     AutoModelConfig,
     AutoTokenizerConfig,
     QuantizationConfig,
     TextDatasetConfig,
 )
-from flamingo.integrations.vllm import InferenceServerConfig
-from flamingo.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from lm_buddy.integrations.vllm import InferenceServerConfig
+from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
 
 @pytest.fixture

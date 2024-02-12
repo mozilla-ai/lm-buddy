@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from flamingo.integrations.huggingface import QuantizationConfig
+from lm_buddy.integrations.huggingface import QuantizationConfig
 from tests.test_utils import copy_pydantic_json
 
 

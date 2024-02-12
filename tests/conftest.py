@@ -1,11 +1,11 @@
 """
-This file is used to provide fixtures for the test session accessible to all Flamingo submodules.
+This file is used to provide fixtures for the test session accessible to all lm-buddy submodules.
 """
 from pathlib import Path
 
 import pytest
 
-from flamingo.integrations.wandb import ArtifactType, build_directory_artifact
+from lm_buddy.integrations.wandb import ArtifactType, build_directory_artifact
 
 
 @pytest.fixture(scope="session")
