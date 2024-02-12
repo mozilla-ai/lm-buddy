@@ -45,7 +45,7 @@ development dependencies.
 You can execute Ruff by calling `ruff --fix .` or `ruff format .` from the workspace root.
 Ruff will pick up the configuration defined in the `pyproject.toml` file automatically.
 
-## Testing a development branch
+## Testing a development branch on Ray
 
 LM Buddy is intended to be installed as a pip requirement in the runtime environment of a Ray job.
 However, it is often desirable to test local branches on Ray before publishing a new version of the library.
