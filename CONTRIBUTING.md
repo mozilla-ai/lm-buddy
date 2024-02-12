@@ -49,7 +49,7 @@ LM Buddy is intended to be installed as a pip requirement in the runtime environ
 However, it is often desirable to test local branches on Ray before publishing a new version of the library.
 
 This is possible by submitting a Ray job with a runtime environment that points to your
-local development branch of the LM Buddy repo.
+local development branch of the `lm-buddy` repo.
 
 To do so, follow the steps:
 
