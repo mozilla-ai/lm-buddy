@@ -53,7 +53,7 @@ For a full end-to-end interactive workflow for using the package, see the exampl
 Although the LM Buddy CLI can be used as a standalone tool,
 its commands are intended to be used as the entrypoints for jobs on a
 [Ray](https://docs.ray.io/en/latest/index.html) compute cluster.
-The standard method for submitting an LM Buddy job to Ray is by using the 
+The suggested method for submitting an LM Buddy job to Ray is by using the 
 [Ray Python SDK](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html) 
 within a local Python driver script.
 This requires you to specify a Ray runtime environment containing:
