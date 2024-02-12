@@ -22,7 +22,8 @@ pip install lm-buddy
 
 ### Minimum Python version
 
-LM Buddy is intended to be executed remotely on a Ray compute cluster.
+LM Buddy is intended to be executed in production on a Ray cluster 
+(see section below on [Ray job submission](#ray-job-submission)).
 Currently, we are utilizing Ray clusters running Python 3.10.8.
 In order to avoid dependency/syntax errors when executing LM Buddy on Ray,
 installation of this package requires Python between `[3.10, 3.11)`.
@@ -47,10 +48,10 @@ lm_buddy run lm-harness --config lm_harness_config.yaml
 See the `examples/configs` folder for examples of the job configuration structure. 
 For a full end-to-end interactive workflow for using the package, see the example notebooks.
 
-## Ray submission
+## Ray job submission
 
 Although the LM Buddy CLI can be used as a standalone tool,
-its job commands are intended to be used as the entrypoints for jobs on a
+its commands are intended to be used as the entrypoints for jobs on a
 [Ray](https://docs.ray.io/en/latest/index.html) compute cluster.
 The standard method for submitting an LM Buddy job to Ray is by using the 
 [Ray Python SDK](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html) 

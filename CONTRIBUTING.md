@@ -53,7 +53,7 @@ local development branch of the LM Buddy repo.
 
 To do so, follow the steps:
 
-1. Export a copy of the package dependencies by running. The following command will create a `requirements.txt` file in the repository that contains the dependencies for the `finetuning` and `evaluation` job groups:
+1. Export a copy of the package dependencies by running the following command, which will create a `requirements.txt` file in the `lm-buddy` repository. This will contain the dependencies for the `finetuning` and `evaluation` job groups:
 
     ```
     poetry export --without-hashes --with finetuning,evaluation -o requirements.txt
@@ -71,8 +71,8 @@ To do so, follow the steps:
     python -m lm_buddy run finetuning --config config.yaml
     ```
 
-    This is necessary because `py_modules` uploads the `lm_buddy` module
-    but does not install its entrypoint in the environment path.
+    This is necessary because `py_modules` uploads the `lm_buddy` module to the Ray cluster
+    but does not install its entrypoint in the the Ray worker environment.
 
 An example of this workflow can be found in the `examples/notebooks/dev_workflow.ipynb` notebook.
 
