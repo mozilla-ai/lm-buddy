@@ -162,5 +162,8 @@ cython_debug/
 # Ruff
 .ruff_cache
 
+# Poetry
+poetry.lock
+
 # Ignore requirements since we only use for local builds
 requirements.txt
