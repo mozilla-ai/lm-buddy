@@ -3,17 +3,14 @@ name: Tests
 on:
   push:
     branches:
-      - "main"
+      - 'main'
     paths-ignore:
       - 'docs/**'
-      - 'workflows/**'
   pull_request:
     branches:
       - "**"
     paths-ignore:
       - 'docs/**'
-      - 'workflows/**'
-
 
 jobs:
   ruff:

@@ -3,10 +3,11 @@ name: Documentation
 
 on:
   push:
-    branches:
-      - "main"
     paths:
       - 'docs/**'  # Trigger the workflow only when changes are made in the 'docs' directory
+    branches:
+      - 'main'
+
 
 
 jobs:
