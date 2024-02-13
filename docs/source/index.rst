@@ -33,7 +33,7 @@ Evaluation
    evaluation_concepts
 
 Examples
-----------
+-----------
 .. toctree::
    :maxdepth: 3
 

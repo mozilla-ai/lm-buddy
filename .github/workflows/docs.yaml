@@ -2,13 +2,17 @@ name: Documentation
 # FOLLOWING https://coderefinery.github.io/documentation/gh_workflow/
 
 on:
+  pull_request:
+    types: [closed] # Run conditionals based on opened/merged PRs
+    paths:
+      - 'docs/*'  # Trigger the workflow only when changes are made in the 'docs' directory
+    branches:
+      - 'main' # trigger publish only on closed PR in main
   push:
     paths:
-      - 'docs/**'  # Trigger the workflow only when changes are made in the 'docs' directory
+      - 'docs/*'  # Trigger the workflow only when changes are made in the 'docs' directory
     branches:
-      - 'main'
-
-
+      - '**' # run doc build every time docs change in remote branch
 
 jobs:
   docs:
@@ -16,30 +20,37 @@ jobs:
 
     steps:
     - name: Checkout code
+      if: github.event_name == 'push'
       uses: actions/checkout@v4
 
     - name: Install poetry
+      if: github.event_name == 'push'
       run: pipx install poetry
 
     - name: Lock Poetry
+      if: github.event_name == 'push''
       run: poetry lock
 
     - name: Set up Python 3.10
+      if: github.event_name == 'push'
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
         cache: poetry
 
     - name: Install docs dev dependencies
+      if: github.event_name == 'push'
       run: poetry install --with dev
 
     - name: Build Documentation
+      if: github.event_name == 'push'
       run: |
         cd docs
-        make clean && make html 
+        make clean && make html
 
 # TODO: ENABLE ONCE WE SET UP GITPAGES
 #      - name: Deploy to GitHub Pages
+       # if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
 #        uses: peaceiris/actions-gh-pages@v3
 #        with:
 #          github_token: ${{ secrets.GITHUB_TOKEN }}
