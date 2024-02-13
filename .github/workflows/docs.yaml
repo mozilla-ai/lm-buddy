@@ -1,4 +1,5 @@
 name: Build and Deploy Documentation
+# FOLLOWING https://coderefinery.github.io/documentation/gh_workflow/
 
 on:
   push:
@@ -12,26 +13,39 @@ on:
 
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  docs:
+    build:
+      runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-        cache: poetry
+      - name: Install poetry
+        run: pipx install poetry
 
-    - name: Build Documentation
-      run: |
-        cd docs
-        make html 
+      - name: Lock Poetry
+        run: poetry lock
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: docs/build/html
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: poetry
+
+      - name: Install docs dependencies
+        run: poetry install --only dev
+        continue-on-error: true
+
+      - name: Build Documentation
+        run: |
+          cd docs
+          make clean && make html 
+
+# TODO: ENABLE ONCE WE SET UP GITPAGES
+#      - name: Deploy to GitHub Pages
+#        uses: peaceiris/actions-gh-pages@v3
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          publish_dir: docs/build/html
+#          force_orphan: true
