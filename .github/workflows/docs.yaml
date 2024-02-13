@@ -1,13 +1,10 @@
-name: Build and Deploy Documentation
+name: Documentation
 # FOLLOWING https://coderefinery.github.io/documentation/gh_workflow/
 
 on:
   push:
     branches:
       - "main"
-  pull_request:
-    branches:
-      - "**"
     paths:
       - 'docs/**'  # Trigger the workflow only when changes are made in the 'docs' directory
 
@@ -32,9 +29,8 @@ jobs:
         python-version: "3.10"
         cache: poetry
 
-    - name: Install docs dependencies
-      run: poetry install --only dev
-      continue-on-error: true
+    - name: Install docs dev dependencies
+      run: poetry install --with dev
 
     - name: Build Documentation
       run: |
