@@ -6,11 +6,13 @@ on:
       - "main"
     paths-ignore:
       - 'docs/**'
+      - 'workflows/**'
   pull_request:
     branches:
       - "**"
     paths-ignore:
       - 'docs/**'
+      - 'workflows/**'
 
 
 jobs:
