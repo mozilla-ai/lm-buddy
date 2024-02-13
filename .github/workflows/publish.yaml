@@ -36,9 +36,9 @@ jobs:
             POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TEST_TOKEN }}
         steps:
         - name: prepare with poetry
-          run: >-
-            export VENV_PATH="$HOME/venv"
-            python3 -m venv $VENV_PATH
+          run: |
+            export VENV_PATH="$HOME/venv" 
+            python3 -m venv $VENV_PATH 
             $VENV_PATH/bin/pip install -U pip setuptools
             $VENV_PATH/bin/pip install poetry
             $VENV_PATH/bin/poetry config repositories.testpypi https://test.pypi.org/legacy/
