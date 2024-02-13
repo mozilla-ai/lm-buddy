@@ -95,9 +95,10 @@ Set up poetry to use the key(s):
 
 ```
 poetry config repositories.testpypi https://test.pypi.org/legacy/
-poetry config pypi-token.testpypi $(op read "op://<VAULT>/PyPI-test/pypi/api_key")
-poetry config pypi-token.pypi $(op read "op://<VAULT>/PyPI/pypi/api_key")
+poetry config pypi-token.testpypi $(op read "op://mzai-dev/PyPI-test/pypi/api_key")
+poetry config pypi-token.pypi $(op read "op://mzai-dev/PyPI/pypi/api_key")
 ```
+
 
 ### Testing publishing 
 
