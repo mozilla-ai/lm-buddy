@@ -2,7 +2,7 @@
 
 LM Buddy is a collection of jobs for finetuning and evaluating open-source (large) language models.
 The library makes use of YAML-based configuration files as inputs to CLI commands for each job,
-and tracks input/output data with [Weights & Biases](https://docs.wandb.ai/) artifacts.
+and tracks input/output artifacts on [Weights & Biases](https://docs.wandb.ai/).
 
 The package currently exposes two types of jobs:
 1. **finetuning job** using HuggingFace model/training implementations and 
@@ -22,7 +22,7 @@ pip install lm-buddy
 
 ### Minimum Python version
 
-LM Buddy is intended to be executed in production on a Ray cluster 
+LM Buddy is intended to be used in production on a Ray cluster 
 (see section below on [Ray job submission](#ray-job-submission)).
 Currently, we are utilizing Ray clusters running Python 3.10.8.
 In order to avoid dependency/syntax errors when executing LM Buddy on Ray,
