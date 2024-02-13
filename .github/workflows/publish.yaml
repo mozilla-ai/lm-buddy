@@ -5,9 +5,12 @@ on:
   push:
     branches:
       - "main"
+    tags:
+      - "*"
   pull_request:
     branches:
-      - "**"
+      - "main"
+      - "dev"
   workflow_dispatch:
 
 
@@ -27,7 +30,6 @@ jobs:
     publish-to-testpypi:
         name: >-
             Publish Python 🐍 distribution 📦 to PyPI
-        if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
         needs:
         - build
         runs-on: ubuntu-latest
