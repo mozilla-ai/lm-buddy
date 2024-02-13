@@ -3,14 +3,13 @@ name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
 on: 
   push:
-    branches:
-      - "main"
     tags:
-      - "*"
+      - "v*"
   pull_request:
     branches:
       - "main"
       - "dev"
+      - "release/v[0-9].[0-9]"
   workflow_dispatch:
 
 
