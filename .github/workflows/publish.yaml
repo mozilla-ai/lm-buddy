@@ -62,7 +62,7 @@ jobs:
             poetry publish 
 
     github-release:
-        name: prepare release
+        name: Prepare release
         needs:
         - build_dist
         runs-on: ubuntu-latest
