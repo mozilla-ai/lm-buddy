@@ -15,64 +15,86 @@ on:
 
 
 jobs:
-    build:
+    build_dist:
       name: Build distribution 📦
       runs-on: ubuntu-latest
   
       steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
+      - name: set up python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-    publish-to-testpypi:
-        name: >-
-            Publish Python 🐍 distribution 📦 to PyPI
-        needs:
-        - build
-        runs-on: ubuntu-latest
+      - name: set up poetry
         env:
             POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_KEY }}
             POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
+
+        run: |
+          export VENV_PATH="$HOME/venv" 
+          python3 -m venv $VENV_PATH 
+          $VENV_PATH/bin/pip install -U pip setuptools
+          $VENV_PATH/bin/pip install poetry
+          export POETRY="$VENV_PATH/bin/poetry"
+          $POETRY config repositories.testpypi https://test.pypi.org/legacy/
+          cd "$GITHUB_WORKSPACE"
+
+      - name: build_dist
+        run: |
+            $POETRY build
+            ls ./dist/
+
+    publish-testpypi:
+        name: >-
+            Publish dist to test pypi
+        needs:
+        - build_dist
+        runs-on: ubuntu-latest
+        if: ${{ github.event_name == 'pull_request' }}
         steps:
-        - uses: actions/checkout@v4
+        # - uses: actions/checkout@v4
         - name: prepare with poetry
           run: |
-            export VENV_PATH="$HOME/venv" 
-            python3 -m venv $VENV_PATH 
-            $VENV_PATH/bin/pip install -U pip setuptools
-            $VENV_PATH/bin/pip install poetry
-            export POETRY="$VENV_PATH/bin/poetry"
-            cd "$GITHUB_WORKSPACE"
-            $POETRY config repositories.testpypi https://test.pypi.org/legacy/
-            $POETRY publish --repository testpypi --build
+            $POETRY publish --repository testpypi
     
+    publish-pypi:
+
+        name: >-
+            Publish dist to real pypi
+        needs:
+        - build_dist
+        runs-on: ubuntu-latest
+        env:
+            POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
+        if: endsWith(github.event.base_ref, 'main') == true
+        steps:
+        - name: prepare with poetry
+          run: |
+            $POETRY publish --repository testpypi --build
+
     github-release:
         name: >-
             Sign the Python 🐍 distribution 📦 with Sigstore
             and upload them to GitHub Release
         needs:
-        - publish-to-testpypi
+        - build_dist
+        - publish-pypi # will error if this step fails
         runs-on: ubuntu-latest
     
         permissions:
             contents: write  # IMPORTANT: mandatory for making GitHub Releases
             id-token: write  # IMPORTANT: mandatory for sigstore
     
+        # should only run when commits are pushed to main and a tag is there (from above)
+        if: endsWith(github.event.base_ref, 'main') == true
         steps:
-        - name: Download all the dists
-          uses: actions/download-artifact@v3
-          with:
-            name: python-package-distributions
-            path: dist/
-
         - name: Sign the dists with Sigstore
           uses: sigstore/gh-action-sigstore-python@v1.2.3
           with:
               inputs: >-
-                ./dist/*.tar.gz
-                ./dist/*.whl
+                "$GITHUB_WORKSPACE"/dist/*.tar.gz
+                "$GITHUB_WORKSPACE"./dist/*.whl
 
         - name: Create GitHub Release
           env:
