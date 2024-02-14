@@ -16,7 +16,6 @@ jobs:
       name: Build distribution 📦
       runs-on: ubuntu-latest
       outputs:
-        POETRY: ${{ env.POETRY }}
         DISTS: ${{ steps.dists.outputs.artifact-id }}
       steps:
       - uses: actions/checkout@v4
@@ -35,7 +34,6 @@ jobs:
           pip install poetry
           poetry config repositories.testpypi https://test.pypi.org/legacy/
           poetry build
-          
 
       - name: Archive Production Artifact
         uses: actions/upload-artifact@v4
@@ -58,14 +56,13 @@ jobs:
             which poetry
             poetry publish --repository testpypi
             
-    
       - name: Publish dist to real pypi
         env:
             POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
         if: endsWith(github.event.base_ref, 'main') == true
         run: |
             source "$HOME/venv/bin/activate"
-            poetry publish --repository testpypi --build
+            poetry publish 
 
     github-release:
         name: prepare release
