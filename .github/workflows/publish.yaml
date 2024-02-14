@@ -35,9 +35,9 @@ jobs:
 
       - name: Archive Production Artifact
         uses: actions/upload-artifact@v4
-        id: lmbuddy_dists
+        id: lmbuddy_artifacts
         with:
-          name: dist
+          name: lmbuddy_dists
           path: dist/
           retention-days: 1
 
@@ -75,7 +75,7 @@ jobs:
         - name: download artifacts
           uses: actions/download-artifact@v4
           with:
-            # name: lmbuddy_dists
+            name: lmbuddy_dists
             path: ./dist/
             merge-multiple: true
 
