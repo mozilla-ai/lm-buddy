@@ -38,7 +38,7 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           $POETRY build
           ls ./dist/
-          echo "POETRY=$POETRY" >> "$GITHUB_OUPUT"
+          echo "POETRY=$VENV_PATH/bin/poetry" >> "$GITHUB_OUPUT"
 
       - name: Archive Production Artifact
         uses: actions/upload-artifact@v4
@@ -54,7 +54,9 @@ jobs:
             POETRY: ${{ steps.setup.outputs.POETRY }}
         if: ${{ github.event_name == 'pull_request' }}
         run: |
+            env
             cd $GITHUB_WORKSPACE
+            echo "$GITHUB_WORKSPACE"
             $POETRY publish --repository testpypi
     
       - name: Publish dist to real pypi
