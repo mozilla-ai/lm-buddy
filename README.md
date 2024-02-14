@@ -12,6 +12,13 @@ for compute scaling, or an
 with inference performed via an in-process HuggingFace model or an externally-hosted 
 [vLLM](https://github.com/vllm-project/vllm) server.
 
+### Warning
+
+LM Buddy is in the early stages of development.
+It is missing important features and documentation.
+You should expect breaking changes in the configuration structures and core interfaces
+until the first major release.
+
 ## Installation
 
 TODO: Finalize this section once published to PyPi
