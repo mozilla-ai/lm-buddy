@@ -7,8 +7,6 @@ on:
   pull_request:
     branches:
       - "main"
-      - "dev"
-      - "release/v[0-9].[0-9]"
   workflow_dispatch:
 
 jobs:
@@ -56,6 +54,7 @@ jobs:
       - name: Publish dist to real pypi
         env:
             POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
+        # only runs full release if we're on main; tag filter already hit above
         if: endsWith(github.event.base_ref, 'main') == true
         run: |
             source "$HOME/venv/bin/activate"
@@ -70,7 +69,6 @@ jobs:
             contents: write  # IMPORTANT: mandatory for making GitHub Releases
             id-token: write  # IMPORTANT: mandatory for sigstore
     
-        # should only run when commits are pushed to main and a tag is there (from above)
         steps:
         - name: download artifacts
           uses: actions/download-artifact@v4
@@ -79,7 +77,6 @@ jobs:
             path: ./dist/
             merge-multiple: true
 
-        
         - name: Release Draft
           uses: softprops/action-gh-release@v1
           with:
@@ -88,7 +85,7 @@ jobs:
 
         - name: Release
           uses: softprops/action-gh-release@v1
+          # only runs full release if we're on main; tag filter already hit above
           if: endsWith(github.event.base_ref, 'main') == true
           with:
              files: ./dist/*
-             draft: true
