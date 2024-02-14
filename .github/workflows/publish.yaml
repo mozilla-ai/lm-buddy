@@ -33,7 +33,7 @@ jobs:
         - build
         runs-on: ubuntu-latest
         env:
-            POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TEST_TOKEN }}
+            POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_TOKEN }}
         steps:
         - uses: actions/checkout@v4
         - name: prepare with poetry
@@ -43,6 +43,7 @@ jobs:
             $VENV_PATH/bin/pip install -U pip setuptools
             $VENV_PATH/bin/pip install poetry
             cd "$GITHUB_WORKSPACE"
+
             $VENV_PATH/bin/poetry config repositories.testpypi https://test.pypi.org/legacy/
             $VENV_PATH/bin/poetry publish --repository testpypi --build
     
