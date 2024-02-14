@@ -1,7 +1,7 @@
-from lm_buddy.types import BaseLMBuddyConfig
+from lm_buddy.jobs.common import LMBuddyJobConfig
 
 
-class SimpleJobConfig(BaseLMBuddyConfig):
+class SimpleJobConfig(LMBuddyJobConfig):
     """Simple job submission config."""
 
     magic_number: int

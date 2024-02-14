@@ -1,6 +1,12 @@
 import click
 
-from lm_buddy.integrations.wandb import WandbArtifactLoader
+import lm_buddy
+from lm_buddy.jobs.finetuning import FinetuningJobConfig
+from lm_buddy.jobs.lm_harness import LMHarnessJobConfig
+from lm_buddy.jobs.simple import SimpleJobConfig
+
+# TODO: Do we collapse all these commands into a single CLI run command?
+# Need to figure out how to polymorphically deserialize the config classes?
 
 
 @click.group(name="run", help="Run an LM Buddy job.")
@@ -10,28 +16,20 @@ def group():
 
 @group.command("simple", help="Run the simple test job.")
 @click.option("--config", type=str)
-def run_simple(config: str) -> None:
-    from lm_buddy.jobs.simple import SimpleJobConfig, run_simple
-
+def simple_command(config: str) -> None:
     config = SimpleJobConfig.from_yaml_file(config)
-    run_simple(config)
+    lm_buddy.run(config)
 
 
 @group.command("finetuning", help="Run the HuggingFace LLM finetuning job.")
 @click.option("--config", type=str)
-def run_finetuning(config: str) -> None:
-    from lm_buddy.jobs.finetuning import FinetuningJobConfig, run_finetuning
-
+def finetuning_command(config: str) -> None:
     config = FinetuningJobConfig.from_yaml_file(config)
-    artifact_loader = WandbArtifactLoader()
-    run_finetuning(config, artifact_loader)
+    lm_buddy.run(config)
 
 
 @group.command("lm-harness", help="Run the lm-harness evaluation job.")
 @click.option("--config", type=str)
-def run_lm_harness(config: str) -> None:
-    from lm_buddy.jobs.lm_harness import LMHarnessJobConfig, run_lm_harness
-
+def lm_harness_command(config: str) -> None:
     config = LMHarnessJobConfig.from_yaml_file(config)
-    artifact_loader = WandbArtifactLoader()
-    run_lm_harness(config, artifact_loader)
+    lm_buddy.run(config)
