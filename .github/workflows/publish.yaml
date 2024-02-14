@@ -1,4 +1,4 @@
-name: Build and Publish lm-buddy
+Build and publish to PyPI
 
 on: 
   push:
