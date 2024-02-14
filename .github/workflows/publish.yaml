@@ -50,7 +50,6 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: |
             source "$HOME/venv/bin/activate"
-            env
             cd $GITHUB_WORKSPACE
             echo "$GITHUB_WORKSPACE"
             which poetry
@@ -78,7 +77,6 @@ jobs:
         
         - name: Release Draft
           uses: softprops/action-gh-release@v1
-          if: startsWith(github.ref, 'refs/tags/')
           with:
              files: ${{ needs.build_dist.outputs.DISTS }}
              draft: true
