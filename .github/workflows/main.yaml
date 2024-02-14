@@ -1,16 +1,17 @@
 name: Tests
 
 on:
+  workflow_dispatch:
   push:
     paths-ignore:
-      - 'docs/**'
-      - '.github/**'
+      - 'docs/*'
+      - '.github/*'
     branches:
       - 'main'
   pull_request:
     paths-ignore:
-      - 'docs/**'
-      - '.github/**'
+      - 'docs/*'
+      - '.github/*'
     branches:
       - "**"
 
