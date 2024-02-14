@@ -1,0 +1,91 @@
+# Build and publish to PyPI
+
+on: 
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - "main"
+  workflow_dispatch:
+
+jobs:
+    build_dist:
+      name: Build distribution 📦
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v4
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: set up poetry
+        id: setup
+        run: |
+          export VENV_PATH="$HOME/venv" 
+          python3 -m venv $VENV_PATH 
+          source "$VENV_PATH/bin/activate"
+          pip install -U pip setuptools
+          pip install poetry
+          poetry config repositories.testpypi https://test.pypi.org/legacy/
+          poetry build
+
+      - name: Archive Production Artifact
+        uses: actions/upload-artifact@v4
+        id: lmbuddy_artifacts
+        with:
+          name: lmbuddy_dists
+          path: dist/
+          retention-days: 1
+
+      - name: Publish dist to test pypi
+        env:
+            POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_KEY }}
+            
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+            source "$HOME/venv/bin/activate"
+            cd $GITHUB_WORKSPACE
+            echo "$GITHUB_WORKSPACE"
+            which poetry
+            poetry publish --repository testpypi
+            
+      - name: Publish dist to real pypi
+        env:
+            POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
+        # only runs full release if we're on main; tag filter already hit above
+        if: endsWith(github.event.base_ref, 'main') == true
+        run: |
+            source "$HOME/venv/bin/activate"
+            poetry publish 
+
+    github-release:
+        name: Prepare release
+        needs:
+        - build_dist
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write  # IMPORTANT: mandatory for making GitHub Releases
+            id-token: write  # IMPORTANT: mandatory for sigstore
+    
+        steps:
+        - name: download artifacts
+          uses: actions/download-artifact@v4
+          with:
+            name: lmbuddy_dists
+            path: ./dist/
+            merge-multiple: true
+
+        - name: Release Draft
+          uses: softprops/action-gh-release@v1
+          with:
+             files: ./dist/*
+             draft: true
+
+        - name: Release
+          uses: softprops/action-gh-release@v1
+          # only runs full release if we're on main; tag filter already hit above
+          if: endsWith(github.event.base_ref, 'main') == true
+          with:
+             files: ./dist/*
