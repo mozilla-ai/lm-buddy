@@ -19,12 +19,22 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Ruff
-        run: pipx install ruff==0.2.1 # Needs to match pyproject.toml
+      - name: get ruff version
+        id: get_ruff_version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -oy '.tool.poetry.dev-dependencies.ruff' pyproject.toml
 
-      - name: Lint with Ruff
+      - name: install ruff
+        env:
+          RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
+        run: pipx install ruff=="$RUFF_VERSION"
+        continue-on-error: false
+
+      - name: run ruff
         run: ruff --output-format=github .
         continue-on-error: false
+
   unit-tests:
     runs-on: ubuntu-latest
     steps:
@@ -50,6 +60,7 @@ jobs:
         run: |
           poetry run pytest tests/unit
         continue-on-error: false
+
   integration-tests:
     runs-on: ubuntu-latest
     steps:
