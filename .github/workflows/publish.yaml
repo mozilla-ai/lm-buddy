@@ -33,11 +33,9 @@ jobs:
           $VENV_PATH/bin/pip install -U pip setuptools
           $VENV_PATH/bin/pip install poetry
           export POETRY="$VENV_PATH/bin/poetry"
-          export DIST="$GITHUB_WORKSPACE/dist"
           $POETRY config repositories.testpypi https://test.pypi.org/legacy/
           cd "$GITHUB_WORKSPACE"
           $POETRY build
-          ls ./dist/
           echo "POETRY=$VENV_PATH/bin/poetry" >> "$GITHUB_OUPUT"
 
       - name: Archive Production Artifact
