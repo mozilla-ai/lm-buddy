@@ -1,4 +1,4 @@
-Build and publish to PyPI
+# Build and publish to PyPI
 
 on: 
   push:
