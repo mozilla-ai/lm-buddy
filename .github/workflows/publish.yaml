@@ -17,7 +17,7 @@ jobs:
       runs-on: ubuntu-latest
       outputs:
         POETRY: ${{ env.POETRY }}
-        DIST: ${{ env.DIST }}
+        DISTS: ${{ steps.dists.outputs.artifact-id }}
       steps:
       - uses: actions/checkout@v4
       - name: set up python
@@ -36,97 +36,74 @@ jobs:
           export DIST="$GITHUB_WORKSPACE/dist"
           $POETRY config repositories.testpypi https://test.pypi.org/legacy/
           cd "$GITHUB_WORKSPACE"
+          $POETRY build
+          ls ./dist/
 
-      - name: build_dist
-        run: |
-            $POETRY build
-            ls ./dist/
       - name: Archive Production Artifact
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
+        id: dists
         with:
           name: dist
-          path: dist
+          path: dist/
+          retention-days: 1
 
-    publish-testpypi:
-        name: >-
-            Publish dist to test pypi
-        needs:
-        - build_dist
-        runs-on: ubuntu-latest
+      - name: Publish dist to test pypi
         env:
-            POETRY: ${{  needs.build_dist.outputs.POETRY }}
-            DIST: ${{  needs.build_dist.outputs.DIST }}
             POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_KEY }}
-
         if: ${{ github.event_name == 'pull_request' }}
-        steps:
-        - name: prepare with poetry
-          run: |
+        run: |
             cd $GITHUB_WORKSPACE
             $POETRY publish --repository testpypi
     
-    publish-pypi:
-
-        name: >-
-            Publish dist to real pypi
-        needs:
-        - build_dist
-        runs-on: ubuntu-latest
+      - name: Publish dist to real pypi
         env:
             POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
-            POETRY: ${{  needs.build_dist.outputs.POETRY }}
-            DIST: ${{  needs.build_dist.outputs.DIST }}
         if: endsWith(github.event.base_ref, 'main') == true
-        steps:
-        - name: prepare with poetry
-          run: |
+        run: |
             $POETRY publish --repository testpypi --build
 
-    github-release:
-        name: >-
-            Sign the Python 🐍 distribution 📦 with Sigstore
-            and upload them to GitHub Release
-        needs:
-        - build_dist
-        - publish-pypi # will error if this step fails
-        runs-on: ubuntu-latest
+    # github-release:
+    #     name: >-
+    #         Sign the Python 🐍 distribution 📦 with Sigstore
+    #         and upload them to GitHub Release
+    #     needs:
+    #     - build_dist
+    #     runs-on: ubuntu-latest
     
-        permissions:
-            contents: write  # IMPORTANT: mandatory for making GitHub Releases
-            id-token: write  # IMPORTANT: mandatory for sigstore
+    #     permissions:
+    #         contents: write  # IMPORTANT: mandatory for making GitHub Releases
+    #         id-token: write  # IMPORTANT: mandatory for sigstore
     
-        # should only run when commits are pushed to main and a tag is there (from above)
-        if: endsWith(github.event.base_ref, 'main') == true
-        steps:
-        - name: get dists
-          uses: actions/download-artifact@main
-          with:
-            name: dist
-            path: dist
-        - name: Sign the dists with Sigstore
-          uses: sigstore/gh-action-sigstore-python@v1.2.3
-          with:
-              inputs: >-
-                ./dist/*.tar.gz
-                ./dist/*.whl
+    #     # should only run when commits are pushed to main and a tag is there (from above)
+    #     if: endsWith(github.event.base_ref, 'main') == true
+    #     env:
+    #       OUTPUT1: ${{needs.build_dist.outputs.DISTS}}
+    #     steps:
 
-        - name: Create GitHub Release
-          env:
-              GITHUB_TOKEN: ${{ github.token }}
-          run: >-
-            gh release create
-            '${{ github.ref_name }}'
-            --repo '${{ github.repository }}'
+    #     - name: Sign the dists with Sigstore
+    #       uses: sigstore/gh-action-sigstore-python@v1.2.3
+    #       with:
+    #           inputs: >-
+    #             ./dist/*.tar.gz
+    #             ./dist/*.whl
 
-        - name: Upload artifact signatures to GitHub Release
-          env:
-            GITHUB_TOKEN: ${{ github.token }}
-          # Upload to GitHub Release using the `gh` CLI.
-          # `dist/` contains the built packages, and the
-          # sigstore-produced signatures and certificates.
-          run: >-
-            gh release upload
-            '${{ github.ref_name }}' dist/**
-            --repo '${{ github.repository }}'
+    #     - name: Create GitHub Release
+    #       env:
+    #           GITHUB_TOKEN: ${{ github.token }}
+    #       run: >-
+    #         gh release create
+    #         '${{ github.ref_name }}'
+    #         --repo '${{ github.repository }}'
+
+    #     - name: Upload artifact signatures to GitHub Release
+    #       env:
+    #         GITHUB_TOKEN: ${{ github.token }}
+    #       # Upload to GitHub Release using the `gh` CLI.
+    #       # `dist/` contains the built packages, and the
+    #       # sigstore-produced signatures and certificates.
+    #       run: >-
+    #         gh release upload
+    #         '${{ github.ref_name }}' dist/**
+    #         --repo '${{ github.repository }}'
         
     
