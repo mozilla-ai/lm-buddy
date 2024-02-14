@@ -57,7 +57,8 @@ jobs:
             env
             cd $GITHUB_WORKSPACE
             echo "$GITHUB_WORKSPACE"
-            $POETRY publish --repository testpypi
+            $HOME/venv/bin/poetry publish --repository testpypi
+            
     
       - name: Publish dist to real pypi
         env:
