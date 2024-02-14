@@ -12,7 +12,7 @@ for compute scaling, or an
 with inference performed via an in-process HuggingFace model or an externally-hosted 
 [vLLM](https://github.com/vllm-project/vllm) server.
 
-[!WARNING :skull_and_crossbones:]
+[!WARNING]
 
 LM Buddy is in the early stages of development.
 It is missing important features and documentation.
