@@ -67,48 +67,28 @@ jobs:
             source "$HOME/venv/bin/activate"
             poetry publish --repository testpypi --build
 
-    # github-release:
-    #     name: >-
-    #         Sign the Python 🐍 distribution 📦 with Sigstore
-    #         and upload them to GitHub Release
-    #     needs:
-    #     - build_dist
-    #     runs-on: ubuntu-latest
+    github-release:
+        name: prepare release
+        needs:
+        - build_dist
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write  # IMPORTANT: mandatory for making GitHub Releases
+            id-token: write  # IMPORTANT: mandatory for sigstore
     
-    #     permissions:
-    #         contents: write  # IMPORTANT: mandatory for making GitHub Releases
-    #         id-token: write  # IMPORTANT: mandatory for sigstore
-    
-    #     # should only run when commits are pushed to main and a tag is there (from above)
-    #     if: endsWith(github.event.base_ref, 'main') == true
-    #     env:
-    #       OUTPUT1: ${{needs.build_dist.outputs.DISTS}}
-    #     steps:
-
-    #     - name: Sign the dists with Sigstore
-    #       uses: sigstore/gh-action-sigstore-python@v1.2.3
-    #       with:
-    #           inputs: >-
-    #             ./dist/*.tar.gz
-    #             ./dist/*.whl
-
-    #     - name: Create GitHub Release
-    #       env:
-    #           GITHUB_TOKEN: ${{ github.token }}
-    #       run: >-
-    #         gh release create
-    #         '${{ github.ref_name }}'
-    #         --repo '${{ github.repository }}'
-
-    #     - name: Upload artifact signatures to GitHub Release
-    #       env:
-    #         GITHUB_TOKEN: ${{ github.token }}
-    #       # Upload to GitHub Release using the `gh` CLI.
-    #       # `dist/` contains the built packages, and the
-    #       # sigstore-produced signatures and certificates.
-    #       run: >-
-    #         gh release upload
-    #         '${{ github.ref_name }}' dist/**
-    #         --repo '${{ github.repository }}'
+        # should only run when commits are pushed to main and a tag is there (from above)
+        steps:
         
-    
+        - name: Release Draft
+          uses: softprops/action-gh-release@v1
+          if: startsWith(github.ref, 'refs/tags/')
+          with:
+             files: ${{ needs.build_dist.outputs.DISTS }}
+             draft: true
+
+        - name: Release
+          uses: softprops/action-gh-release@v1
+          if: endsWith(github.event.base_ref, 'main') == true
+          with:
+             files: ${{ needs.build_dist.outputs.DISTS }}
+             draft: true
