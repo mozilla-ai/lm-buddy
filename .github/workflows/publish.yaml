@@ -34,6 +34,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_KEY }}
+            POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
         steps:
         - uses: actions/checkout@v4
         - name: prepare with poetry
@@ -42,54 +43,54 @@ jobs:
             python3 -m venv $VENV_PATH 
             $VENV_PATH/bin/pip install -U pip setuptools
             $VENV_PATH/bin/pip install poetry
+            export POETRY="$VENV_PATH/bin/poetry"
             cd "$GITHUB_WORKSPACE"
-
-            $VENV_PATH/bin/poetry config repositories.testpypi https://test.pypi.org/legacy/
-            $VENV_PATH/bin/poetry publish --repository testpypi --build
+            $POETRY config repositories.testpypi https://test.pypi.org/legacy/
+            $POETRY publish --repository testpypi --build
     
-    # github-release:
-    #     name: >-
-    #         Sign the Python 🐍 distribution 📦 with Sigstore
-    #         and upload them to GitHub Release
-    #     needs:
-    #     - publish-to-pypi
-    #     runs-on: ubuntu-latest
+    github-release:
+        name: >-
+            Sign the Python 🐍 distribution 📦 with Sigstore
+            and upload them to GitHub Release
+        needs:
+        - publish-to-testpypi
+        runs-on: ubuntu-latest
     
-    #     permissions:
-    #         contents: write  # IMPORTANT: mandatory for making GitHub Releases
-    #         id-token: write  # IMPORTANT: mandatory for sigstore
+        permissions:
+            contents: write  # IMPORTANT: mandatory for making GitHub Releases
+            id-token: write  # IMPORTANT: mandatory for sigstore
     
-    #     steps:
-    #     - name: Download all the dists
-    #       uses: actions/download-artifact@v3
-    #       with:
-    #         name: python-package-distributions
-    #         path: dist/
+        steps:
+        - name: Download all the dists
+          uses: actions/download-artifact@v3
+          with:
+            name: python-package-distributions
+            path: dist/
 
-    #     - name: Sign the dists with Sigstore
-    #       uses: sigstore/gh-action-sigstore-python@v1.2.3
-    #       with:
-    #           inputs: >-
-    #             ./dist/*.tar.gz
-    #             ./dist/*.whl
+        - name: Sign the dists with Sigstore
+          uses: sigstore/gh-action-sigstore-python@v1.2.3
+          with:
+              inputs: >-
+                ./dist/*.tar.gz
+                ./dist/*.whl
 
-    #     - name: Create GitHub Release
-    #       env:
-    #           GITHUB_TOKEN: ${{ github.token }}
-    #       run: >-
-    #         gh release create
-    #         '${{ github.ref_name }}'
-    #         --repo '${{ github.repository }}'
+        - name: Create GitHub Release
+          env:
+              GITHUB_TOKEN: ${{ github.token }}
+          run: >-
+            gh release create
+            '${{ github.ref_name }}'
+            --repo '${{ github.repository }}'
                 
-    #     - name: Upload artifact signatures to GitHub Release
-    #       env:
-    #         GITHUB_TOKEN: ${{ github.token }}
-    #       # Upload to GitHub Release using the `gh` CLI.
-    #       # `dist/` contains the built packages, and the
-    #       # sigstore-produced signatures and certificates.
-    #       run: >-
-    #         gh release upload
-    #         '${{ github.ref_name }}' dist/**
-    #         --repo '${{ github.repository }}'
+        - name: Upload artifact signatures to GitHub Release
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+          # Upload to GitHub Release using the `gh` CLI.
+          # `dist/` contains the built packages, and the
+          # sigstore-produced signatures and certificates.
+          run: >-
+            gh release upload
+            '${{ github.ref_name }}' dist/**
+            --repo '${{ github.repository }}'
         
     
