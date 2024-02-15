@@ -14,7 +14,7 @@ on:
     paths:
       - 'docs/**'  # Trigger the workflow only when changes are made in the 'docs' directory
     branches:
-      - '**' # run doc build every time docs change in docs branch
+      - 'docs' # run doc build every time docs change in docs branch
 
 
 
