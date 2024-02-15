@@ -2,18 +2,19 @@ name: Documentation
 # FOLLOWING https://coderefinery.github.io/documentation/gh_workflow/
 
 on:
+  # required to enable manual triggers on the GH web ui
   workflow_dispatch:
   pull_request:
     types: [closed] # Run conditionals based on opened/merged PRs
     paths:
-      - 'docs/*'  # Trigger the workflow only when changes are made in the 'docs' directory
+      - 'docs/**'  # Trigger the workflow only when changes are made in the 'docs' directory
     branches:
-      - 'main' # trigger publish only on closed PR in main
+      - 'docs' # trigger publish only on closed PR in docs
   push:
     paths:
       - 'docs/**'  # Trigger the workflow only when changes are made in the 'docs' directory
     branches:
-      - '**' # run doc build every time docs change in remote branch
+      - '**' # run doc build every time docs change in docs branch
 
 
 

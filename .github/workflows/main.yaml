@@ -1,17 +1,12 @@
 name: Tests
 
 on:
+  # required to enable manual triggers on the GH web ui
   workflow_dispatch:
   push:
-    paths-ignore:
-      - 'docs/*'
-      - '.github/*'
     branches:
       - 'main'
   pull_request:
-    paths-ignore:
-      - 'docs/*'
-      - '.github/*'
     branches:
       - "**"
 
