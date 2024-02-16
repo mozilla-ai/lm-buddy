@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "lm-buddy"
-version = "0.1.0rc12"
+version = "0.2.0"
 description = "Ray-centric library for finetuning and evaluation of (large) language models."
 repository = "https://github.com/mozilla-ai/lm-buddy"
 readme = "README.md"
@@ -17,6 +17,7 @@ license = "Apache-2.0"
 packages = [{ include = "lm_buddy", from = "src" }]
 
 [tool.poetry.dependencies]
+# Core
 python = ">=3.10,<3.11"
 click = "8.1.7"
 torch = "2.1.2"
@@ -28,6 +29,18 @@ pydantic = "2.6.0"
 pydantic-yaml = "1.2.0"
 ray = { version = "2.9.1", extras = ["default"] }
 
+# HuggingFace
+datasets = "2.16.1"
+transformers = "4.36.2"
+accelerate = "0.26.1"
+peft = "0.7.1"
+trl = "0.7.10"
+bitsandbytes = "0.42.0"
+
+# Evaluation frameworks
+lm-eval = { version = "0.4.1", extras = ["openai"] }
+einops = "0.7.0"
+
 [tool.poetry.dev-dependencies]
 ruff = "0.2.1"
 pytest = "7.4.3"
@@ -38,18 +51,6 @@ Sphinx = "7.2.6"
 nbsphinx = "0.9.3"
 myst-parser = "2.0.0"
 recommonmark = "^0.7.1"
-
-[tool.poetry.group.finetuning.dependencies]
-datasets = "2.16.1"
-transformers = "4.36.2"
-accelerate = "0.26.1"
-peft = "0.7.1"
-trl = "0.7.10"
-bitsandbytes = "0.42.0"
-
-[tool.poetry.group.evaluation.dependencies]
-lm-eval = { version = "0.4.1", extras = ["openai"] }
-einops = "0.7.0"
 
 [tool.poetry.scripts]
 lm_buddy = "lm_buddy.cli:cli"

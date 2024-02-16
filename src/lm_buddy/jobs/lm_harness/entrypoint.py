@@ -19,8 +19,8 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
+from lm_buddy.jobs.common import LMBuddyJobType
 from lm_buddy.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.jobs.utils import LMBuddyJobType
 
 
 def get_numeric_metrics(
