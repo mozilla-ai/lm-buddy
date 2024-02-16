@@ -11,8 +11,6 @@ on:
 jobs:
   ruff:
     runs-on: ubuntu-latest
-    env:
-     VENV_PATH: "$HOME/venv" 
     steps:
       - uses: actions/checkout@v4
 
@@ -27,25 +25,28 @@ jobs:
         with:
           cmd: yq -oy '.tool.poetry.dev-dependencies.ruff' pyproject.toml
 
-      - name: install and run ruff
+      - name: Install UV, venv
+        run: |
+          python3 -m venv "$HOME/venv" 
+          source "$VENV_PATH/bin/activate"
+          pip install uv
+          echo "PATH=$PATH" >> $GITHUB_ENV
+
+      - name: install ruff
         env:
           RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
         run: |
-          python3 -m venv $VENV_PATH 
-          source "$VENV_PATH/bin/activate"
-          pip install uv
           uv pip install ruff
         continue-on-error: false
+
       - name: run ruff
         run: | 
-          source "$VENV_PATH/bin/activate"
           ruff --output-format=github .
+        continue-on-error: false
         
 
   unit-tests:
     runs-on: ubuntu-latest
-    env:
-     VENV_PATH: "$HOME/venv" 
     steps:
       - uses: actions/checkout@v4
 
@@ -54,36 +55,35 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install UV, venv
+        run: |
+          python3 -m venv "$HOME/venv" 
+          source "$VENV_PATH/bin/activate"
+          pip install uv
+          echo "PATH=$PATH" >> $GITHUB_ENV
+
       - name: Install Poetry
         id: poetry
         run: |
-          python3 -m venv $VENV_PATH 
-          source "$VENV_PATH/bin/activate"
-          pip install uv
-          uv pip install ruff poetry
+          uv pip install poetry
         continue-on-error: false
 
       - name: Lock Poetry
         run: |
-          source "$VENV_PATH/bin/activate"
           poetry lock
 
       - name: Install test dependencies
         run: |
-          source "$VENV_PATH/bin/activate"
           poetry install
         continue-on-error: true
 
       - name: Run unit tests
         run: |
-          source "$VENV_PATH/bin/activate"
           poetry run pytest tests/unit
         continue-on-error: false
 
   integration-tests:
     runs-on: ubuntu-latest
-    env:
-     VENV_PATH: "$HOME/venv" 
     steps:
       - uses: actions/checkout@v4
 
@@ -92,28 +92,30 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install UV, venv
+        run: |
+          python3 -m venv "$HOME/venv" 
+          source "$VENV_PATH/bin/activate"
+          pip install uv
+          echo "PATH=$PATH" >> $GITHUB_ENV
+
+
       - name: Install poetry
         id: poetry
         run: |
-          python3 -m venv $VENV_PATH 
-          source "$VENV_PATH/bin/activate"
-          pip install uv
           uv pip install poetry 
         continue-on-error: false
 
       - name: Lock Poetry
         run: |
-          source "$VENV_PATH/bin/activate"
           poetry lock
 
       - name: Install test dependencies
         run: |
-          source "$VENV_PATH/bin/activate"
           poetry install
         continue-on-error: true
 
       - name: Run integration tests
         run: |
-          source "$VENV_PATH/bin/activate"
           poetry run pytest tests/integration
         continue-on-error: false
