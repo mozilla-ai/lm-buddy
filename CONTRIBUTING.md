@@ -77,7 +77,7 @@ For a full sample job with a directory structure that you can run with a simple 
 [run locally to submit to the Job Submission SDK](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#submitting-a-ray-job), 
 see the `examples/dev_submission` directory.
 
-## Publishing
+## Publishing (manual)
 
 This section is intended for only maintainers at Mozilla.ai.
 Use the local installable package workflow above for iteration locally.
@@ -92,9 +92,10 @@ Set up poetry to use the key(s):
 
 ```
 poetry config repositories.testpypi https://test.pypi.org/legacy/
-poetry config pypi-token.testpypi $(op read "op://<VAULT>/PyPI-test/pypi/api_key")
-poetry config pypi-token.pypi $(op read "op://<VAULT>/PyPI/pypi/api_key")
+poetry config pypi-token.testpypi $(op read "op://mzai-dev/PyPI-test/pypi/api_key")
+poetry config pypi-token.pypi $(op read "op://mzai-dev/PyPI/pypi/api_key")
 ```
+
 
 ### Testing publishing 
 
@@ -112,3 +113,44 @@ When you're ready, run:
 ```
 poetry publish --build
 ```
+
+## Publishing  (automated)
+
+`.github/workflows/publish.yaml' contains the GitHub Action used to do releases and push wheels to PyPI.
+
+There are two subcases - draft/dev and the 'real' release.
+
+
+### Draft / Test releases
+
+If a contributed opens a PR to `main` with a git version tag (e.g., `vX.Y.Z`) , the draft process will start which does the following:
+
+- upload a version to test PyPI 
+- make a draft release on github.
+
+
+this is to ensure the full process works before merging to main.
+
+
+### Real release
+
+If a commit is made to `main` with a git version tag (e.g., `vX.Y.Z`), the full process will run, and upload the package to PyPI and make a formal Release. 
+
+
+The workflow should look like the following:
+
+- make your changes that will be included in a release (could be a long running dev branch or otherwise)
+- update the version in `pyproject.toml`
+- add an annotated tag, e.g.:
+  * `git tag -a v1.4.0 -m "1.4.0 prepped for release; see ___ for changes"` or
+  * `git tag -a v1.4.3 -m "1.4.3 is a patch for issue ____"`
+- push your changes to upstream 
+- open a PR to main
+- verify that the project builds
+- land PR
+
+
+
+
+
+
