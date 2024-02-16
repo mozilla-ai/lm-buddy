@@ -3,7 +3,7 @@ import pytest
 import lm_buddy
 from lm_buddy.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
 from lm_buddy.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
-from lm_buddy.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
+from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
 from tests.test_utils import FakeArtifactLoader
 
 
