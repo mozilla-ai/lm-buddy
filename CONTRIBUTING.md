@@ -126,7 +126,7 @@ There are two subcases - draft/dev and the 'real' release.
 
 ### Draft / Test releases
 
-If a contributed opens a PR to `main` with a git version tag (e.g., `vX.Y.Z`) , the draft process will start which does the following:
+If a contributed opens a PR with a git version tag (e.g., `vX.Y.Z`) , the draft process will start which does the following:
 
 - upload a version to test PyPI 
 - make a draft release on github.
@@ -137,18 +137,15 @@ this is to ensure the full process works before merging to main.
 
 ### Real release
 
-If a commit is made to `main` with a git version tag (e.g., `vX.Y.Z`), the full process will run, and upload the package to PyPI and make a formal Release. 
+If a commit is made to `main` with a git version tag (e.g., `vX.Y.Z`) and is coming from a PR labeled `release`, the full process will run. The workflow should look like:
 
-
-The workflow should look like the following:
-
-- make your changes that will be included in a release (could be a long running dev branch or otherwise)
+- make your changes that will be included in a release 
 - update the version in `pyproject.toml`
 - add an annotated tag, e.g.:
   * `git tag -a v1.4.0 -m "1.4.0 prepped for release; see ___ for changes"` or
   * `git tag -a v1.4.3 -m "1.4.3 is a patch for issue ____"`
 - push your changes to upstream 
-- open a PR to main
+- open a PR to main with label "release"
 - verify that the project builds
 - land PR
 

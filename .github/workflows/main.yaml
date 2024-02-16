@@ -25,32 +25,41 @@ jobs:
         with:
           cmd: yq -oy '.tool.poetry.dev-dependencies.ruff' pyproject.toml
 
-      - name: install ruff
+      - name: install and run ruff
         env:
           RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
-        run: pipx install ruff=="$RUFF_VERSION"
+        run: |
+          export VENV_PATH="$HOME/venv" 
+          python3 -m venv $VENV_PATH 
+          source "$VENV_PATH/bin/activate"
+          uv pip install ruff
+          ruff --output-format=github .
         continue-on-error: false
-
-      - name: Lint with Ruff
-        run: ruff --output-format=github .
-        continue-on-error: false
+        
 
   unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install poetry
-        run: pipx install poetry
-
-      - name: Lock Poetry
-        run: poetry lock
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: poetry
+
+      - name: set up poetry
+        id: poetry
+        run: |
+          export VENV_PATH="$HOME/venv" 
+          python3 -m venv $VENV_PATH 
+          source "$VENV_PATH/bin/activate"
+          pip install uv
+          uv pip install ruff poetry
+        continue-on-error: false
+
+      - name: Lock Poetry
+        run: poetry lock
 
       - name: Install test dependencies
         run: poetry install
@@ -67,7 +76,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install poetry
-        run: pipx install poetry
+        run: |
+          export VENV_PATH="$HOME/venv" 
+          python3 -m venv $VENV_PATH 
+          source "$VENV_PATH/bin/activate"
+          pip install uv
+          uv pip install poetry 
+        continue-on-error: false
 
       - name: Lock Poetry
         run: poetry lock

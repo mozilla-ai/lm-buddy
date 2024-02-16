@@ -29,8 +29,8 @@ jobs:
           export VENV_PATH="$HOME/venv" 
           python3 -m venv $VENV_PATH 
           source "$VENV_PATH/bin/activate"
-          pip install -U pip setuptools
-          pip install poetry
+          pip install uv
+          uv pip install pip setuptools poetry
           poetry config repositories.testpypi https://test.pypi.org/legacy/
           poetry build
         continue-on-error: false
