@@ -26,6 +26,7 @@ jobs:
           cmd: yq -oy '.tool.poetry.dev-dependencies.ruff' pyproject.toml
 
       - name: Install UV, venv, ruff
+        id: setup
         env:
           RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
         run: |
@@ -36,12 +37,14 @@ jobs:
         continue-on-error: false
 
       - name: Linting with Ruff
+        id: linting
         run: | 
           . .venv/bin/activate
           ruff --output-format=github .
         continue-on-error: false
 
       - name: Install Poetry and test dependencies
+        id: install_poetry_and_deps
         run: |
           . .venv/bin/activate
           uv pip install poetry
@@ -57,6 +60,7 @@ jobs:
         continue-on-error: false
 
       - name: Integration tests
+        id: integration_tests
         run: |
           . .venv/bin/activate
           poetry run pytest tests/integration
