@@ -22,17 +22,13 @@ If you have an active Conda environment, Poetry should recognize it during insta
 and install the package dependencies there.
 This hasn't been explicitly tested with other virtual python environments, but will likely work.
 
-Alternatively, you can use poetry's own environment by running
+Alternatively, you can use Poetry's own environment by running
 ```
 poetry lock
 poetry env use python3.10
 poetry install
 ```
 where `python3.10` is your python interpreter.
-
-The `pyproject.toml` file defines dependency groups for the logical job types in the package.
-Individual dependency groups can be installed by running
-`poetry install --with <group1>,<group2>` or `poetry install --only <group>`.
 
 ## Code style
 
@@ -53,10 +49,11 @@ local development branch of the `lm-buddy` repo.
 
 To do so, follow the steps:
 
-1. Export a copy of the package dependencies by running the following command, which will create a `requirements.txt` file in the `lm-buddy` repository. This will contain the dependencies for the `finetuning` and `evaluation` job groups:
+1. Export a copy of the package dependencies by running the following command, which will create a `requirements.txt` file in the `lm-buddy` repository. 
+This will contain all non-development dependencies for the package:
 
     ```
-    poetry export --without-hashes --with finetuning,evaluation -o requirements.txt
+    poetry export --without-hashes -o requirements.txt
     ```
 
 2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
@@ -108,7 +105,7 @@ poetry publish --repository testpypi --dry-run --build
 poetry publish --repository testpypi --build
 ```
 
-### Publish to PyPi
+### Publish to PyPI
 
 When you're ready, run:
 
