@@ -25,18 +25,20 @@ jobs:
         with:
           cmd: yq -oy '.tool.poetry.dev-dependencies.ruff' pyproject.toml
 
-      - name: Install UV, venv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv
-          echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
-
-      - name: install ruff
+      - name: Install UV, venv, ruff
         env:
           RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
         run: |
-          . .venv/bin/activate
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv
           uv pip install ruff
+          echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
+        continue-on-error: false
+
+      - name: Linting with Ruff
+        run: | 
+          . .venv/bin/activate
+          ruff --output-format=github .
         continue-on-error: false
 
       - name: Install Poetry and test dependencies
@@ -47,18 +49,12 @@ jobs:
           poetry install
         continue-on-error: false
 
-      - name: Linting with Ruff
-        run: | 
-          . .venv/bin/activate
-          ruff --output-format=github .
-        continue-on-error: true
-        
       - name: Unit tests
         id: unit_tests
         run: |
           . .venv/bin/activate
           poetry run pytest tests/unit
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Integration tests
         run: |
