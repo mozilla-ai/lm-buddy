@@ -7,15 +7,12 @@ from lm_buddy.jobs.simple import SimpleJobConfig, run_simple
 
 def run_job(
     config: LMBuddyJobConfig,
-    *,
     artifact_loader: ArtifactLoader = WandbArtifactLoader(),
 ) -> None:
     """Run an LM Buddy job from the configuration.
 
     Args:
         config (LMBuddyJobConfig): Configuration defining the job to run.
-
-    Keyword Args:
         artifact_loader (ArtifactLoader): Implementation of the artifact loader protocol.
             Defaults to WandbArtifactLoader().
     """
