@@ -1,11 +1,11 @@
 from lm_buddy.integrations.wandb import ArtifactLoader, WandbArtifactLoader
+from lm_buddy.jobs._entrypoints import run_finetuning, run_lm_harness, run_simple
 from lm_buddy.jobs.configs import (
     FinetuningJobConfig,
     LMBuddyJobConfig,
     LMHarnessJobConfig,
     SimpleJobConfig,
 )
-from lm_buddy.jobs.entrypoints import run_finetuning, run_lm_harness, run_simple
 
 
 def run_job(
