@@ -28,7 +28,7 @@ jobs:
       - name: Install UV, venv
         run: |
           python3 -m venv "$HOME/venv" 
-          source "$VENV_PATH/bin/activate"
+          source "$HOME/venv/bin/activate"
           pip install uv
           echo "PATH=$PATH" >> $GITHUB_ENV
 
@@ -58,7 +58,7 @@ jobs:
       - name: Install UV, venv
         run: |
           python3 -m venv "$HOME/venv" 
-          source "$VENV_PATH/bin/activate"
+          source "$HOME/venv/bin/activate"
           pip install uv
           echo "PATH=$PATH" >> $GITHUB_ENV
 
@@ -95,7 +95,7 @@ jobs:
       - name: Install UV, venv
         run: |
           python3 -m venv "$HOME/venv" 
-          source "$VENV_PATH/bin/activate"
+          source "$HOME/venv/bin/activate"
           pip install uv
           echo "PATH=$PATH" >> $GITHUB_ENV
 
