@@ -35,11 +35,13 @@ jobs:
         env:
           RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
         run: |
+          . .venv/bin/activate
           uv pip install ruff
         continue-on-error: false
 
       - name: run ruff
         run: | 
+          . .venv/bin/activate
           ruff --output-format=github .
         continue-on-error: false
         
@@ -103,19 +105,23 @@ jobs:
       - name: Install poetry
         id: poetry
         run: |
+          . .venv/bin/activate
           uv pip install poetry 
         continue-on-error: false
 
       - name: Lock Poetry
         run: |
+          . .venv/bin/activate
           poetry lock
 
       - name: Install test dependencies
         run: |
+          . .venv/bin/activate
           poetry install
         continue-on-error: true
 
       - name: Run integration tests
         run: |
+          . .venv/bin/activate
           poetry run pytest tests/integration
         continue-on-error: false
