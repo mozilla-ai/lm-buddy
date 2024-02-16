@@ -43,7 +43,7 @@ jobs:
           ruff --output-format=github .
         continue-on-error: false
 
-      - name: Install Poetry and test dependencies
+      - name: Install Poetry and package
         id: install_poetry_and_deps
         run: |
           . .venv/bin/activate
