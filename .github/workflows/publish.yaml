@@ -1,13 +1,14 @@
-# Build and publish to PyPI
+name: Build and publish to PyPI
 
 on: 
-  push:
-    tags:
-      - "v*"
-  pull_request:
-    branches:
-      - "main"
   workflow_dispatch:
+    inputs:
+        prod_or_test:
+          type: choice
+          description: Prod or Test
+          options: 
+          - test
+          - prod
 
 jobs:
     build_dist:
@@ -20,16 +21,27 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: set up poetry
+      - name: Install UV, venv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv
+          echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
+
+      - name: Install poetry
         id: setup
         run: |
-          export VENV_PATH="$HOME/venv" 
-          python3 -m venv $VENV_PATH 
-          source "$VENV_PATH/bin/activate"
-          pip install -U pip setuptools
-          pip install poetry
+          . .venv/bin/activate
+          uv pip install poetry 
           poetry config repositories.testpypi https://test.pypi.org/legacy/
           poetry build
+        continue-on-error: false
+
+      - name: Build package
+        id: build_package
+        run: |
+          . .venv/bin/activate
+          poetry build
+        continue-on-error: false
 
       - name: Archive Production Artifact
         uses: actions/upload-artifact@v4
@@ -40,22 +52,20 @@ jobs:
           retention-days: 1
 
       - name: Publish dist to test pypi
+        if: ${{ inputs.prod_or_test == 'test' }}
         env:
             POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_KEY }}
-            
-        if: ${{ github.event_name == 'pull_request' }}
         run: |
-            source "$HOME/venv/bin/activate"
-            cd $GITHUB_WORKSPACE
-            echo "$GITHUB_WORKSPACE"
-            which poetry
+            . .venv/bin/activate
             poetry publish --repository testpypi
-            
+        continue-on-error: false
+
       - name: Publish dist to real pypi
         env:
             POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
-        # only runs full release if we're on main; tag filter already hit above
-        if: endsWith(github.event.base_ref, 'main') == true
+        # only runs full release if we're on main
+        # tag filter and label filter were already hit
+        if: ${{ inputs.prod_or_test == 'prod' }}
         run: |
             source "$HOME/venv/bin/activate"
             poetry publish 
@@ -79,6 +89,7 @@ jobs:
 
         - name: Release Draft
           uses: softprops/action-gh-release@v1
+          if: ${{ inputs.prod_or_test == 'test' }}
           with:
              files: ./dist/*
              draft: true
@@ -86,6 +97,6 @@ jobs:
         - name: Release
           uses: softprops/action-gh-release@v1
           # only runs full release if we're on main; tag filter already hit above
-          if: endsWith(github.event.base_ref, 'main') == true
+          if: ${{ inputs.prod_or_test == 'prod' }}
           with:
              files: ./dist/*
