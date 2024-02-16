@@ -1,4 +1,4 @@
-from lm_buddy.jobs.common import LMBuddyJobConfig
+from lm_buddy.jobs.configs import LMBuddyJobConfig
 
 
 class SimpleJobConfig(LMBuddyJobConfig):
