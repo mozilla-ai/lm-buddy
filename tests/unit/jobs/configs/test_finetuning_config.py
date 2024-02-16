@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from lm_buddy.integrations.huggingface import HuggingFaceRepoConfig, TextDatasetConfig
-from lm_buddy.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
+from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
 from tests.test_utils import copy_pydantic_json
 
 

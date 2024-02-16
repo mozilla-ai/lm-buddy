@@ -1,9 +1,7 @@
 import click
 
 import lm_buddy
-from lm_buddy.jobs.finetuning import FinetuningJobConfig
-from lm_buddy.jobs.lm_harness import LMHarnessJobConfig
-from lm_buddy.jobs.simple import SimpleJobConfig
+from lm_buddy.jobs.configs import FinetuningJobConfig, LMHarnessJobConfig, SimpleJobConfig
 
 # TODO(RD2024-125): We should probably collapse all these commands into a single CLI command
 # - Need to figure out best way to polymorphically deserialize the job config classes

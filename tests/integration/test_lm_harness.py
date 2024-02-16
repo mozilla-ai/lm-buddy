@@ -3,7 +3,7 @@ import pytest
 import lm_buddy
 from lm_buddy.integrations.huggingface import AutoModelConfig
 from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
-from lm_buddy.jobs.lm_harness import LMHarnessEvaluatorConfig, LMHarnessJobConfig
+from lm_buddy.jobs.configs import LMHarnessEvaluatorConfig, LMHarnessJobConfig
 from tests.test_utils import FakeArtifactLoader
 
 

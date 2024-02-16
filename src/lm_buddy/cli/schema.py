@@ -2,9 +2,7 @@ import json
 
 import click
 
-from lm_buddy.jobs.finetuning import FinetuningJobConfig
-from lm_buddy.jobs.lm_harness import LMHarnessJobConfig
-from lm_buddy.jobs.simple import SimpleJobConfig
+from lm_buddy.jobs.configs import FinetuningJobConfig, LMHarnessJobConfig, SimpleJobConfig
 
 
 @click.group(name="schema", help="Get a job configuration schema.")

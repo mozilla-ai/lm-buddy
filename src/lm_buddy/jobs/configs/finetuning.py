@@ -9,7 +9,7 @@ from lm_buddy.integrations.huggingface import (
     TrainerConfig,
 )
 from lm_buddy.integrations.wandb import WandbRunConfig
-from lm_buddy.jobs.common import LMBuddyJobConfig
+from lm_buddy.jobs.configs import LMBuddyJobConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
