@@ -27,10 +27,9 @@ jobs:
 
       - name: Install UV, venv
         run: |
-          python3 -m venv "$HOME/venv" 
-          source "$HOME/venv/bin/activate"
-          pip install uv
-          echo "PATH=$PATH" >> $GITHUB_ENV
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv
+          echo "VIRTUAL_ENV={$HOME/.venv}" >> $GITHUB_ENV
 
       - name: install ruff
         env:
@@ -57,28 +56,31 @@ jobs:
 
       - name: Install UV, venv
         run: |
-          python3 -m venv "$HOME/venv" 
-          source "$HOME/venv/bin/activate"
-          pip install uv
-          echo "PATH=$PATH" >> $GITHUB_ENV
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv
+          echo "VIRTUAL_ENV={$HOME/.venv}" >> $GITHUB_ENV
 
       - name: Install Poetry
         id: poetry
         run: |
+          . .venv/bin/activate
           uv pip install poetry
         continue-on-error: false
 
       - name: Lock Poetry
         run: |
+          . .venv/bin/activate
           poetry lock
 
       - name: Install test dependencies
         run: |
+          . .venv/bin/activate
           poetry install
         continue-on-error: true
 
       - name: Run unit tests
         run: |
+          . .venv/bin/activate
           poetry run pytest tests/unit
         continue-on-error: false
 
@@ -94,11 +96,9 @@ jobs:
 
       - name: Install UV, venv
         run: |
-          python3 -m venv "$HOME/venv" 
-          source "$HOME/venv/bin/activate"
-          pip install uv
-          echo "PATH=$PATH" >> $GITHUB_ENV
-
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv
+          echo "VIRTUAL_ENV={$HOME/.venv}" >> $GITHUB_ENV
 
       - name: Install poetry
         id: poetry
