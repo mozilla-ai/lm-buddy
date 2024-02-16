@@ -38,5 +38,3 @@ class BaseLMBuddyConfig(
 
     Defines some common settings used by all subclasses.
     """
-
-    pass

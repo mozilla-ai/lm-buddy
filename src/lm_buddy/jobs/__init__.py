@@ -10,15 +10,12 @@ from lm_buddy.jobs.entrypoints import run_finetuning, run_lm_harness, run_simple
 
 def run_job(
     config: LMBuddyJobConfig,
-    *,
     artifact_loader: ArtifactLoader = WandbArtifactLoader(),
 ) -> None:
     """Run an LM Buddy job from the configuration.
 
     Args:
         config (LMBuddyJobConfig): Configuration defining the job to run.
-
-    Keyword Args:
         artifact_loader (ArtifactLoader): Implementation of the artifact loader protocol.
             Defaults to WandbArtifactLoader().
     """
