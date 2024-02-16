@@ -121,36 +121,7 @@ poetry publish --build
 
 `.github/workflows/publish.yaml' contains the GitHub Action used to do releases and push wheels to PyPI.
 
-There are two subcases - draft/dev and the 'real' release.
 
+You can trigger a publish workflow via [LM Buddy Actions](https://github.com/mozilla-ai/lm-buddy/actions). Choose `test` or `prod` from the dropdown menu. 
 
-### Draft / Test releases
-
-If a contributed opens a PR with a git version tag (e.g., `vX.Y.Z`) , the draft process will start which does the following:
-
-- upload a version to test PyPI 
-- make a draft release on github.
-
-
-this is to ensure the full process works before merging to main.
-
-
-### Real release
-
-If a commit is made to `main` with a git version tag (e.g., `vX.Y.Z`) and is coming from a PR labeled `release`, the full process will run. The workflow should look like:
-
-- make your changes that will be included in a release 
-- update the version in `pyproject.toml`
-- add an annotated tag, e.g.:
-  * `git tag -a v1.4.0 -m "1.4.0 prepped for release; see ___ for changes"` or
-  * `git tag -a v1.4.3 -m "1.4.3 is a patch for issue ____"`
-- push your changes to upstream 
-- open a PR to main with label "release"
-- verify that the project builds
-- land PR
-
-
-
-
-
-
+Most often failures will involve forgetting to bump the version in `pyproject.toml`, which will trigger PyPI (both test and prod) to reject the package.

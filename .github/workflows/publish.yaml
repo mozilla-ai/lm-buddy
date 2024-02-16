@@ -1,4 +1,4 @@
-# Build and publish to PyPI
+name: Build and publish to PyPI
 
 on: 
   workflow_dispatch:
@@ -7,13 +7,8 @@ on:
           type: choice
           description: Prod or Test
           options: 
-          - prod
           - test
-        message:
-          required: true
-        environment:
-          type: environment
-
+          - prod
 
 jobs:
     build_dist:
