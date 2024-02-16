@@ -105,9 +105,6 @@ jobs:
         run: |
           source "$VENV_PATH/bin/activate"
           poetry lock
-        run: |
-          source "$VENV_PATH/bin/activate"
-          poetry lock
 
       - name: Install test dependencies
         run: |
