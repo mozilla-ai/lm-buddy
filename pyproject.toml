@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "lm-buddy"
-version = "0.2.0"
+version = "0.2.1"
 description = "Ray-centric library for finetuning and evaluation of (large) language models."
 repository = "https://github.com/mozilla-ai/lm-buddy"
 readme = "README.md"
