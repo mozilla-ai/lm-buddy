@@ -8,6 +8,7 @@ from lm_buddy.integrations.huggingface import (
 )
 from lm_buddy.integrations.vllm import InferenceServerConfig
 from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.jobs.configs import LMBuddyJobConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -43,7 +44,7 @@ class LMHarnessEvaluatorConfig(BaseLMBuddyConfig):
     limit: int | float | None = None
 
 
-class LMHarnessJobConfig(BaseLMBuddyConfig):
+class LMHarnessJobConfig(LMBuddyJobConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
     model: AutoModelConfig | LocalChatCompletionsConfig

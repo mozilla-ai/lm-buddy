@@ -1,4 +1,8 @@
+import json
+
 import click
+
+from lm_buddy.jobs.configs import FinetuningJobConfig, LMHarnessJobConfig, SimpleJobConfig
 
 
 @click.group(name="schema", help="Get a job configuration schema.")
@@ -8,23 +12,17 @@ def group():
 
 @group.command("simple", help="Schema for the simple test job configuration.")
 def schema_simple() -> None:
-    from lm_buddy.jobs.simple import SimpleJobConfig
-
-    schema_json = SimpleJobConfig.schema_json(indent=2)
-    click.secho(schema_json)
+    schema = SimpleJobConfig.model_json_schema()
+    click.secho(json.dumps(schema, indent=2))
 
 
 @group.command("finetuning", help="Schema for the finetuning job configuration.")
 def schema_finetuning() -> None:
-    from lm_buddy.jobs.finetuning import FinetuningJobConfig
-
-    schema_json = FinetuningJobConfig.schema_json(indent=2)
-    click.secho(schema_json)
+    schema = FinetuningJobConfig.model_json_schema()
+    click.secho(json.dumps(schema, indent=2))
 
 
 @group.command("lm-harness", help="Schema for the lm-harness job configuration.")
 def schema_lm_harness() -> None:
-    from lm_buddy.jobs.lm_harness import LMHarnessJobConfig
-
-    schema_json = LMHarnessJobConfig.schema_json(indent=2)
-    click.secho(schema_json)
+    schema = LMHarnessJobConfig.model_json_schema()
+    click.secho(json.dumps(schema, indent=2))

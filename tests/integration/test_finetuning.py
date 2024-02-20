@@ -1,8 +1,9 @@
 import pytest
 
+import lm_buddy
 from lm_buddy.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
 from lm_buddy.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
-from lm_buddy.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig, run_finetuning
+from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
 from tests.test_utils import FakeArtifactLoader
 
 
@@ -40,7 +41,7 @@ def test_finetuning_job(llm_model_artifact, text_dataset_artifact, job_config):
     artifact_loader.log_artifact(text_dataset_artifact)
 
     # Run test job
-    run_finetuning(job_config, artifact_loader)
+    lm_buddy.run_job(job_config, artifact_loader=artifact_loader)
 
     # Two input artifacts, and one output model artifact produced
     artifacts = artifact_loader.get_artifacts()

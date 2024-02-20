@@ -9,6 +9,7 @@ from lm_buddy.integrations.huggingface import (
     TrainerConfig,
 )
 from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.jobs.configs import LMBuddyJobConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -23,7 +24,7 @@ class FinetuningRayConfig(BaseLMBuddyConfig):
     storage_path: str | None = None  # TODO: This should be set globally somehow
 
 
-class FinetuningJobConfig(BaseLMBuddyConfig):
+class FinetuningJobConfig(LMBuddyJobConfig):
     """Configuration to submit an LLM finetuning job."""
 
     model: AutoModelConfig

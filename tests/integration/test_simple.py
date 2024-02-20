@@ -1,7 +1,7 @@
 import ray
 
-from lm_buddy.jobs.simple import SimpleJobConfig
-from lm_buddy.jobs.simple.entrypoint import get_magic_number
+from lm_buddy.jobs._entrypoints.simple import get_magic_number
+from lm_buddy.jobs.configs import SimpleJobConfig
 
 
 def test_simple_remote_task():

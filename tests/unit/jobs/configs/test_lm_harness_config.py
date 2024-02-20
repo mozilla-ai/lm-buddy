@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from lm_buddy.integrations.vllm import InferenceServerConfig
-from lm_buddy.jobs.lm_harness import (
+from lm_buddy.jobs.configs import (
     LMHarnessEvaluatorConfig,
     LMHarnessJobConfig,
     LocalChatCompletionsConfig,

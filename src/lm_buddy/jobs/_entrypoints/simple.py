@@ -1,6 +1,6 @@
 import ray
 
-from lm_buddy.jobs.simple import SimpleJobConfig
+from lm_buddy.jobs.configs import SimpleJobConfig
 
 
 @ray.remote
