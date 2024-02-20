@@ -1,4 +1,4 @@
-name: Build and publish to PyPI
+name: Build and Publish to PyPI
 
 on: 
   workflow_dispatch:
@@ -11,14 +11,14 @@ on:
           - prod
 
 jobs:
-    build_dist:
-      name: Build distribution 📦
+    build-dist:
+      name: Build Distribution 📦
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v4
   
-      - name: Set up python
-        uses: actions/setup-python@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -28,7 +28,7 @@ jobs:
           uv venv
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
 
-      - name: Install poetry
+      - name: Install Poetry
         id: setup
         run: |
           . .venv/bin/activate
@@ -37,14 +37,14 @@ jobs:
           poetry build
         continue-on-error: false
 
-      - name: Build package
+      - name: Build Package
         id: build_package
         run: |
           . .venv/bin/activate
           poetry build
         continue-on-error: false
 
-      - name: Archive production artifact
+      - name: Archive Production Artifact
         uses: actions/upload-artifact@v4
         id: lmbuddy_artifacts
         with:
@@ -52,7 +52,7 @@ jobs:
           path: dist/
           retention-days: 1
 
-      - name: Publish dist to test pypi
+      - name: Publish to Test PyPI
         if: ${{ inputs.prod_or_test == 'test' }}
         env:
             POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_KEY }}
@@ -61,9 +61,9 @@ jobs:
             poetry publish --repository testpypi
         continue-on-error: false
 
-      - name: Publish dist to real pypi
+      - name: Publish to PyPI
         env:
-            POETRY_PYPI_TOKEN: ${{ secrets.PYPI_KEY }}
+            POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_KEY }}
         # only runs full release if we're on main
         # tag filter and label filter were already hit
         if: ${{ inputs.prod_or_test == 'prod' }}
@@ -72,23 +72,23 @@ jobs:
             poetry publish 
 
     github-release:
-        name: Prepare release
+        name: Prepare Release
         needs:
-        - build_dist
+        - build-dist
         runs-on: ubuntu-latest
         permissions:
             contents: write  # IMPORTANT: mandatory for making GitHub Releases
             id-token: write  # IMPORTANT: mandatory for sigstore
     
         steps:
-        - name: Download artifacts
+        - name: Download Artifacts
           uses: actions/download-artifact@v4
           with:
             name: lmbuddy_dists
             path: ./dist/
             merge-multiple: true
 
-        - name: Release draft
+        - name: Release Draft
           uses: softprops/action-gh-release@v1
           if: ${{ inputs.prod_or_test == 'test' }}
           with:

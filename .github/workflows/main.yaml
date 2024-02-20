@@ -9,7 +9,8 @@ on:
       - "**"
 
 jobs:
-  all_tests:
+  pr-checks:
+    name: PR Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,13 +20,13 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: get ruff version
+      - name: Get Ruff Version
         id: get_ruff_version
         uses: mikefarah/yq@master
         with:
           cmd: yq -oy '.tool.poetry.dev-dependencies.ruff' pyproject.toml
 
-      - name: Install UV, venv, ruff
+      - name: Install uv, venv, Ruff
         id: setup
         env:
           RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
@@ -43,7 +44,7 @@ jobs:
           ruff --output-format=github .
         continue-on-error: false
 
-      - name: Install Poetry and package
+      - name: Install Poetry and Package
         id: install_poetry_and_deps
         run: |
           . .venv/bin/activate
@@ -52,14 +53,14 @@ jobs:
           poetry install
         continue-on-error: false
 
-      - name: Unit tests
+      - name: Unit Tests
         id: unit_tests
         run: |
           . .venv/bin/activate
           poetry run pytest tests/unit
         continue-on-error: false
 
-      - name: Integration tests
+      - name: Integration Tests
         id: integration_tests
         run: |
           . .venv/bin/activate
