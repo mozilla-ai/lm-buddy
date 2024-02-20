@@ -67,7 +67,7 @@ jobs:
         # tag filter and label filter were already hit
         if: ${{ inputs.prod_or_test == 'prod' }}
         run: |
-            source "$HOME/venv/bin/activate"
+            . .venv/bin/activate
             poetry publish 
 
     github-release:
