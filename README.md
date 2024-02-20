@@ -22,7 +22,7 @@ with inference performed via an in-process HuggingFace model or an externally-ho
 
 ## Installation
 
-TODO: Finalize this section once published to PyPi
+LM Buddy is available on PyPI and can be installed as follows:
 
 ```
 pip install lm-buddy
