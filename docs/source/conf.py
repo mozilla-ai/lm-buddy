@@ -15,6 +15,7 @@ author = "Sean Friedowitz, Vicki Boykis, Aaron Gonzales"
 extensions = [
     "nbsphinx",
     "myst_parser",
+    "sphinx_codeautolink",
 ]
 
 # use language set by highlight directive if no language is set by role
@@ -32,4 +33,4 @@ source_suffix = [".rst", ".md"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo"
-html_static_path = ["_static"]
+html_static_path = []
