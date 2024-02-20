@@ -1,0 +1,56 @@
+name: Build and Publish Docs
+
+on:
+  # required to enable manual triggers on the GH web ui
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - "**"
+  # separate workflow that runs on PRs to main
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Build Documentation
+      run: |
+        cd docs
+        pip install uv
+        uv venv
+        source .venv/bin/activate
+        uv pip install sphinx nbsphinx myst-parser furo sphinx_codeautolink
+        sphinx-build source build/html
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload Artifact
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/build/html/
+
+    - name: Deploy
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      uses: actions/deploy-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/build/html
+
