@@ -10,6 +10,7 @@ on:
 
 jobs:
   pr-checks:
+    name: PR Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
