@@ -20,12 +20,11 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install uv, venv, Ruff
+      - name: Set up Environment
         id: setup
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv
-          uv pip install -r requirements/lint.txt
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
 
@@ -33,6 +32,7 @@ jobs:
         id: linting
         run: | 
           . .venv/bin/activate
+          uv pip install -r requirements/lint.txt
           ruff --output-format=github .
         continue-on-error: false
 
@@ -40,7 +40,7 @@ jobs:
         id: install_poetry_and_deps
         run: |
           . .venv/bin/activate
-          uv pip install -e ".[dev]"
+          uv pip install ".[dev]"
         continue-on-error: false
 
       - name: Unit Tests

@@ -32,11 +32,10 @@ jobs:
 
     - name: Build Documentation
       run: |
-        cd docs
-        pip install uv
+        curl -LsSf https://astral.sh/uv/install.sh | sh
         uv venv
-        source .venv/bin/activate
-        uv pip install sphinx nbsphinx myst-parser furo sphinx_codeautolink
+        uv pip install -r requirements/docs.txt
+        cd docs
         sphinx-build source build/html
 
     - name: Setup Pages
