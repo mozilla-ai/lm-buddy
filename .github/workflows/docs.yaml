@@ -29,7 +29,6 @@ jobs:
       with:
         python-version: "3.10"
 
-    #install sphinx dependencies directly due to this poetry issue https://github.com/sphinx-doc/sphinx/issues/11218
     - name: Build Documentation
       run: |
         cd docs
