@@ -19,13 +19,13 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: get ruff version
+      - name: Get ruff version
         id: get_ruff_version
         uses: mikefarah/yq@master
         with:
           cmd: yq -oy '.tool.poetry.dev-dependencies.ruff' pyproject.toml
 
-      - name: Install UV, venv, ruff
+      - name: Install uv, venv, ruff
         id: setup
         env:
           RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
@@ -36,14 +36,14 @@ jobs:
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
 
-      - name: Linting with Ruff
+      - name: Linting with ruff
         id: linting
         run: | 
           . .venv/bin/activate
           ruff --output-format=github .
         continue-on-error: false
 
-      - name: Install Poetry and package
+      - name: Install poetry and package
         id: install_poetry_and_deps
         run: |
           . .venv/bin/activate
