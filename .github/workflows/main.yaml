@@ -40,7 +40,7 @@ jobs:
         id: install_poetry_and_deps
         run: |
           . .venv/bin/activate
-          uv pip install ".[dev]"
+          uv pip install "package @ .[dev]"
         continue-on-error: false
 
       - name: Unit Tests

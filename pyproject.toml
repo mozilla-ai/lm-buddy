@@ -24,9 +24,7 @@ lm_buddy = "lm_buddy.cli:cli"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements/core.txt"] }
-
-[tool.setuptools.dynamic.optional-dependencies]
-dev = { file = [
+optional-dependencies.dev = { file = [
     "requirements/test.txt",
     "requirements/lint.txt",
     "requirements/docs.txt",
