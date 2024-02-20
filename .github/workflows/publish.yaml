@@ -16,12 +16,13 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v4
-      - name: set up python
+  
+      - name: Set up python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      - name: Install UV, venv
+      - name: Install uv, venv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv
@@ -43,7 +44,7 @@ jobs:
           poetry build
         continue-on-error: false
 
-      - name: Archive Production Artifact
+      - name: Archive production artifact
         uses: actions/upload-artifact@v4
         id: lmbuddy_artifacts
         with:
@@ -67,7 +68,7 @@ jobs:
         # tag filter and label filter were already hit
         if: ${{ inputs.prod_or_test == 'prod' }}
         run: |
-            source "$HOME/venv/bin/activate"
+            . .venv/bin/activate
             poetry publish 
 
     github-release:
@@ -80,14 +81,14 @@ jobs:
             id-token: write  # IMPORTANT: mandatory for sigstore
     
         steps:
-        - name: download artifacts
+        - name: Download artifacts
           uses: actions/download-artifact@v4
           with:
             name: lmbuddy_dists
             path: ./dist/
             merge-multiple: true
 
-        - name: Release Draft
+        - name: Release draft
           uses: softprops/action-gh-release@v1
           if: ${{ inputs.prod_or_test == 'test' }}
           with:
