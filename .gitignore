@@ -164,6 +164,3 @@ cython_debug/
 
 # Poetry
 poetry.lock
-
-# Ignore requirements since we only use for local builds
-requirements.txt
