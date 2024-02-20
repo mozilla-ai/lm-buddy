@@ -12,7 +12,7 @@ on:
 
 jobs:
     build-dist:
-      name: Build distribution 📦
+      name: Build Distribution 📦
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
           uv venv
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
 
-      - name: Install poetry
+      - name: Install Poetry
         id: setup
         run: |
           . .venv/bin/activate
@@ -37,14 +37,14 @@ jobs:
           poetry build
         continue-on-error: false
 
-      - name: Build package
+      - name: Build Package
         id: build_package
         run: |
           . .venv/bin/activate
           poetry build
         continue-on-error: false
 
-      - name: Archive production artifact
+      - name: Archive Production Artifact
         uses: actions/upload-artifact@v4
         id: lmbuddy_artifacts
         with:
@@ -72,7 +72,7 @@ jobs:
             poetry publish 
 
     github-release:
-        name: Prepare release
+        name: Prepare Release
         needs:
         - build-dist
         runs-on: ubuntu-latest
@@ -81,14 +81,14 @@ jobs:
             id-token: write  # IMPORTANT: mandatory for sigstore
     
         steps:
-        - name: Download artifacts
+        - name: Download Artifacts
           uses: actions/download-artifact@v4
           with:
             name: lmbuddy_dists
             path: ./dist/
             merge-multiple: true
 
-        - name: Release draft
+        - name: Release Draft
           uses: softprops/action-gh-release@v1
           if: ${{ inputs.prod_or_test == 'test' }}
           with:
