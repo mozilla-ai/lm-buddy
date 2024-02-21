@@ -40,8 +40,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest==7.4.3", "pytest-cov==4.1.0"]
 ruff = ["ruff==0.2.1"]
+test = ["pytest==7.4.3", "pytest-cov==4.1.0"]
 docs = [
     "Sphinx==7.2.6",
     "nbsphinx==0.9.3",
@@ -49,7 +49,7 @@ docs = [
     "myst-parser==2.0.0",
     "furo==2024.1.29",
 ]
-dev = ["pre-commit==3.6.0", "jupyter==1.0.0", "lm-buddy[test,ruff,docs]"]
+dev = ["lm-buddy[ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
 
 [project.urls]
 Repository = "https://github.com/mozilla-ai/lm-buddy"
