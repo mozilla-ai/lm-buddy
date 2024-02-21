@@ -2,33 +2,15 @@
 
 ## Setup
 
-This project is built using the [Poetry](https://python-poetry.org/docs/) build tool.
-First, install Poetry in your local environment via
-```
-curl -sSL https://install.python-poetry.org | python3 - -y
-```
-or see the [installation guide](https://python-poetry.org/docs/#installation)
-for alternate installation methods.
+The LM Buddy package can be installed for development by running:
 
-Once Poetry is installed, you can install LM Buddy for development by running
 ```
-poetry lock
-poetry install
+pip install -e ".[dev]"
 ```
-This will install an editable version of the package along with all of its dependency groups.
 
-Poetry should recognize your active virtual environment during installation
-If you have an active Conda environment, Poetry should recognize it during installation
-and install the package dependencies there.
-This hasn't been explicitly tested with other virtual python environments, but will likely work.
-
-Alternatively, you can use Poetry's own environment by running
-```
-poetry lock
-poetry env use python3.10
-poetry install
-```
-where `python3.10` is your python interpreter.
+This will install an editable version of the package and all of its development requirements
+in your active virtual environment.
+Note that installation currently requires a Python version between `[3.10, 3.11)`.
 
 ## Code style
 
@@ -49,11 +31,20 @@ local development branch of the `lm-buddy` repo.
 
 To do so, follow the steps:
 
-1. Export a copy of the package dependencies by running the following command, which will create a `requirements.txt` file in the `lm-buddy` repository. 
-This will contain all non-development dependencies for the package:
+1. Compile a locked version of the package requirements from the `pyproject.toml` file, 
+which will create a `requirements.txt` file in the `lm-buddy` repository.
+This can be done using multiple open-source tools, such as
+[pip-tools](https://github.com/jazzband/pip-tools) or [uv](https://github.com/astral-sh/uv),
+as shown below:
 
     ```
-    poetry export --without-hashes -o requirements.txt
+    # pip-tools
+    pip install pip-tools
+    pip-compile -o requirements.txt pyproject.toml
+
+    # uv
+    pip install uv
+    uv pip compile -o requirements.txt pyproject.toml
     ```
 
 2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
@@ -116,9 +107,9 @@ poetry publish --build
 
 ## Publishing  (automated)
 
-`.github/workflows/publish.yaml' contains the GitHub Action used to do releases and push wheels to PyPI.
-
+`.github/workflows/publish.yaml` contains the GitHub Action used to do releases and push wheels to PyPI.
 
 You can trigger a publish workflow via [LM Buddy Actions](https://github.com/mozilla-ai/lm-buddy/actions). Choose `test` or `prod` from the dropdown menu. 
 
-Most often failures will involve forgetting to bump the version in `pyproject.toml`, which will trigger PyPI (both test and prod) to reject the package.
+Most often failures will involve forgetting to bump the version in `pyproject.toml`, 
+which will trigger PyPI (both test and prod) to reject the package.
