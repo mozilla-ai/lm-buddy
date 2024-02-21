@@ -28,11 +28,19 @@ jobs:
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
 
+      - name: Get Ruff Version
+        id: get_ruff_version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -oy ".project.optional-dependencies.ruff[0]" pyproject.toml
+
       - name: Linting with Ruff
         id: linting
+        env:
+          RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
         run: | 
           . .venv/bin/activate
-          uv pip install -r requirements/lint.txt
+          uv pip install $RUFF_VERSION
           ruff --output-format=github .
         continue-on-error: false
 
