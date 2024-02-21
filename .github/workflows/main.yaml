@@ -45,8 +45,7 @@ jobs:
         id: linting
         run: | 
           . .venv/bin/activate
-          RUFF_VERSION=${{ steps.get_ruff_version.outputs.result }}
-          uv pip install $RUFF_VERSION
+          uv pip install ${{ steps.get_ruff_version.outputs.result }}
           ruff --output-format=github .
         continue-on-error: false
 
