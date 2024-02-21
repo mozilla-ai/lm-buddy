@@ -7,8 +7,8 @@ on:
           type: choice
           description: Prod or Test
           options: 
-          - test
-          - prod
+          - Test
+          - Prod
 
 jobs:
     build-dist:
@@ -16,32 +16,32 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v4
-  
+
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install uv, venv
+      - name: Set up Environment
+        id: setup
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
+        continue-on-error: false
 
-      - name: Install Poetry
-        id: setup
+      - name: Install Build Dependencies
+        id: install_build_dependencies
         run: |
           . .venv/bin/activate
-          uv pip install poetry 
-          poetry config repositories.testpypi https://test.pypi.org/legacy/
-          poetry build
-        continue-on-error: false
+          uv pip install build twine  
+        continue-on-error: false  
 
       - name: Build Package
         id: build_package
         run: |
           . .venv/bin/activate
-          poetry build
+          python -m build
         continue-on-error: false
 
       - name: Archive Production Artifact
@@ -53,23 +53,25 @@ jobs:
           retention-days: 1
 
       - name: Publish to Test PyPI
-        if: ${{ inputs.prod_or_test == 'test' }}
+        if: ${{ inputs.prod_or_test == 'Test' }}
         env:
-            POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.PYPI_TEST_KEY }}
+            TWINE_USERNAME: "__token__"
+            TWINE_PASSWORD: ${{ secrets.PYPI_TEST_KEY }}
         run: |
             . .venv/bin/activate
-            poetry publish --repository testpypi
+            twine upload --repository testpypi dist/*
         continue-on-error: false
 
       - name: Publish to PyPI
         env:
-            POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_KEY }}
+            TWINE_USERNAME: "__token__"
+            TWINE_PASSWORD: ${{ secrets.PYPI_KEY }}
         # only runs full release if we're on main
         # tag filter and label filter were already hit
-        if: ${{ inputs.prod_or_test == 'prod' }}
+        if: ${{ inputs.prod_or_test == 'Prod' }}
         run: |
             . .venv/bin/activate
-            poetry publish 
+            twine upload dist/*
 
     github-release:
         name: Prepare Release
