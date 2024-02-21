@@ -51,13 +51,14 @@ docs = [
 ]
 dev = ["lm-buddy[ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
 
-[project.urls]
-Repository = "https://github.com/mozilla-ai/lm-buddy"
-Issues = "https://github.com/mozilla-ai/lm-buddy/issues"
-Documentation = "https://mozilla-ai.github.io/lm-buddy/"
-
 [project.scripts]
+lm-buddy = "lm_buddy.cli:cli"
 lm_buddy = "lm_buddy.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/mozilla-ai/lm-buddy"
+Repository = "https://github.com/mozilla-ai/lm-buddy"
+Documentation = "https://mozilla-ai.github.io/lm-buddy/"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov src --no-cov-on-fail --disable-warnings"
