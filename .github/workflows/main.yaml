@@ -34,6 +34,7 @@ jobs:
         # which will output `["ruff==<VERISON>"]`
         # if `]` is the first char in a sed char set, it'll lose special
         # meaning, and `[` works as expect` works as expected.
+        # :fingers-crossed:
         run: | 
           . .venv/bin/activate
           uv pip install pyproject-parser cachecontrol sdjson  # requires manual install of the last two
