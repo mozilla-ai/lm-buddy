@@ -28,17 +28,17 @@ jobs:
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
 
-      - name: Get Ruff Version
-        id: get_ruff_version
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq -oy '.project.optional-dependencies.ruff[0]' pyproject.toml
-
       - name: Linting with Ruff
         id: linting
+        # the sed regex below is required to strip the output from pyproject_parser,
+        # which will output `["ruff==<VERISON>"]`
+        # if `]` is the first char in a sed char set, it'll lose special
+        # meaning, and `[` works as expect` works as expected.
         run: | 
           . .venv/bin/activate
-          uv pip install ${{ steps.get_ruff_version.outputs.result }}
+          uv pip install pyproject-parser cachecontrol sdjson  # requires manual install of the last two
+          RUFF_VERSION=$(python3 -m pyproject_parser info project.optional-dependencies.ruff | sed 's:[][\"\]::g')
+          uv pip install "$RUFF_VERSION"
           ruff --output-format=github .
         continue-on-error: false
 
