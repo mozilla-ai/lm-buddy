@@ -37,10 +37,10 @@ jobs:
         continue-on-error: false
 
       - name: Install Package
-        id: install_poetry_and_deps
+        id: install_package
         run: |
           . .venv/bin/activate
-          uv pip install "package @ .[dev]"
+          uv pip install "lm_buddy[dev] @ ."
         continue-on-error: false
 
       - name: Unit Tests
