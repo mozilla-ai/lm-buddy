@@ -33,7 +33,7 @@ jobs:
         # using the [all] 
         run: | 
           . .venv/bin/activate
-          uv pip install "pyproject-parser[all] @ git+https://github.com/repo-helper/pyproject-parser@master
+          uv pip install "pyproject-parser[all] @ git+https://github.com/repo-helper/pyproject-parser@master"
           RUFF_VERSION=$(python3 -m pyproject_parser info project.optional-dependencies.ruff | sed 's:[][\"\]::g')
           uv pip install "$RUFF_VERSION"
           ruff --output-format=github .
