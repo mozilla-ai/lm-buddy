@@ -28,26 +28,24 @@ jobs:
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
 
-      - name: Get Ruff Version
-        id: get_ruff_version
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.project.optional-dependencies.ruff[0]' 'pyproject.toml'
-
-      - name: Linting with Ruff
-        id: linting
-        run: | 
-          . .venv/bin/activate
-          echo ${{ steps.get_ruff_version.outputs.result }}
-          uv pip install ${{ steps.get_ruff_version.outputs.result }}
-          ruff --output-format=github .
-        continue-on-error: false
-
       - name: Install Package
         id: install_package
         run: |
           . .venv/bin/activate
           uv pip install "lm_buddy[dev] @ ."
+        continue-on-error: false
+
+      - name: Get Ruff Version
+        id: get_ruff_version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -oy '.project.optional-dependencies.ruff[0]' pyproject.toml
+
+      - name: Linting with Ruff
+        id: linting
+        run: | 
+          . .venv/bin/activate
+          ruff --output-format=github .
         continue-on-error: false
 
       - name: Unit Tests
