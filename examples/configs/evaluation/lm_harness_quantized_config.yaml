@@ -1,20 +1,21 @@
 # Model to evaluate
 model:
-  load_from: "distilgpt2"
+  load_from: "tiiuae/falcon-7b"
   torch_dtype: "bfloat16"
 
 # Settings specific to lm_harness.evaluate
 evaluator:
-  tasks: ["hellaswag"]
+  tasks: ["hellaswag", "mmlu"]
   num_fewshot: 5
   limit: 10
 
 quantization:
   load_in_4bit: True
   bnb_4bit_quant_type: "fp4"
+  bnb_4bit_compute_dtype: "bfloat16"
 
 # Tracking info for where to log the run results
 tracking:
-  name: "lm-buddy-lm-harness"
+  name: "lm-buddy-lm-harness-inference"
   project: "lm-buddy-examples"
   entity: "mozilla-ai"

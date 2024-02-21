@@ -67,6 +67,7 @@ within a local Python driver script.
 This requires you to specify a Ray runtime environment containing:
 1) A `working_dir` for the local directory containing your job config YAML file, and
 2) A `pip` dependency for your desired version of `lm-buddy`.
+3) A `entrypoint_num_gpus` [parameter](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#specifying-cpu-and-gpu-resources) if you are evaluating quantized models
 
 An example of the submission process is as follows:
 
@@ -79,12 +80,15 @@ client = JobSubmissionClient("http://127.0.0.1:8265")
 runtime_env = {
     "working_dir": "/path/to/working/directory",
     "pip": ["lm-buddy==X.X.X"]
+     # if you need GPUs for your workload
+    
 }
 
 # Assuming 'config.yaml' is present in the working directory
 client.submit_job(
     entrypoint="lm_buddy run <job-name> --config config.yaml", 
-    runtime_env=runtime_env
+    runtime_env=runtime_env,
+    entrypoint_num_gpus=1
 )
 ```
 
