@@ -38,15 +38,14 @@ jobs:
         
       - name: test yq parsing ruff
         run: |
-          ruff=$(echo ${{ steps.get_ruff_version.outputs.result }} | sed 's/ruff==//'
-          echo "RUFF_VERSION=$ruff" >> $GITHUB_ENV
-          echo $RUFF_VERSION
+          echo "RUFF_VERSION=${{ steps.get_ruff_version.outputs.result }}" >> $GITHUB_ENV 
+          echo "version: ${{ steps.get_ruff_version.outputs.result }}"
 
       - name: Linting with Ruff
         id: linting
         run: | 
           . .venv/bin/activate
-          uv pip install ruff=="$RUFF_VERSION"
+          uv pip install "$RUFF_VERSION"
           ruff --output-format=github .
         continue-on-error: false
 
