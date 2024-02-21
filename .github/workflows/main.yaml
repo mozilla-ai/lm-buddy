@@ -28,18 +28,11 @@ jobs:
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
 
-      # TOOD: This is not properly setting the yq result as an output
-      # When fixed, move linting above full package install to improve speed
       - name: Get Ruff Version
         id: get_ruff_version
         uses: mikefarah/yq@master
         with:
           cmd: yq -oy '.project.optional-dependencies.ruff[0]' pyproject.toml
-
-      # - name: test yq parsing ruff
-      #   run: |
-      #     echo "RUFF_VERSION=${{ steps.get_ruff_version.outputs.result }}" >> $GITHUB_ENV 
-      #     echo "version: ${{ steps.get_ruff_version.outputs.result }}"
 
       - name: Linting with Ruff
         id: linting
