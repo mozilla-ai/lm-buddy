@@ -37,13 +37,16 @@ jobs:
           cmd: yq -oy '.project.optional-dependencies.ruff[0]' pyproject.toml
         
       - name: test yq parsing ruff
-        run: echo ${{ steps.get_ruff_version.outputs.result }}
+        run: |
+          ruff=$(echo ${{ steps.get_ruff_version.outputs.result }} | sed 's/ruff==//'
+          echo "RUFF_VERSION=$ruff" >> $GITHUB_ENV
+          echo $RUFF_VERSION
 
       - name: Linting with Ruff
         id: linting
         run: | 
           . .venv/bin/activate
-          uv pip install ruff==${{ steps.get_ruff_version.outcome.result }}
+          uv pip install ruff=="$RUFF_VERSION"
           ruff --output-format=github .
         continue-on-error: false
 
