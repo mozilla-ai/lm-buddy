@@ -36,12 +36,10 @@ jobs:
 
       - name: Linting with Ruff
         id: linting
-        env:
-          RUFF_VERSION: ${{ steps.get_ruff_version.outputs.result }}
         run: | 
           . .venv/bin/activate
-          echo $RUFF_VERSION
-          uv pip install $RUFF_VERSION
+          echo ${{ steps.get_ruff_version.outputs.result }}
+          uv pip install ${{ steps.get_ruff_version.outputs.result }}
           ruff --output-format=github .
         continue-on-error: false
 
