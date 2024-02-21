@@ -70,7 +70,7 @@ see the `examples/dev_submission` directory.
 
 ## Publishing
 
-> [!INFO] 
+> [!NOTE] 
 >
 > This section is intended for only maintainers at Mozilla.ai.
 
