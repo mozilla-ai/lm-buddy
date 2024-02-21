@@ -68,48 +68,16 @@ For a full sample job with a directory structure that you can run with a simple 
 [run locally to submit to the Job Submission SDK](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#submitting-a-ray-job), 
 see the `examples/dev_submission` directory.
 
-## Publishing (manual)
+## Publishing
 
-This section is intended for only maintainers at Mozilla.ai.
-Use the local installable package workflow above for iteration locally.
+> [!INFO] 
+>
+> This section is intended for only maintainers at Mozilla.ai.
 
-### Setup
+`.github/workflows/publish.yaml` contains the GitHub Action used automate releases 
+and publish wheels to PyPI.
 
-This only needs to be done once.
-You should have access to the API key via 1password. 
-Make sure the 1password cli is installed (`brew install 1password-cli`).
-
-Set up poetry to use the key(s):
-
-```
-poetry config repositories.testpypi https://test.pypi.org/legacy/
-poetry config pypi-token.testpypi $(op read "op://mzai-dev/PyPI-test/pypi/api_key")
-poetry config pypi-token.pypi $(op read "op://mzai-dev/PyPI/pypi/api_key")
-```
-
-
-### Testing publishing 
-
-Then build and publish to PyPI Test:
-
-```
-poetry publish --repository testpypi --dry-run --build
-poetry publish --repository testpypi --build
-```
-
-### Publish to PyPI
-
-When you're ready, run:
-
-```
-poetry publish --build
-```
-
-## Publishing  (automated)
-
-`.github/workflows/publish.yaml` contains the GitHub Action used to do releases and push wheels to PyPI.
-
-You can trigger a publish workflow via [LM Buddy Actions](https://github.com/mozilla-ai/lm-buddy/actions). Choose `test` or `prod` from the dropdown menu. 
+You can trigger a publish workflow via [LM Buddy Actions](https://github.com/mozilla-ai/lm-buddy/actions). Choose `Test` or `Prod` from the dropdown menu. 
 
 Most often failures will involve forgetting to bump the version in `pyproject.toml`, 
 which will trigger PyPI (both test and prod) to reject the package.
