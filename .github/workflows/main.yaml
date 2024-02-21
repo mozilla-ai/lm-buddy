@@ -32,7 +32,7 @@ jobs:
         id: get_ruff_version
         uses: mikefarah/yq@master
         with:
-          cmd: yq -oy ".project.optional-dependencies.ruff[0]" pyproject.toml
+          cmd: yq -oy '.project.optional-dependencies.ruff[0]' pyproject.toml
 
       - name: Linting with Ruff
         id: linting
