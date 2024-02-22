@@ -1,105 +1,29 @@
-name: Build and Publish to PyPI
+name: Publish to PyPI
 
 on: 
   workflow_dispatch:
-    inputs:
-        prod_or_test:
-          type: choice
-          description: Prod or Test
-          options: 
-          - Test
-          - Prod
+  release:
+    types: [published]
 
 jobs:
-    build-dist:
-      name: Build Distribution 📦
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v4
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
 
-      - name: Set up Environment
-        id: setup
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv
-          echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
-        continue-on-error: false
+    - name: Build Distribution
+      run: |
+        python3 -m pip install build
+        python3 -m build
+      continue-on-error: false  
 
-      - name: Install Build Dependencies
-        id: install_build_dependencies
-        run: |
-          . .venv/bin/activate
-          uv pip install build twine  
-        continue-on-error: false  
-
-      - name: Build Package
-        id: build_package
-        run: |
-          . .venv/bin/activate
-          python -m build
-        continue-on-error: false
-
-      - name: Archive Production Artifact
-        uses: actions/upload-artifact@v4
-        id: lmbuddy_artifacts
-        with:
-          name: lmbuddy_dists
-          path: dist/
-          retention-days: 1
-
-      - name: Publish to Test PyPI
-        if: ${{ inputs.prod_or_test == 'Test' }}
-        env:
-            TWINE_USERNAME: "__token__"
-            TWINE_PASSWORD: ${{ secrets.PYPI_TEST_KEY }}
-        run: |
-            . .venv/bin/activate
-            twine upload --repository testpypi dist/*
-        continue-on-error: false
-
-      - name: Publish to PyPI
-        env:
-            TWINE_USERNAME: "__token__"
-            TWINE_PASSWORD: ${{ secrets.PYPI_KEY }}
-        # only runs full release if we're on main
-        # tag filter and label filter were already hit
-        if: ${{ inputs.prod_or_test == 'Prod' }}
-        run: |
-            . .venv/bin/activate
-            twine upload dist/*
-
-    github-release:
-        name: Prepare Release
-        needs:
-        - build-dist
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write  # IMPORTANT: mandatory for making GitHub Releases
-            id-token: write  # IMPORTANT: mandatory for sigstore
-    
-        steps:
-        - name: Download Artifacts
-          uses: actions/download-artifact@v4
-          with:
-            name: lmbuddy_dists
-            path: ./dist/
-            merge-multiple: true
-
-        - name: Release Draft
-          uses: softprops/action-gh-release@v1
-          if: ${{ inputs.prod_or_test == 'test' }}
-          with:
-             files: ./dist/*
-             draft: true
-
-        - name: Release
-          uses: softprops/action-gh-release@v1
-          # only runs full release if we're on main; tag filter already hit above
-          if: ${{ inputs.prod_or_test == 'prod' }}
-          with:
-             files: ./dist/*
+    - name: Publish
+      uses: pypa/gh-action-pypi-publish@v1.8.11
+      with:
+        password: ${{ secrets.PYPI_KEY }}
