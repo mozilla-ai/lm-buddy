@@ -21,7 +21,7 @@ def run_job(
     """
     match config:
         case SimpleJobConfig() as simple_config:
-            run_simple(simple_config, artifact_loader)
+            run_simple(simple_config)
         case FinetuningJobConfig() as finetuning_config:
             run_finetuning(finetuning_config, artifact_loader)
         case LMHarnessJobConfig() as lm_harness_config:
