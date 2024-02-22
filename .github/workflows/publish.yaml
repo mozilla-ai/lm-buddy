@@ -1,8 +1,9 @@
 name: Publish to PyPI
 
 on: 
+  workflow_dispatch:
   release:
-    types: [created,released]
+    types: [released]
 
 jobs:
   publish:
@@ -24,7 +25,7 @@ jobs:
 
     - name: Publish to TestPyPI
       uses: pypa/gh-action-pypi-publish@v1.8.11
-      if: github.event_name == 'release' && github.event.action == 'created'
+      if: github.event_name == 'workflow_dispatch'
       with:
         password: ${{ secrets.PYPI_TEST_KEY }}
         repository-url: https://test.pypi.org/legacy/

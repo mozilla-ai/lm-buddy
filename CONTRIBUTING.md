@@ -76,9 +76,9 @@ see the `examples/dev_submission` directory.
 
 `.github/workflows/publish.yaml` contains the GitHub Action used to publish wheels to PyPI.
 
-This workflow is triggered by the creation of GitHub Releases.
-Draft releases trigger publishing to TestPyPI,
-while full releases trigger the prod version.
+The publishing workflow can be triggered in two ways:
+1. Manually triggered on the GitHub Actions UI, which publishes the package to TestPyPI, or
+2. Triggered by the creation of a GitHub release, which publishes to real PyPI.
 
 When creating a GitHub release, make sure that the tag used for the release
 matches the version of the target code branch.
