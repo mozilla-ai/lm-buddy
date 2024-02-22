@@ -74,10 +74,11 @@ see the `examples/dev_submission` directory.
 >
 > This section is intended for only maintainers at Mozilla.ai.
 
-`.github/workflows/publish.yaml` contains the GitHub Action used automate releases 
-and publish wheels to PyPI.
+`.github/workflows/publish.yaml` contains the GitHub Action used to publish wheels to PyPI.
 
-You can trigger a publish workflow via [LM Buddy Actions](https://github.com/mozilla-ai/lm-buddy/actions). Choose `Test` or `Prod` from the dropdown menu. 
+This workflow is triggered by the creation of GitHub Releases.
+Draft releases trigger publishing to TestPyPI,
+while full releases trigger the prod version.
 
-Most often failures will involve forgetting to bump the version in `pyproject.toml`, 
-which will trigger PyPI (both test and prod) to reject the package.
+When creating a GitHub release, make sure that the tag used for the release
+matches the version of the target code branch.
