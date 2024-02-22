@@ -25,7 +25,7 @@ trainer:
   learning_rate: 0.001
   num_train_epochs: 2
   save_steps: 1
-  save_strategy: "epochs"
+  save_strategy: "epoch"
   logging_steps: 1
   logging_strategy: "steps"
 
