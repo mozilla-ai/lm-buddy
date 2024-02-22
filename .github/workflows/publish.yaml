@@ -1,9 +1,8 @@
 name: Publish to PyPI
 
 on: 
-  workflow_dispatch:
   release:
-    types: [published]
+    types: [created,released]
 
 jobs:
   publish:
@@ -23,7 +22,16 @@ jobs:
         python3 -m build
       continue-on-error: false  
 
-    - name: Publish
+    - name: Publish to TestPyPI
+      uses: pypa/gh-action-pypi-publish@v1.8.11
+      if: github.event_name == 'release' && github.event.action == 'created'
+      with:
+        password: ${{ secrets.PYPI_TEST_KEY }}
+        repository-url: https://test.pypi.org/legacy/
+        skip-existing: true
+
+    - name: Publish to PyPI
+      if: github.event_name == 'release' && github.event.action == 'released'
       uses: pypa/gh-action-pypi-publish@v1.8.11
       with:
         password: ${{ secrets.PYPI_KEY }}
