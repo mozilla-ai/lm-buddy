@@ -60,11 +60,15 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Ruff
+      - name: Install Dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv pip install toml-cli
+          uv pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
+          
+      - name: Linting with Ruff
         id: ruff
-        run: | 
-          pip install toml-cli
-          pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
+        run: |
           ruff --output-format=github .
         continue-on-error: false
 
@@ -79,8 +83,16 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install Dependencies
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv pip install toml-cli
+
       - name: Validate Version Bump
         id: validate_version_bump
         run: |
-          python scripts/validate_version_bump.py
+          git fetch origin && git show origin/main:pyproject.toml > old_pyproject.toml
+          OLD_VERSION=$(toml get --toml-path old_pyproject.toml.old "project.version")
+          NEW_VERSION=$(toml get --toml-path pyproject.toml "project.version")
+          python scripts/validate_version_bump.py $OLD_VERSION $NEW_VERSION
         continue-on-error: false
