@@ -2,10 +2,9 @@ from pathlib import Path
 
 import ray
 from datasets import load_dataset
-from ragas import evaluate
-
 from flamingo.integrations.wandb import get_wandb_summary, update_wandb_summary
 from flamingo.jobs.ragas import RagasEvaluationJobConfig
+from ragas import evaluate
 
 
 def resolve_data_path(config: RagasEvaluationJobConfig) -> str:
@@ -24,7 +23,6 @@ def resolve_data_path(config: RagasEvaluationJobConfig) -> str:
     return data_path
 
 
-@ray.remote
 def evaluation_task(config: RagasEvaluationJobConfig) -> None:
     evaluation_dataset_to_load = config.dataset.data_path
     print(f"Loading dataset from {evaluation_dataset_to_load}")
