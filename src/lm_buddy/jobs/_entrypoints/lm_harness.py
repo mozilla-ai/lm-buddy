@@ -5,7 +5,6 @@ import torch
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
 from lm_eval.logging_utils import WandbLogger
-from lm_buddy.integrations.wandb import ArtifactLoader, WandbArtifactLoader
 
 from lm_buddy.integrations.huggingface import (
     AutoModelConfig,
