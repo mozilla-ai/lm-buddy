@@ -65,9 +65,15 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv
+          echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
+        continue-on-error: false
+
+      - name: Install Dependencies
+        id: install_dependencies
+        run: |
+          . .venv/bin/activate
           uv pip install toml-cli
           uv pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
-          echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
           
       - name: Linting with Ruff
@@ -93,8 +99,15 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv
-          uv pip install toml-cli
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
+        continue-on-error: false
+
+      - name: Install Dependencies
+        id: install_dependencies
+        run: |
+          . .venv/bin/activate
+          uv pip install toml-cli
+          uv pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
         continue-on-error: false
 
       - name: Validate Version Bump
@@ -102,7 +115,7 @@ jobs:
         run: |
           . .venv/bin/activate
           git fetch origin && git show origin/main:pyproject.toml > old_pyproject.toml
-          OLD_VERSION=$(toml get --toml-path old_pyproject.toml.old "project.version")
+          OLD_VERSION=$(toml get --toml-path old_pyproject.toml "project.version")
           NEW_VERSION=$(toml get --toml-path pyproject.toml "project.version")
           python scripts/validate_version_bump.py $OLD_VERSION $NEW_VERSION
         continue-on-error: false
