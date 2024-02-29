@@ -4,7 +4,7 @@ from typing import Any
 from urllib.parse import ParseResult, urlparse
 
 import wandb
-
+import os
 
 class ArtifactType(str, Enum):
     """Enumeration of artifact types used by the LM Buddy."""
@@ -109,4 +109,39 @@ def build_table_artifact(
     for table_name, table_data in tables.items():
         table = wandb.Table(data=table_data, columns=columns)
         artifact.add(table, name=table_name)
+    return artifact
+
+
+def build_file_artifact(
+    artifact_name: str,
+    artifact_type: ArtifactType,
+    file_path: str | Path,
+    *,
+    reference: bool = False,
+    entry_name: str | None = None,
+) -> wandb.Artifact:
+    """Build an artifact containing a single file
+
+    Args:
+        artifact_name (str): Name of the artifact
+        artifact_type (ArtifactType): Type of artifact
+        file_path (str | Path): The full path (including filename) of the file
+
+    Keyword Args:
+        reference (bool): Only reference the file, do not copy contents. Defaults to False.
+        entry_name (str | None): Name for the file within the artifact. If None, defaults
+                                 to the original filename.
+
+    Returns:
+        wandb.Artifact: The generated artifact.
+    """
+    artifact = wandb.Artifact(name=artifact_name, type=artifact_type)
+
+    if reference:
+        artifact.add_reference(
+            uri=f"{ArtifactURIScheme.FILE}://{file_path}",
+            name=entry_name,
+        )
+    else:
+        artifact.add_file(str(file_path), name=entry_name)
     return artifact
