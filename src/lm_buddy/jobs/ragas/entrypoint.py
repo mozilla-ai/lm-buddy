@@ -70,7 +70,7 @@ def run_ragas_evaluation(config: RagasEvaluationJobConfig):
     evaluation_dataset_to_load = resolve_data_path(config)
 
     # Using .options() to dynamically specify resource requirements
-    eval_func = evaluation_task.options(num_cpus=config.num_cpus, num_gpus=config.num_gpus)
+    eval_func = evaluation_task.options(num_gpus=config.num_gpus)
     eval_future = eval_func.remote(config, evaluation_dataset_to_load)
 
     timeout_seconds = config.timeout.seconds if config.timeout else None
