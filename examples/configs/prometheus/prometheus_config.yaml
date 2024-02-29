@@ -4,6 +4,7 @@ dataset:
     version: "latest"
     project: "lm-buddy-prometheus"
     entity: "mozilla-ai"
+  # field containing scoring instructions in the json file
   text_field: "instruction"
 
 prometheus:
@@ -12,6 +13,7 @@ prometheus:
   tokenizer:
     load_from: "meta-llama/Llama-2-7b-chat-hf"
   max_tokens: 256
+  # number of times the model is called per sample
   num_answers: 3
 
 tracking:
