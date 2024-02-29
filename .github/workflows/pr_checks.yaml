@@ -107,7 +107,6 @@ jobs:
         run: |
           . .venv/bin/activate
           uv pip install toml-cli packaging
-          uv pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
         continue-on-error: false
 
       - name: Validate Version Bump
