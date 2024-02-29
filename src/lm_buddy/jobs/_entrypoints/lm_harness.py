@@ -14,13 +14,8 @@ from lm_buddy.integrations.huggingface import (
 )
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
-    ArtifactType,
-    WandbResumeMode,
-    build_table_artifact,
-    default_artifact_name,
-    wandb_init_from_config,
 )
-from lm_buddy.jobs.common import LMBuddyJobType
+
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
 
 
