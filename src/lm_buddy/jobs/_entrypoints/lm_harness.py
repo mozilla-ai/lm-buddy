@@ -4,6 +4,8 @@ import lm_eval
 import torch
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
+from lm_eval.logging_utils import WandbLogger
+from lm_buddy.integrations.wandb import ArtifactLoader, WandbArtifactLoader
 
 from lm_buddy.integrations.huggingface import (
     AutoModelConfig,
@@ -82,7 +84,7 @@ def load_harness_model(
             raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
-def load_and_evaluate(
+def evaluate(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
 ) -> dict[str, list[tuple[str, float]]]:
@@ -98,29 +100,29 @@ def load_and_evaluate(
         limit=config.evaluator.limit,
         log_samples=False,
     )
-    eval_results = get_numeric_metrics(eval_results["results"])
+
     print(f"Obtained evaluation results: {eval_results}")
     return eval_results
 
-
 def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: ArtifactLoader):
+
     print(f"Received job configuration:\n {config.model_dump_json(indent=2)}")
 
     if config.tracking is not None:
-        with wandb_init_from_config(
-            config.tracking,
-            parameters=config.evaluator,  # Log eval settings in W&B run
-            resume=WandbResumeMode.ALLOW,
-            job_type=LMBuddyJobType.EVALUATION,
-        ) as run:
-            eval_results = load_and_evaluate(config, artifact_loader)
-            eval_artifact = build_table_artifact(
-                artifact_name=default_artifact_name(run.name, ArtifactType.EVALUATION),
-                artifact_type=ArtifactType.EVALUATION,
-                columns=["metric", "value"],
-                tables=eval_results,
-            )
-            print("Logging artifact for evaluation results...")
-            artifact_loader.log_artifact(eval_artifact)
+        wandb_logger = WandbLogger(f"{config.tracking.entity}, {config.tracking.project}, {config.tracking.name}")
+        try:
+            results = evaluate(config, artifact_loader)
+            wandb_logger.post_init(results)
+            wandb_logger.log_eval_result()
+        except Exception as e:
+            wandb_logger.info(f"Logging to Weights and Biases failed due to {e}")
     else:
-        load_and_evaluate(config, artifact_loader)
+        evaluate(config, artifact_loader)
+
+
+if __name__=="__main__":
+    from lm_buddy.integrations.wandb import WandbArtifactConfig
+
+    wandb = WandbArtifactLoader()
+    config = LMHarnessJobConfig.from_yaml_file("/Users/vicki/lm-buddy-tutorials/configs/lm_harness.yaml")
+    run_lm_harness(config,wandb)
