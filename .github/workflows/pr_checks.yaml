@@ -1,4 +1,4 @@
-name: Tests
+name: PR Checks
 
 on:
   push:
@@ -43,8 +43,8 @@ jobs:
           ruff --output-format=github .
         continue-on-error: false
 
-  pytest:
-    name: Pytest
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
