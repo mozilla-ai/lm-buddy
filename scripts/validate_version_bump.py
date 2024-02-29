@@ -28,6 +28,6 @@ def validate_version_bump(old_version: str, new_version: str) -> int:
 
 
 if __name__ == "__main__":
-    old_version, new_version = sys.argv[1:3]
+    old_version, new_version = sys.argv[1:]
     exit_code = validate_version_bump(old_version, new_version)
     sys.exit(exit_code)
