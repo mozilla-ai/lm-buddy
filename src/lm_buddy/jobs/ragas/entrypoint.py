@@ -1,7 +1,10 @@
+import os
 from pathlib import Path
 
 import ray
 from datasets import Dataset, DatasetDict, IterableDataset, IterableDatasetDict, load_dataset
+from langchain.chat_models import ChatOpenAI
+from langchain_core.embeddings import Embeddings
 from ragas import evaluate
 
 from lm_buddy.integrations.wandb import get_wandb_summary, update_wandb_summary
@@ -48,13 +51,33 @@ def _load_dataset_for_ragas_eval(
 
 
 def evaluation_task(config: RagasEvaluationJobConfig) -> None:
+    # ragas custom model args
+    ragas_args = {}
+
+    # set up custom embedding model for ragas (only supports langchain embedding models right now)
+    if config.judge_model.embedding_model:
+        ragas_args["embeddings"] = Embeddings(
+            model=config.judge_model.embedding_model
+        )  # any langchain embedding instance
+
+    # set up custom judge LLM model (called from vllm server)
+    if config.judge_model.language_model:
+        # create vLLM Langchain instance
+        vllm_entry = ChatOpenAI(
+            model=config.judge_model.language_model,
+            openai_api_key=config.judge_model.openai_api_key,
+            # get api endpoint from environment variable
+            openai_api_base=os.environ.get("VLLM_JUDGE_ENDPOINT"),
+            max_tokens=config.judge_model.max_tokens,
+            temperature=config.judge_model.temperature,
+        )
+
+        ragas_args["llm"] = vllm_entry
+
     dataset = _load_dataset_for_ragas_eval(config)
 
     print("Initializing ragas eval task...")
-    result = evaluate(
-        dataset=dataset,
-        metrics=config.metrics,
-    )
+    result = evaluate(dataset=dataset, metrics=config.metrics, **ragas_args)
 
     print(f"Obtained evaluation results: {result}")
 

@@ -32,17 +32,25 @@ class RagasConfig(BaseLMBuddyConfig):
 class RagasvLLMJudgeConfig(BaseLMBuddyConfig):
     """
     Configuration class for a vLLM hosted judge model
-    Requires a vLLM endpoint that the model will hit instead of the openAI default
+    Requires a vLLM endpoint that the model will hit instead of the openAI default,
+    the url for which is to be passed as env variable
     """
 
-    model: AutoModelConfig
-    # inference_server_url: str | None = "http://localhost:8080/v1"
-    openai_api_key: str | None = "no-key"
+    language_model: AutoModelConfig
+    embedding_model: AutoModelConfig
+    openai_api_key: str | None = "nokey"
     max_tokens: int | None = 5
     temperature: float | None = 0
 
-    @field_validator("model", mode="before", always=True)
-    def validate_model_arg(cls, x):
+    @field_validator("language_model", mode="before", always=True)
+    def validate_inference_model_arg(cls, x):
+        """Allow for passing just a path string as the model argument."""
+        if isinstance(x, str):
+            return AutoModelConfig(load_from=x)
+        return x
+
+    @field_validator("embedding_model", mode="before", always=True)
+    def validate_embedding_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
             return AutoModelConfig(load_from=x)
@@ -77,6 +85,7 @@ class RagasEvaluationJobConfig(BaseLMBuddyConfig):
     """
 
     # evaluation settings for ragas
+
     dataset: RagasEvaluationDatasetConfig
     evaluator: RagasConfig
 
