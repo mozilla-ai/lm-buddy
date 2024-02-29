@@ -1,7 +1,7 @@
 import datetime
 from pathlib import Path
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from ragas.metrics import (
     answer_relevancy,
     context_precision,
@@ -10,12 +10,12 @@ from ragas.metrics import (
 )
 from ragas.metrics.base import MetricWithLLM
 
-from flamingo.integrations.huggingface import AutoModelConfig
-from flamingo.integrations.wandb import WandbRunConfig
-from flamingo.types import BaseFlamingoConfig
+from lm_buddy.integrations.huggingface import AutoModelConfig
+from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.types import BaseLMBuddyConfig
 
 
-class RagasConfig(BaseFlamingoConfig):
+class RagasConfig(BaseLMBuddyConfig):
     """misc settings for ragas eval job"""
 
     metrics: list[MetricWithLLM] = [
@@ -29,7 +29,7 @@ class RagasConfig(BaseFlamingoConfig):
     result_path: str | Path | None = None
 
 
-class RagasvLLMJudgeConfig(BaseFlamingoConfig):
+class RagasvLLMJudgeConfig(BaseLMBuddyConfig):
     """
     Configuration class for a vLLM hosted judge model
     Requires a vLLM endpoint that the model will hit instead of the openAI default
@@ -41,7 +41,7 @@ class RagasvLLMJudgeConfig(BaseFlamingoConfig):
     max_tokens: int | None = 5
     temperature: float | None = 0
 
-    @validator("model", pre=True, always=True)
+    @field_validator("model", mode="before", always=True)
     def validate_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
@@ -49,15 +49,14 @@ class RagasvLLMJudgeConfig(BaseFlamingoConfig):
         return x
 
 
-class RagasRayConfig(BaseFlamingoConfig):
+class RagasRayConfig(BaseLMBuddyConfig):
     """Misc settings for Ray compute for ragas eval job."""
 
-    num_cpus: int | float = 1
-    num_gpus: int | float = 1
+    num_gpus: int | float = 0
     timeout: datetime.timedelta | None = None
 
 
-class RagasEvaluationDatasetConfig(BaseFlamingoConfig):
+class RagasEvaluationDatasetConfig(BaseLMBuddyConfig):
     """to configure the evaluation dataset source"""
 
     data_path: str | Path | None = None
@@ -69,7 +68,7 @@ class RagasEvaluationDatasetConfig(BaseFlamingoConfig):
     ground_truth_col: str | None = None
 
 
-class RagasEvaluationJobConfig(BaseFlamingoConfig):
+class RagasEvaluationJobConfig(BaseLMBuddyConfig):
     """Configuration to run a Ragas evaluation job.
 
     This job loads a dataset from an existing path on our cluster.
