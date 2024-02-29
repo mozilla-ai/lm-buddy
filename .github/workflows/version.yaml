@@ -1,4 +1,4 @@
-name: Package Version
+name: Python Version
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   verify:
-    name: Verify
+    name: Verify Bump
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
