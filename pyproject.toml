@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm-buddy"
-version = "0.2.5"
+version = "0.2.6"
 authors = [
     { name = "Sean Friedowitz", email = "sean@mozilla.ai" },
     { name = "Aaron Gonzales", email = "aaron@mozilla.ai" },
@@ -94,7 +94,6 @@ exclude = [
 extend-include = ["*.ipynb"]
 
 line-length = 100
-
 
 [tool.ruff.lint]
 select = [
