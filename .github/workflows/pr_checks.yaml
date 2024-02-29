@@ -1,4 +1,4 @@
-name: Tests
+name: PR Checks
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
       - "**"
 
 jobs:
-  pr-checks:
-    name: PR Checks
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,15 +26,6 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
-        continue-on-error: false
-
-      - name: Linting with Ruff
-        id: linting
-        run: | 
-          . .venv/bin/activate
-          uv pip install toml-cli
-          uv pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
-          ruff --output-format=github .
         continue-on-error: false
 
       - name: Install Package
@@ -56,4 +47,40 @@ jobs:
         run: |
           . .venv/bin/activate
           pytest tests/integration
+        continue-on-error: false
+
+  linting:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Ruff
+        id: ruff
+        run: | 
+          pip install toml-cli
+          pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
+          ruff --output-format=github .
+        continue-on-error: false
+
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Validate Version Bump
+        id: validate_version_bump
+        run: |
+          python scripts/validate_version_bump.py
         continue-on-error: false
