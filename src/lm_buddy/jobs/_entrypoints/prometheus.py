@@ -1,3 +1,6 @@
+# lm-buddy entrypoint to run evaluations using a Prometheus inference server
+# see https://github.com/kaistAI/prometheus/blob/main/evaluation/benchmark/run_absolute_scoring.py
+
 from lm_buddy.jobs.configs import PrometheusJobConfig
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
