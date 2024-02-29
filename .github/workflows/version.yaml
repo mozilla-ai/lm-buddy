@@ -1,0 +1,19 @@
+name: Package Version
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rayepps/require-semver-bump@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          file: pyproject.toml
+          pattern: >
+            version = [\\'\\"](.+?)[\\'\\"]
