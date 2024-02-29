@@ -36,7 +36,7 @@ class RagasvLLMJudgeConfig(BaseLMBuddyConfig):
     """
 
     model: AutoModelConfig
-    inference_server_url: str | None = "http://localhost:8080/v1"
+    # inference_server_url: str | None = "http://localhost:8080/v1"
     openai_api_key: str | None = "no-key"
     max_tokens: int | None = 5
     temperature: float | None = 0
@@ -52,7 +52,7 @@ class RagasvLLMJudgeConfig(BaseLMBuddyConfig):
 class RagasRayConfig(BaseLMBuddyConfig):
     """Misc settings for Ray compute for ragas eval job."""
 
-    num_gpus: int | float = 0
+    num_gpus: int | float | None = 0
     timeout: datetime.timedelta | None = None
 
 

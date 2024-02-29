@@ -1,10 +1,11 @@
 from pathlib import Path
 
 import ray
-from datasets import load_dataset
-from flamingo.integrations.wandb import get_wandb_summary, update_wandb_summary
-from flamingo.jobs.ragas import RagasEvaluationJobConfig
+from datasets import Dataset, DatasetDict, IterableDataset, IterableDatasetDict, load_dataset
 from ragas import evaluate
+
+from lm_buddy.integrations.wandb import get_wandb_summary, update_wandb_summary
+from lm_buddy.jobs.ragas import RagasEvaluationJobConfig
 
 
 def resolve_data_path(config: RagasEvaluationJobConfig) -> str:
@@ -23,8 +24,11 @@ def resolve_data_path(config: RagasEvaluationJobConfig) -> str:
     return data_path
 
 
-def evaluation_task(config: RagasEvaluationJobConfig) -> None:
+def _load_dataset_for_ragas_eval(
+    config: RagasEvaluationJobConfig,
+) -> DatasetDict | Dataset | IterableDatasetDict | IterableDataset:
     evaluation_dataset_to_load = config.dataset.data_path
+
     print(f"Loading dataset from {evaluation_dataset_to_load}")
     dataset = (
         load_dataset(evaluation_dataset_to_load)
@@ -39,6 +43,12 @@ def evaluation_task(config: RagasEvaluationJobConfig) -> None:
     dataset.rename_column("question", config.data_column_names["question"])
     dataset.rename_column("answer", config.data_column_names["answer"])
     dataset.rename_column("contexts", config.data_column_names["contexts"])
+
+    return dataset
+
+
+def evaluation_task(config: RagasEvaluationJobConfig) -> None:
+    dataset = _load_dataset_for_ragas_eval(config)
 
     print("Initializing ragas eval task...")
     result = evaluate(
