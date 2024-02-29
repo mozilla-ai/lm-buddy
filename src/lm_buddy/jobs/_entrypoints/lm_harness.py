@@ -112,11 +112,3 @@ def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: ArtifactLoader):
             wandb_logger.info(f"Logging to Weights and Biases failed due to {e}")
     else:
         evaluate(config, artifact_loader)
-
-
-if __name__=="__main__":
-    from lm_buddy.integrations.wandb import WandbArtifactConfig
-
-    wandb = WandbArtifactLoader()
-    config = LMHarnessJobConfig.from_yaml_file("/Users/vicki/lm-buddy-tutorials/configs/lm_harness.yaml")
-    run_lm_harness(config,wandb)
