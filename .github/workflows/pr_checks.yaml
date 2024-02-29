@@ -113,7 +113,7 @@ jobs:
         id: validate_version_bump
         run: |
           . .venv/bin/activate
-          git show origin/main:pyproject.toml > old_pyproject.toml
+          git fetch origin && git show origin/main:pyproject.toml > old_pyproject.toml
           OLD_VERSION=$(toml get --toml-path old_pyproject.toml "project.version")
           NEW_VERSION=$(toml get --toml-path pyproject.toml "project.version")
           python scripts/validate_version_bump.py $OLD_VERSION $NEW_VERSION
