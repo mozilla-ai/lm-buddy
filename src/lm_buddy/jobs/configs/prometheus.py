@@ -34,8 +34,7 @@ class PrometheusCompletionsConfig(BaseLMBuddyConfig):
 class PrometheusJobConfig(LMBuddyJobConfig):
     """Configuration to run a prometheus evaluation job."""
 
-    # dataset (json artifact from which we'll extract `text_field`)
-    dataset: TextDatasetConfig
+    dataset: TextDatasetConfig = Field(..., description="dataset (json artifact from which we'll extract `text_field`)")
     # details for our self-hosted prometheus endpoint
     prometheus: PrometheusCompletionsConfig
     # wandb experiment tracking details
