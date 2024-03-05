@@ -28,7 +28,7 @@ dependencies = [
     "pydantic-yaml==1.2.0",
     "ray[default]==2.9.3",
     # HuggingFace
-    "datasets=>2.16.1",
+    "datasets>=2.16.1",
     "transformers==4.36.2",
     "accelerate==0.26.1",
     "peft==0.7.1",
