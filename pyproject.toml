@@ -36,7 +36,7 @@ dependencies = [
     "bitsandbytes==0.42.0",
     # Evaluation frameworks
 #    "lm-eval[wandb, openai]@git+https://github.com/EleutherAI/lm-evaluation-harness.git@45823914a3e445076a1ba12c9b1501c98e3dd20d",
-    "lm-eval @ git+https://github.com/EleutherAI/lm-evaluation-harness.git",
+    #"lm-eval @ git+https://github.com/EleutherAI/lm-evaluation-harness.git",
     "einops==0.7.0",
 ]
 
