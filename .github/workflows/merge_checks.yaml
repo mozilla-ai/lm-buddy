@@ -34,7 +34,7 @@ jobs:
           . .venv/bin/activate
           uv pip install toml-cli
           uv pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
-          uv pip install lm-eval[wandb, openai]@git+https://github.com/EleutherAI/lm-evaluation-harness.git@45823914a3e445076a1ba12c9b1501c98e3dd20d
+          uv pip install lm-eval @ git+https://github.com/EleutherAI/lm-evaluation-harness.git@45823914a3e445076a1ba12c9b1501c98e3dd20d
         continue-on-error: false
           
       - name: Linting with Ruff
