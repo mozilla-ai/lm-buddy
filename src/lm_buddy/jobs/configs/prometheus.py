@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import conlist, model_validator
+from pydantic import Field, conlist, model_validator
 
 from lm_buddy.types import BaseLMBuddyConfig
 from lm_buddy.jobs.configs import LMBuddyJobConfig
@@ -34,7 +34,7 @@ class PrometheusCompletionsConfig(BaseLMBuddyConfig):
 class PrometheusJobConfig(LMBuddyJobConfig):
     """Configuration to run a prometheus evaluation job."""
 
-    dataset: TextDatasetConfig = Field(..., description="dataset (json artifact from which we'll extract `text_field`)")
+    dataset: TextDatasetConfig = Field(description="dataset (json artifact from which we'll extract `text_field`)")
     # details for our self-hosted prometheus endpoint
     prometheus: PrometheusCompletionsConfig
     # wandb experiment tracking details

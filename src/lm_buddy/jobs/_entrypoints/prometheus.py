@@ -14,7 +14,7 @@ from transformers import AutoTokenizer
 from openai import OpenAIError, OpenAI
 
 from tqdm import tqdm
-import os
+from pathlib import Path
 import json
 import copy
 
@@ -67,7 +67,7 @@ def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader)
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     artifact_path,_ = hf_loader.resolve_asset_path(config.dataset.load_from)
-    dataset_fname = os.path.join(artifact_path, config.dataset.load_from.name)
+    dataset_fname = Path(artifact_path) / config.dataset.load_from.name
     
     with open(dataset_fname,'r') as f:
         # eval samples are JSON-encoded, each takes one line in the dataset file
@@ -82,9 +82,9 @@ def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader)
     )
 
     # open the output file for writing and iterate on samples
-    output_fname = os.path.join("/tmp", config.tracking.name)
+    output_fname = Path("/tmp") / config.tracking.name
     with open(output_fname,'w') as file:
-        for sample in tqdm(data):
+        for sample in tqdm(data[:1]):
             # convert instructions from the dataset (`text_field` in a dict) to
             # prompts that prometheus accepts
             prompt = instruction_to_prompt(sample[config.dataset.text_field])
