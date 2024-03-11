@@ -34,7 +34,7 @@ jobs:
       id: setup
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
-        python3 -m venv
+        python3 -m venv .venv
         echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
       continue-on-error: false
 
