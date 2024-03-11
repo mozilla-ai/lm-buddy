@@ -32,8 +32,8 @@ jobs:
         id: install_dependencies
         run: |
           . .venv/bin/activate
-          uv pip install toml-cli
-          uv pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
+          pip install toml-cli
+          pip install $(toml get --toml-path pyproject.toml "project.optional-dependencies.ruff[0]")
         continue-on-error: false
           
       - name: Linting with Ruff
@@ -57,8 +57,7 @@ jobs:
       - name: Set up Environment
         id: setup
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv
+          python3 -m venv .venv
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
 
@@ -66,7 +65,7 @@ jobs:
         id: install_package
         run: |
           . .venv/bin/activate
-          uv pip install "lm_buddy[dev] @ ."
+          pip install ".[dev]"
         continue-on-error: false
 
       - name: Unit Tests

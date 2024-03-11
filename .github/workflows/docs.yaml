@@ -33,8 +33,7 @@ jobs:
     - name: Set up Environment
       id: setup
       run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        uv venv
+        python3 -m venv .venv
         echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
       continue-on-error: false
 
@@ -42,7 +41,7 @@ jobs:
       id: install_build_dependencies
       run: |
         . .venv/bin/activate
-        uv pip install "lm-buddy[docs] @ ."
+        pip install ".[docs]"
       continue-on-error: false 
 
     - name: Build Documentation
