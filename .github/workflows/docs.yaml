@@ -42,7 +42,7 @@ jobs:
       id: install_build_dependencies
       run: |
         . .venv/bin/activate
-        uv pip install "lm-buddy[docs] @ ."
+        pip install "lm-buddy[docs] @ ."
       continue-on-error: false 
 
     - name: Build Documentation
