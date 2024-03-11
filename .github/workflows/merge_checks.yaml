@@ -57,7 +57,6 @@ jobs:
       - name: Set up Environment
         id: setup
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
           python3 -m venv .venv
           echo "VIRTUAL_ENV=$HOME/.venv" >> $GITHUB_ENV
         continue-on-error: false
@@ -66,7 +65,7 @@ jobs:
         id: install_package
         run: |
           . .venv/bin/activate
-          pip install "lm_buddy[dev] @ ."
+          pip install ".[dev]"
         continue-on-error: false
 
       - name: Unit Tests
