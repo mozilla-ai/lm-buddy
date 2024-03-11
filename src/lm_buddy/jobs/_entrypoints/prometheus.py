@@ -19,7 +19,7 @@ import json
 import copy
 
 class BadResponseException(Exception):
-    def __init__(self, message, error):
+    def __init__(self, message, error=None):
         self.message = message
         self.error = error
 
@@ -37,15 +37,19 @@ def openai_completion(config, client, prompt):
 
 
 def parse_response(response):
+    if response is None:
+        raise BadResponseException("Server returned an empty response")
+
     try:
-        assert response is not None
         response_text = response.choices[0].text
+        # note: this can raise a ValueError if the message is malformed
         feedback, score = response_text.split('[RESULT]')
         feedback = feedback.strip()
         score = score.strip()
-        assert score in ["1","2","3","4","5"]
-    except (ValueError, AssertionError) as e:
-        raise BadResponseException("Server returned a bad response", e)
+        if score not in ["1","2","3","4","5"]:
+            raise BadResponseException("Score not in range")
+    except (ValueError, BadResponseException) as e:
+        raise BadResponseException(f"Server returned a malformed response ({e})",e)
 
     return feedback, score
 
