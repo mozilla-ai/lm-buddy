@@ -1,9 +1,15 @@
 from lm_buddy.integrations.wandb import ArtifactLoader, WandbArtifactLoader
-from lm_buddy.jobs._entrypoints import run_finetuning, run_lm_harness, run_simple
+from lm_buddy.jobs._entrypoints import (
+    run_finetuning,
+    run_lm_harness,
+    run_prometheus,
+    run_simple,
+)
 from lm_buddy.jobs.configs import (
     FinetuningJobConfig,
     LMBuddyJobConfig,
     LMHarnessJobConfig,
+    PrometheusJobConfig,
     SimpleJobConfig,
 )
 
@@ -26,5 +32,7 @@ def run_job(
             run_finetuning(finetuning_config, artifact_loader)
         case LMHarnessJobConfig() as lm_harness_config:
             run_lm_harness(lm_harness_config, artifact_loader)
+        case PrometheusJobConfig() as prometheus_config:
+            run_prometheus(prometheus_config, artifact_loader)
         case _:
             raise ValueError(f"Received invalid job configuration: {config}")

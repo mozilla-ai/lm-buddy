@@ -1,7 +1,12 @@
 import click
 
 import lm_buddy
-from lm_buddy.jobs.configs import FinetuningJobConfig, LMHarnessJobConfig, SimpleJobConfig
+from lm_buddy.jobs.configs import (
+    FinetuningJobConfig,
+    LMHarnessJobConfig,
+    PrometheusJobConfig,
+    SimpleJobConfig,
+)
 
 # TODO(RD2024-125): We should probably collapse all these commands into a single CLI command
 # - Need to figure out best way to polymorphically deserialize the job config classes
@@ -31,4 +36,11 @@ def run_finetuning(config: str) -> None:
 @click.option("--config", type=str)
 def run_lm_harness(config: str) -> None:
     config = LMHarnessJobConfig.from_yaml_file(config)
+    lm_buddy.run_job(config)
+
+
+@group.command("prometheus", help="Run the prometheus evaluation job.")
+@click.option("--config", type=str)
+def run_prometheus(config: str) -> None:
+    config = PrometheusJobConfig.from_yaml_file(config)
     lm_buddy.run_job(config)

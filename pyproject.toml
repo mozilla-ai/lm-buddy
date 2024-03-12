@@ -4,11 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm-buddy"
-version = "0.2.8"
+version = "0.3.0"
 authors = [
     { name = "Sean Friedowitz", email = "sean@mozilla.ai" },
     { name = "Aaron Gonzales", email = "aaron@mozilla.ai" },
     { name = "Vicki Boykis", email = "vicki@mozilla.ai" },
+    { name = "Davide Eynard", email = "davide@mozilla.ai" },
 ]
 description = "Ray-centric library for finetuning and evaluation of (large) language models."
 readme = "README.md"
@@ -37,6 +38,8 @@ dependencies = [
     # Evaluation frameworks
     "lm-eval==0.4.1",
     "einops==0.7.0",
+    "fschat==0.2.36",
+    "openai==1.3.9",
 ]
 
 [project.optional-dependencies]
