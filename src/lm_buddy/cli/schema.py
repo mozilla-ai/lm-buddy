@@ -3,7 +3,7 @@ import json
 import click
 
 from lm_buddy.jobs.configs import (
-    FinetuningJobConfig, 
+    FinetuningJobConfig,
     LMHarnessJobConfig,
     PrometheusJobConfig,
     SimpleJobConfig,

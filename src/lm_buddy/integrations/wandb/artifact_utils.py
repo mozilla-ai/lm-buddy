@@ -4,7 +4,7 @@ from typing import Any
 from urllib.parse import ParseResult, urlparse
 
 import wandb
-import os
+
 
 class ArtifactType(str, Enum):
     """Enumeration of artifact types used by the LM Buddy."""
