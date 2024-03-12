@@ -1,4 +1,4 @@
-from lm_buddy.integrations.huggingface import HuggingFaceAssetPath
+from lm_buddy.paths import HuggingFaceAssetPath
 from lm_buddy.types import BaseLMBuddyConfig, SerializableTorchDtype
 
 

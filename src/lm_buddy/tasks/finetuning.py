@@ -1,7 +1,6 @@
 from typing import Any
 
 import ray
-from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
 from ray.train.torch import TorchTrainer
@@ -17,17 +16,11 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import LMBuddyJobType
-from lm_buddy.jobs.configs import FinetuningJobConfig
+from lm_buddy.tasks.common import LMBuddyTask
+from lm_buddy.tasks.utils import is_rank_zero_worker
 
 
-def is_tracking_enabled(config: FinetuningJobConfig):
-    # Only report to WandB on the rank 0 worker
-    # Reference: https://docs.ray.io/en/latest/train/user-guides/experiment-tracking.html
-    return config.tracking is not None and train.get_context().get_world_rank() == 0
-
-
-def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
+def _train_internal(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
     # Load the HF assets from configurations
     # Internally, artifact lineages are declared for the active training run
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
@@ -35,9 +28,10 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
     tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
     datasets = hf_loader.load_and_split_dataset(config.dataset)
 
+    is_tracking_enabled = config.tracking and is_rank_zero_worker()
     training_args = TrainingArguments(
         output_dir="out",  # Local checkpoint path on a worker
-        report_to="wandb" if is_tracking_enabled(config) else "none",
+        report_to="wandb" if is_tracking_enabled else "none",
         use_cpu=not config.ray.use_gpu,
         push_to_hub=False,
         disable_tqdm=True,
@@ -75,7 +69,7 @@ def run_finetuning(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
             with wandb_init_from_config(
                 config.tracking,
                 resume=WandbResumeMode.NEVER,
-                job_type=LMBuddyJobType.FINETUNING,
+                job_type=LMBuddyTask.FINETUNING,
             ):
                 load_and_train(config, artifact_loader)
         else:

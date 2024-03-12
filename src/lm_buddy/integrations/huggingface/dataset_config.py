@@ -1,6 +1,6 @@
 from pydantic import model_validator
 
-from lm_buddy.integrations.huggingface import HuggingFaceAssetPath, HuggingFaceRepoID
+from lm_buddy.paths import HuggingFaceAssetPath, HuggingFaceRepoID
 from lm_buddy.types import BaseLMBuddyConfig
 
 DEFAULT_TEXT_FIELD: str = "text"

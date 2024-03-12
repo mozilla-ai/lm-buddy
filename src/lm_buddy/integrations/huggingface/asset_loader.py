@@ -18,7 +18,6 @@ from lm_buddy.integrations.huggingface import (
     AutoModelConfig,
     AutoTokenizerConfig,
     DatasetConfig,
-    HuggingFaceAssetPath,
     HuggingFaceRepoID,
     QuantizationConfig,
 )
@@ -27,6 +26,7 @@ from lm_buddy.integrations.wandb import (
     WandbArtifactConfig,
     get_artifact_filesystem_path,
 )
+from lm_buddy.paths import HuggingFaceAssetPath
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -79,7 +79,7 @@ class HuggingFaceAssetLoader:
                 return repo_id
             case WandbArtifactConfig() as artifact_config:
                 artifact = self._artifact_loader.use_artifact(artifact_config)
-                return get_artifact_filesystem_path(artifact)
+                return str(get_artifact_filesystem_path(artifact))
             case unknown_path:
                 raise ValueError(f"Unable to resolve asset path from {unknown_path}.")
 

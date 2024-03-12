@@ -7,7 +7,7 @@ from lm_buddy.integrations.wandb import (
     WandbArtifactLoader,
     WandbRunConfig,
 )
-from lm_buddy.tasks.base import TaskResult
+from lm_buddy.tasks.common import TaskResult
 
 
 @dataclass
