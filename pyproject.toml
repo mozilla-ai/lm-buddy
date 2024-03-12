@@ -37,6 +37,7 @@ dependencies = [
     # Evaluation frameworks
     "lm-eval[openai]==0.4.1",
     "einops==0.7.0",
+    "fschat==0.2.36",
 ]
 
 [project.optional-dependencies]
