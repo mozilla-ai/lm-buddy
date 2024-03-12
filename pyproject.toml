@@ -9,6 +9,7 @@ authors = [
     { name = "Sean Friedowitz", email = "sean@mozilla.ai" },
     { name = "Aaron Gonzales", email = "aaron@mozilla.ai" },
     { name = "Vicki Boykis", email = "vicki@mozilla.ai" },
+    { name = "Davide Eynard", email = "davide@mozilla.ai" },
 ]
 description = "Ray-centric library for finetuning and evaluation of (large) language models."
 readme = "README.md"
