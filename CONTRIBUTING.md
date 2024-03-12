@@ -34,7 +34,7 @@ To do so, follow the steps:
 1. Compile a locked version of the package requirements from the `pyproject.toml` file, 
 which will create a `requirements.txt` file in the `lm-buddy` repository.
 This can be done using multiple open-source tools, such as
-[pip-tools](https://github.com/jazzband/pip-tools) or [uv](https://github.com/astral-sh/uv),
+[pip-tools](https://github.com/jazzband/pip-tools),
 as shown below:
 
     ```
@@ -42,9 +42,6 @@ as shown below:
     pip install pip-tools
     pip-compile -o requirements.txt pyproject.toml
 
-    # uv
-    pip install uv
-    uv pip compile -o requirements.txt pyproject.toml
     ```
 
 2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
@@ -80,5 +77,8 @@ The publishing workflow can be triggered in two ways:
 1. Manually triggered on the GitHub Actions UI, which publishes the package to TestPyPI, or
 2. Triggered by the creation of a GitHub release, which publishes to real PyPI.
 
-When creating a GitHub release, make sure that the tag used for the release
-matches the version of the target code branch.
+Note that there are some limitations on publishing to PyPI which are relevant to `lm-buddy`. 
+For instance, we can't publish a package that has git-hash pinned dependencies because [PyPI requirements dictate](https://github.com/pypi/warehouse/blob/fca2efaee722cceef87e3e61926426de090db03b/warehouse/forklift/legacy.py#L280) that all packages be version-based.  
+
+When creating a GitHub release, make sure that the tag you create in the GitHub release UI
+matches the version of the target code branch specified in `pyproject.toml`.
