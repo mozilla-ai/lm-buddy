@@ -1,5 +1,5 @@
 # ruff: noqa: I001
-from lm_buddy.integrations.huggingface.repo_config import *
+from lm_buddy.integrations.huggingface.paths import *
 from lm_buddy.integrations.huggingface.adapter_config import *
 from lm_buddy.integrations.huggingface.dataset_config import *
 from lm_buddy.integrations.huggingface.model_config import *

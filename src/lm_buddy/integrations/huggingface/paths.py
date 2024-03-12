@@ -1,15 +1,10 @@
-from typing import Any
+from pathlib import Path
 
 from huggingface_hub.utils import HFValidationError, validate_repo_id
 from pydantic import field_validator
 
+from lm_buddy.integrations.wandb import WandbArtifactConfig
 from lm_buddy.types import BaseLMBuddyConfig
-
-
-def convert_string_to_repo_config(x: Any):
-    if isinstance(x, str):
-        return HuggingFaceRepoConfig(repo_id=x)
-    return x
 
 
 def is_valid_huggingface_repo_id(s: str):
@@ -27,16 +22,19 @@ def is_valid_huggingface_repo_id(s: str):
         return False
 
 
-class HuggingFaceRepoConfig(BaseLMBuddyConfig):
-    """Configuration for a HuggingFace Hub repository."""
+class HuggingFaceRepoID(BaseLMBuddyConfig):
+    """Repository name on the HuggingFace Hub."""
 
-    __match_args__ = ("repo_id", "revision")
+    __match_args__ = ("repo_id",)
 
     repo_id: str
-    revision: str | None = None
 
     @field_validator("repo_id", mode="after")
     def validate_repo_id(cls, x: str):
         if not is_valid_huggingface_repo_id(x):
             raise ValueError(f"{x} is not a valid HuggingFace repo ID.")
         return x
+
+
+HuggingFaceAssetPath = Path | HuggingFaceRepoID | WandbArtifactConfig
+"""Type that can be resolved to a path for loading a HuggingFace asset."""

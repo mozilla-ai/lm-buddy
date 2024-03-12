@@ -1,4 +1,5 @@
 import warnings
+from pathlib import Path
 
 import torch
 from accelerate import Accelerator
@@ -17,7 +18,8 @@ from lm_buddy.integrations.huggingface import (
     AutoModelConfig,
     AutoTokenizerConfig,
     DatasetConfig,
-    HuggingFaceRepoConfig,
+    HuggingFaceAssetPath,
+    HuggingFaceRepoID,
     QuantizationConfig,
 )
 from lm_buddy.integrations.wandb import (
@@ -25,9 +27,6 @@ from lm_buddy.integrations.wandb import (
     WandbArtifactConfig,
     get_artifact_filesystem_path,
 )
-
-HuggingFaceAssetPath = HuggingFaceRepoConfig | WandbArtifactConfig
-"""Config that can be resolved to a HuggingFace name/path."""
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -66,7 +65,7 @@ class HuggingFaceAssetLoader:
     def __init__(self, artifact_loader: ArtifactLoader):
         self._artifact_loader = artifact_loader
 
-    def resolve_asset_path(self, path: HuggingFaceAssetPath) -> tuple[str, str | None]:
+    def resolve_asset_path(self, path: HuggingFaceAssetPath) -> str:
         """Resolve the actual HuggingFace name/path from a config.
 
         Currently, two config types contain references to a loadable HuggingFace path:
@@ -74,15 +73,15 @@ class HuggingFaceAssetLoader:
         (2) A `WandbArtifactConfig` where the filesystem path is resolved from the artifact
         """
         match path:
-            case HuggingFaceRepoConfig(repo_id, revision):
-                load_path, revision = repo_id, revision
+            case Path() as x:
+                return str(x)
+            case HuggingFaceRepoID(repo_id):
+                return repo_id
             case WandbArtifactConfig() as artifact_config:
                 artifact = self._artifact_loader.use_artifact(artifact_config)
-                load_path = get_artifact_filesystem_path(artifact)
-                revision = None
+                return get_artifact_filesystem_path(artifact)
             case unknown_path:
                 raise ValueError(f"Unable to resolve asset path from {unknown_path}.")
-        return str(load_path), revision
 
     def load_pretrained_config(
         self,
@@ -92,10 +91,8 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
-        model_path, revision = self.resolve_asset_path(config.load_from)
-        return AutoConfig.from_pretrained(
-            pretrained_model_name_or_path=model_path, revision=revision
-        )
+        config_path = self.resolve_asset_path(config.load_from)
+        return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path)
 
     def load_pretrained_model(
         self,
@@ -122,10 +119,9 @@ class HuggingFaceAssetLoader:
 
         # TODO: HuggingFace has many AutoModel classes with different "language model heads"
         #   Can we abstract this to load with any type of AutoModel class?
-        model_path, revision = self.resolve_asset_path(config.load_from)
+        model_path = self.resolve_asset_path(config.load_from)
         return AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=model_path,
-            revision=revision,
             trust_remote_code=config.trust_remote_code,
             torch_dtype=config.torch_dtype,
             quantization_config=bnb_config,
@@ -158,7 +154,7 @@ class HuggingFaceAssetLoader:
         """
         dataset_path, revision = self.resolve_asset_path(config.load_from)
         # Dataset loading requires a different method if from a HF vs. disk
-        if isinstance(config.load_from, HuggingFaceRepoConfig):
+        if isinstance(config.load_from, HuggingFaceRepoID):
             return load_dataset(dataset_path, revision=revision, split=config.split)
         else:
             match load_from_disk(dataset_path):
