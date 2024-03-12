@@ -1,0 +1,35 @@
+dataset:
+  load_from:
+    name: "wandb_file_artifact_name.json"
+    version: "latest"
+    project: "lm-buddy-prometheus"
+    entity: "mozilla-ai"
+  # field containing scoring instructions in the json file
+  text_field: "instruction"
+
+prometheus:
+  inference:
+    base_url: "http://your.vllm.server:8000/v1"
+    engine: "kaist-ai/prometheus-13b-v1.0"
+  best_of: 1
+  max_tokens: 512
+  frequency_penalty: 1.03
+  temperature: 1.0
+  top_p: 0.9
+
+evaluation:
+  # number of times a model is evaluated per sample
+  num_answers: 3
+  # max number of retries if a communication error
+  # with the server occurs
+  max_retries: 5
+  # min and max scores as defined in the scoring rubric
+  min_score: 1
+  max_score: 5
+  # enable/disable tqdm to track eval progress
+  enable_tqdm: True
+
+tracking:
+  name: "lm-buddy-prometheus"
+  project: "lm-buddy-examples"
+  entity: "mozilla-ai"
