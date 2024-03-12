@@ -12,7 +12,7 @@ from lm_buddy.integrations.wandb import (
 )
 from fastchat.conversation import get_conv_template
 from transformers import AutoTokenizer
-from openai import OpenAIError, OpenAI
+from openai import OpenAIError, OpenAI, Completion
 
 from tqdm import tqdm
 from pathlib import Path
@@ -25,7 +25,15 @@ class BadResponseException(Exception):
         self.error = error
 
 
-def openai_completion(config, client, prompt):
+def openai_completion(
+    config: PrometheusJobConfig, 
+    client: OpenAI, 
+    prompt: str
+) -> Completion:
+    """ Connects to a remote OpenAI-API-compatible Prometheus endpoint
+        and returns a Completion holding the model's response.
+    """
+
     return client.completions.create(
         model = config.prometheus.inference.engine,
         prompt = prompt,
@@ -37,7 +45,15 @@ def openai_completion(config, client, prompt):
     )
 
 
-def parse_response(config, response):
+def parse_response(
+    config: PrometheusJobConfig, 
+    response: Completion
+) -> tuple[str, str]:
+    """ Given a Prometheus eval response as returned by the OpenAI API
+        endpoint (i.e. in Completion format), extract feedback
+        and score.
+    """
+    
     if response is None:
         raise BadResponseException("Server returned an empty response")
 
@@ -58,7 +74,12 @@ def parse_response(config, response):
     return feedback, score
 
 
-def instruction_to_prompt(instruction):
+def instruction_to_prompt(
+    instruction: str
+) -> str:
+    """ Given some text containing Prometheus instructions, transform it
+        into an actual llama-2 prompt.
+    """
     conv = get_conv_template("llama-2")
     conv.set_system_message("You are a fair evaluator language model.")
     conv.append_message(conv.roles[0], instruction)
