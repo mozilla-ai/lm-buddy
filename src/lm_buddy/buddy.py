@@ -1,22 +1,27 @@
 from dataclasses import dataclass
 from time import time
+from typing import Any
 
 from lm_buddy.integrations.huggingface import AutoModelConfig
-from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.integrations.wandb import (
+    ArtifactLoader,
+    WandbArtifactLoader,
+    WandbRunConfig,
+)
+from lm_buddy.tasks.base import TaskResult
 
 
 @dataclass
-class LMBuddyRunResult:
-    final_model: AutoModelConfig | None
-    evaluation_results: list
+class RunResult:
     execution_time: float
+    task_results: list[TaskResult]
 
 
 class LMBuddy:
     """Your buddy in the (L)LM space.
 
     The `LMBuddy` orchestrates a simple finetuning and evaluation workflow.
-    The workflow begins with a base model and can be augmented with the following tasks:
+    The workflow begins with a base model, and the following tasks can be added:
     - A finetuning task to generate a tuned model
     - A series of evaluation tasks
     - A serving task
@@ -25,44 +30,51 @@ class LMBuddy:
     If finetuning is not specified, evaluation and serving utilizes the base model.
     """
 
-    def __init__(self, base_model: AutoModelConfig, tracking: WandbRunConfig | None = None):
-        self.tracking = tracking
-        self.base_model = base_model
+    def __init__(
+        self,
+        *,
+        model_config: AutoModelConfig,
+        tracking_config: WandbRunConfig | None = None,
+        artifact_loader: ArtifactLoader = WandbArtifactLoader(),
+    ):
+        self.model_config = model_config
+        self.tracking_config = tracking_config
+        self.artifact_loader = artifact_loader
 
         self.finetuning_task: "FinetuningTaskConfig" | None = None
-        self.evaluation_tasks: list["EvaluationTaskConfig"] = []
+        self.evaluation_tasks: dict[str, "EvaluationTaskConfig"] = []
         self.serving_task: "ServingTaskConfig" | None = None
 
-    def add_finetuning(self, config: "FinetuningTaskConfig") -> "LMBuddy":
+    def add_finetuning_task(self, config: "FinetuningTaskConfig") -> "LMBuddy":
         self.finetuning_task = config
         return self
 
-    def add_evaluation(self, config: "EvaluationTaskConfig") -> "LMBuddy":
+    def add_evaluation_task(self, config: "EvaluationTaskConfig") -> "LMBuddy":
         self.evaluation_tasks.append(config)
         return self
 
-    def add_serving(self, config: "ServingTaskConfig") -> "LMBuddy":
-        self.serving_task = config
-        return self
+    def add_serving_task(self, config: Any) -> "LMBuddy":
+        raise NotImplementedError("Serving is not yet implemented in lm-buddy.")
 
-    def run(self) -> LMBuddyRunResult:
+    def run(self) -> RunResult:
         start_time = time.time()
 
-        final_model = self.base_model
+        final_model = self.input_model
         if self.finetuning_task is not None:
+            finetuning_result = self.finetuning_task.run()
             final_model = ...  # Run finetuning
 
         eval_results = []
-        for eval_task in self.evaluation_tasks:
-            result = ...  # Run eval using final model and task config
-            eval_results.append(result)
+        for task in self.evaluation_tasks:
+            task_result = task.run()  # Run eval using final model and task config
+            eval_results.append(task_result)
 
         if self.serving_task is not None:
             # Serve the final model
             pass
 
         execution_time = time.time() - start_time
-        return LMBuddyRunResult(
+        return RunResult(
             final_model=final_model,
             evaluation_results=eval_results,
             execution_time=execution_time,
