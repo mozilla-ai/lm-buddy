@@ -5,18 +5,21 @@ import copy
 import json
 from pathlib import Path
 
+from datasets import Dataset, load_dataset
 from fastchat.conversation import get_conv_template
 from openai import Completion, OpenAI, OpenAIError
 from tqdm import tqdm
+from transformers import PreTrainedTokenizer
 
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.huggingface.tokenizer_config import AutoTokenizerConfig
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    build_file_artifact,
+    build_directory_artifact,
     wandb_init_from_config,
 )
+from lm_buddy.jobs.common import LMBuddyJobType
 from lm_buddy.jobs.configs import PrometheusJobConfig
 
 
@@ -78,28 +81,15 @@ def instruction_to_prompt(instruction: str) -> str:
     return conv.get_prompt()
 
 
-def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader):
-    # load dataset from W&B artifact
-    hf_loader = HuggingFaceAssetLoader(artifact_loader)
-    artifact_path, _ = hf_loader.resolve_asset_path(config.dataset.load_from)
-    dataset_fname = Path(artifact_path) / config.dataset.load_from.name
-
-    with Path(dataset_fname).open() as f:
-        # eval samples are JSON-encoded, each takes one line in the dataset file
-        data = [json.loads(line) for line in f.readlines()]
-
-    # get the tokenizer
-    tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
-    tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
-
-    # instantiate OpenAI client to speak with the vLLM endpoint
-    client = OpenAI(base_url=config.prometheus.inference.base_url)
-
+def run_eval(
+    config: PrometheusJobConfig, data: Dataset, tokenizer: PreTrainedTokenizer, client: OpenAI
+) -> str:
     # enable / disable tqdm
     dataset_iterable = tqdm(data) if config.evaluation.enable_tqdm else data
 
     # open the output file for writing and iterate on samples
-    output_fname = Path("/tmp") / config.tracking.name
+    tracking_name = config.tracking.name if config.tracking is not None else "output.json"
+    output_fname = Path(config.evaluation.tmp_folder) / tracking_name
     with output_fname.open("w") as file:
         for sample in dataset_iterable:
             # convert instructions from the dataset (`text_field` in a dict) to
@@ -132,17 +122,44 @@ def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader)
                 result["prometheus_output"].append(feedback)
                 result["prometheus_score"].append(score)
 
-            # dump sample results
+            # dump sample results incrementally
             file.write(json.dumps(result) + "\n")
+
+    # convert plain json dataset in HF format
+    output_hf_name = str(Path(config.evaluation.tmp_folder) / "hf" / tracking_name)
+    ds = load_dataset("json", data_files=str(output_fname), split="train")
+    ds.save_to_disk(output_hf_name)
+
+    return str(output_hf_name)
+
+
+def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader):
+    # load dataset from W&B artifact
+    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+    data = hf_loader.load_dataset(config.dataset)
+
+    # get the tokenizer
+    tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
+    tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
+
+    # instantiate OpenAI client to speak with the vLLM endpoint
+    client = OpenAI(base_url=config.prometheus.inference.base_url)
 
     # Register a dataset file artifact if tracking is enabled
     if config.tracking:
-        with wandb_init_from_config(config.tracking):
-            file_artifact = build_file_artifact(
+        with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION):
+            # run eval and store output in local filename
+            output_dataset_name = run_eval(config, data, tokenizer, client)
+
+            # store HF dataset as a directory artifact
+            artifact = build_directory_artifact(
+                dir_path=output_dataset_name,
                 artifact_name=config.tracking.name,
                 artifact_type=ArtifactType.DATASET,
-                file_path=output_fname,
                 reference=False,
             )
             print("[i] Logging artifact for evaluation results...")
-            artifact_loader.log_artifact(file_artifact)
+            artifact_loader.log_artifact(artifact)
+    else:
+        output_dataset_name = run_eval(config, data, tokenizer, client)
+        print(f"[i] Evaluation results stored in {output_dataset_name}")

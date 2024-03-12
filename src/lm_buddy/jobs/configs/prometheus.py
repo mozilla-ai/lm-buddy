@@ -15,6 +15,7 @@ class PrometheusEvaluationTaskConfig(BaseLMBuddyConfig):
     min_score: int = 0
     max_score: int = 5
     enable_tqdm: bool = False
+    tmp_folder: str = "/tmp"
 
 
 class PrometheusJobConfig(LMBuddyJobConfig):
