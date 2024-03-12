@@ -3,6 +3,7 @@
 
 from lm_buddy.jobs.configs import PrometheusJobConfig
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
+from lm_buddy.integrations.huggingface.tokenizer_config import AutoTokenizerConfig
 from lm_buddy.integrations.wandb import (
     ArtifactType, 
     ArtifactLoader, 
@@ -26,7 +27,7 @@ class BadResponseException(Exception):
 
 def openai_completion(config, client, prompt):
     return client.completions.create(
-        model = "kaist-ai/prometheus-13b-v1.0",
+        model = config.prometheus.inference.engine,
         prompt = prompt,
         best_of = config.prometheus.best_of,
         max_tokens = config.prometheus.max_tokens,
@@ -36,7 +37,7 @@ def openai_completion(config, client, prompt):
     )
 
 
-def parse_response(response):
+def parse_response(config, response):
     if response is None:
         raise BadResponseException("Server returned an empty response")
 
@@ -46,8 +47,11 @@ def parse_response(response):
         feedback, score = response_text.split('[RESULT]')
         feedback = feedback.strip()
         score = score.strip()
-        if score not in ["1","2","3","4","5"]:
-            raise BadResponseException("Score not in range")
+        if score not in [str(s) for s in range(
+            config.evaluation.min_score,
+            config.evaluation.max_score+1
+            )]:
+            raise BadResponseException(f"Score {score} is not in range")
     except (ValueError, BadResponseException) as e:
         raise BadResponseException(f"Server returned a malformed response ({e})",e)
 
@@ -74,17 +78,23 @@ def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader)
         data = [json.loads(line) for line in f.readlines()]
 
     # get the tokenizer
-    tokenizer = hf_loader.load_pretrained_tokenizer(config.prometheus.tokenizer)
+    tokenizer_config = AutoTokenizerConfig(
+        load_from = config.prometheus.inference.engine
+    )
+    tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
 
     # instantiate OpenAI client to speak with the vLLM endpoint
     client = OpenAI(
         base_url = config.prometheus.inference.base_url
     )
 
+    # enable / disable tqdm
+    dataset_iterable = tqdm(data) if config.evaluation.enable_tqdm else data
+
     # open the output file for writing and iterate on samples
     output_fname = Path("/tmp") / config.tracking.name
     with open(output_fname,'w') as file:
-        for sample in tqdm(data[:1]):
+        for sample in dataset_iterable:
             # convert instructions from the dataset (`text_field` in a dict) to
             # prompts that prometheus accepts
             prompt = instruction_to_prompt(sample[config.dataset.text_field])
@@ -99,19 +109,18 @@ def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader)
             result['prometheus_output'] = []
             result['prometheus_score'] = []
 
-            for idx in range(config.prometheus.num_answers):
+            for idx in range(config.evaluation.num_answers):
 
                 i = 0
-                while i < config.prometheus.max_retries: 
+                while i < config.evaluation.max_retries: 
                     try:
                         response = openai_completion(config, client, prompt)
-                        feedback, score = parse_response(response)
-                        print(feedback, score)
+                        feedback, score = parse_response(config, response)
                         break
                     except (OpenAIError, BadResponseException) as e:
-                        print(f"[w] {e.message}, retrying ({i+1}/{config.prometheus.max_retries})")
+                        print(f"[w] {e.message}, retrying ({i+1}/{config.evaluation.max_retries})")
                         i += 1
-                        if i == config.prometheus.max_retries:
+                        if i == config.evaluation.max_retries:
                             raise e
                 
                 result['prometheus_output'].append(feedback)

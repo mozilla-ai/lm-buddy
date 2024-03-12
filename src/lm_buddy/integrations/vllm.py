@@ -12,8 +12,26 @@ class InferenceServerConfig(BaseLMBuddyConfig):
 
     Note: This configuration is intended to be generic and not bound to the interface
     of any specific training/evaluation framework. See `LocalChatCompletionConfig`
-    for intended usage alongside a third-party framework.
+    or `vLLMCompleptionsConfig` for intended usage alongside a third-party framework.
     """
 
     base_url: str
     engine: str | HuggingFaceAssetPath | None = None
+
+
+class vLLMCompletionsConfig(BaseLMBuddyConfig):
+    """Configuration for a vLLM-based completions service
+
+    The "local-chat-completions" model is powered by a self-hosted inference server,
+    specified as an `InferenceServerConfig`. Additional arguments are also provided
+    to control the tokenizer type and generation parameters.
+    """
+
+    inference: InferenceServerConfig
+
+    # vLLM-specific params
+    best_of: int | None = None
+    max_tokens: int | None = None
+    frequency_penalty: float | None = None
+    temperature: float | None = None
+    top_p: float | None = None
