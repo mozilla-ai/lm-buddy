@@ -19,7 +19,7 @@ class InferenceServerConfig(BaseLMBuddyConfig):
     engine: str | HuggingFaceAssetPath | None = None
 
 
-class vLLMCompletionsConfig(BaseLMBuddyConfig):
+class VLLMCompletionsConfig(BaseLMBuddyConfig):
     """Configuration for a vLLM-based completions service
 
     The "local-chat-completions" model is powered by a self-hosted inference server,
