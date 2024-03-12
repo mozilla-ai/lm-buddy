@@ -8,11 +8,10 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from datasets import Dataset, load_dataset
+from datasets import load_dataset
 from fastchat.conversation import get_conv_template
 from openai import Completion, OpenAI, OpenAIError
 from tqdm import tqdm
-from transformers import PreTrainedTokenizer
 
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.huggingface.tokenizer_config import AutoTokenizerConfig
@@ -105,8 +104,18 @@ def get_response_with_retries(
 
 
 def run_eval(
-    config: PrometheusJobConfig, data: Dataset, tokenizer: PreTrainedTokenizer, client: OpenAI
+    config: PrometheusJobConfig,
+    artifact_loader: ArtifactLoader,
+    client: OpenAI,
 ) -> str:
+    # load dataset from W&B artifact
+    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+    data = hf_loader.load_dataset(config.dataset)
+
+    # get the tokenizer
+    tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
+    tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
+
     # enable / disable tqdm
     dataset_iterable = tqdm(data) if config.evaluation.enable_tqdm else data
 
@@ -154,16 +163,8 @@ def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader)
     # Register a dataset file artifact if tracking is enabled
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION):
-            # load dataset from W&B artifact
-            hf_loader = HuggingFaceAssetLoader(artifact_loader)
-            data = hf_loader.load_dataset(config.dataset)
-
-            # get the tokenizer
-            tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
-            tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
-
             # run eval and store output in local filename
-            output_dataset_name = run_eval(config, data, tokenizer, client)
+            output_dataset_name = run_eval(config, artifact_loader, client)
 
             # store HF dataset as a directory artifact
             artifact = build_directory_artifact(
@@ -175,13 +176,5 @@ def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader)
             print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(artifact)
     else:
-        # load dataset from W&B artifact
-        hf_loader = HuggingFaceAssetLoader(artifact_loader)
-        data = hf_loader.load_dataset(config.dataset)
-
-        # get the tokenizer
-        tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
-        tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
-
-        output_dataset_name = run_eval(config, data, tokenizer, client)
-        print(f"[i] Evaluation results stored in {output_dataset_name}")
+        output_dataset_name = run_eval(config, artifact_loader, client)
+        print(f"Evaluation results stored in {output_dataset_name}")
