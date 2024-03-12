@@ -11,6 +11,7 @@ from ragas.metrics import (
 from ragas.metrics.base import MetricWithLLM
 
 from lm_buddy.integrations.huggingface import AutoModelConfig
+from lm_buddy.integrations.vllm import InferenceServerConfig
 from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
@@ -39,6 +40,7 @@ class RagasvLLMJudgeConfig(BaseLMBuddyConfig):
     language_model: AutoModelConfig
     embedding_model: AutoModelConfig
     openai_api_key: str | None = "nokey"
+    inference_server: InferenceServerConfig
     max_tokens: int | None = 5
     temperature: float | None = 0
 
