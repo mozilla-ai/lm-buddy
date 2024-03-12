@@ -25,6 +25,11 @@ class VLLMCompletionsConfig(BaseLMBuddyConfig):
     The "local-chat-completions" model is powered by a self-hosted inference server,
     specified as an `InferenceServerConfig`. Additional arguments are also provided
     to control the tokenizer type and generation parameters.
+
+    Note that this is just a subset of the parameters allowed by a vLLM server (see
+    https://github.com/vllm-project/vllm/blob/main/vllm/sampling_params.py). If we
+    choose to use this configuration to cover for more use cases, it will make sense
+    to add the other supported configuration parameters too.
     """
 
     inference: InferenceServerConfig

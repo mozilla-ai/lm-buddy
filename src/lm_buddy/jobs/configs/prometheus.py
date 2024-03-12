@@ -12,17 +12,20 @@ class PrometheusEvaluationTaskConfig(BaseLMBuddyConfig):
 
     num_answers: int = 3
     max_retries: int = 5
+    scores: list = [1, 2, 3, 4, 5]
     min_score: int = 0
     max_score: int = 5
     enable_tqdm: bool = False
-    tmp_folder: str = "/tmp"
+    output_folder: str = "/tmp"
+    conversation_template: str = "llama-2"
+    conversation_system_message: str = "You are a fair evaluator language model."
 
 
 class PrometheusJobConfig(LMBuddyJobConfig):
     """Configuration to run a prometheus job."""
 
     dataset: TextDatasetConfig = Field(
-        description="dataset (json artifact from which we'll extract `text_field`)"
+        description="Dataset of text completions to evaluate using the Prometheus judge model."
     )
 
     # vLLM endpoint configuration
