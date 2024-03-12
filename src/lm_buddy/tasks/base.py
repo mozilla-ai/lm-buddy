@@ -1,10 +1,11 @@
+import datetime
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import timedelta
 from enum import Enum
+from pathlib import Path
 
-from lm_buddy.integrations.wandb import ArtifactLoader, ArtifactType, WandbArtifactConfig
+from lm_buddy.integrations.wandb import ArtifactLoader, ArtifactType
 
 
 class TaskType(Enum):
@@ -15,13 +16,13 @@ class TaskType(Enum):
 
 @dataclass
 class TaskResult:
-    execution_time: timedelta
     task_type: TaskType
     artifact_type: ArtifactType
-    artifact: WandbArtifactConfig
+    artifact_path: Path
+    execution_time: datetime.timedelta
 
 
-class LMBuddyTask(ABC):
+class BaseLMBuddyTask(ABC):
     def __init__(self, artifact_loader: ArtifactLoader):
         self.artifact_loader = artifact_loader
 
@@ -36,16 +37,16 @@ class LMBuddyTask(ABC):
         pass
 
     @abstractmethod
-    def _run_internal(self) -> WandbArtifactConfig:
+    def _run_internal(self) -> Path:
         pass
 
     def run(self) -> TaskResult:
         start_time = time.time()
-        output_artifact = self._run_internal()
+        artifact_path = self._run_internal()
         elapsed = time.time() - start_time
         return TaskResult(
-            execution_time=timedelta(seconds=elapsed),
             task_type=self.task_type,
             artifact_type=self.artifact_type,
-            artifact=output_artifact,
+            artifact_path=artifact_path,
+            execution_time=datetime.timedelta(seconds=elapsed),
         )

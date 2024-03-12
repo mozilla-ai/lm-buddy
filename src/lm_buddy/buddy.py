@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from time import time
 from typing import Any
 
 from lm_buddy.integrations.huggingface import AutoModelConfig
@@ -41,9 +40,9 @@ class LMBuddy:
         self.tracking_config = tracking_config
         self.artifact_loader = artifact_loader
 
-        self.finetuning_task: "FinetuningTaskConfig" | None = None
-        self.evaluation_tasks: dict[str, "EvaluationTaskConfig"] = []
-        self.serving_task: "ServingTaskConfig" | None = None
+        self.finetuning_config: "FinetuningTaskConfig" | None = None
+        self.evaluation_configs: dict[str, "EvaluationTaskConfig"] = []
+        self.serving_config: "ServingTaskConfig" | None = None
 
     def add_finetuning_task(self, config: "FinetuningTaskConfig") -> "LMBuddy":
         self.finetuning_task = config
@@ -57,8 +56,6 @@ class LMBuddy:
         raise NotImplementedError("Serving is not yet implemented in lm-buddy.")
 
     def run(self) -> RunResult:
-        start_time = time.time()
-
         final_model = self.input_model
         if self.finetuning_task is not None:
             finetuning_result = self.finetuning_task.run()
@@ -69,11 +66,6 @@ class LMBuddy:
             task_result = task.run()  # Run eval using final model and task config
             eval_results.append(task_result)
 
-        if self.serving_task is not None:
-            # Serve the final model
-            pass
-
-        execution_time = time.time() - start_time
         return RunResult(
             final_model=final_model,
             evaluation_results=eval_results,
