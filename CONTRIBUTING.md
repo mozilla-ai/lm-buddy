@@ -77,5 +77,8 @@ The publishing workflow can be triggered in two ways:
 1. Manually triggered on the GitHub Actions UI, which publishes the package to TestPyPI, or
 2. Triggered by the creation of a GitHub release, which publishes to real PyPI.
 
-When creating a GitHub release, make sure that the tag used for the release
-matches the version of the target code branch.
+Note that there are some limitations on publishing to PyPI which are relevant to `lm-buddy`. 
+For instance, we can't publish a package that has git-hash pinned dependencies because [PyPI requirements dictate](https://github.com/pypi/warehouse/blob/fca2efaee722cceef87e3e61926426de090db03b/warehouse/forklift/legacy.py#L280) that all packages be version-based.  
+
+When creating a GitHub release, make sure that the tag you create in the GitHub release UI
+matches the version of the target code branch specified in `pyproject.toml`.
