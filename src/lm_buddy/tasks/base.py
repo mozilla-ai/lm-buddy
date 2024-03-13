@@ -4,9 +4,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Generic, TypeVar
 
-from pydantic import dataclass
+from pydantic.dataclasses import dataclass
 
-from lm_buddy.integrations.wandb import ArtifactLoader
 from lm_buddy.tasks.configs import LMBuddyTaskConfig
 from lm_buddy.tasks.task_output import TaskOutput
 
@@ -33,15 +32,14 @@ class LMBuddyTask(Generic[ConfigType], ABC):
     and returns a `TaskResult` referencing the assets produced by the task.
     """
 
-    def __init__(
-        self,
-        config: ConfigType,
-        task_type: TaskType,
-        artifact_loader: ArtifactLoader,
-    ):
+    def __init__(self, config: ConfigType):
         self.config = config
-        self.task_type = task_type
-        self.artifact_loader = artifact_loader
+
+    @property
+    @abstractmethod
+    def task_type(self) -> TaskType:
+        """Type of task, e.g., 'finetuning' or 'evaluation'."""
+        pass
 
     @abstractmethod
     def _run_internal(self, config: ConfigType) -> list[TaskOutput]:

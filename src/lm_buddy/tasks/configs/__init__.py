@@ -1,7 +1,7 @@
 from lm_buddy.tasks.configs.base import LMBuddyTaskConfig
 from lm_buddy.tasks.configs.finetuning import FinetuningRayConfig, FinetuningTaskConfig
 from lm_buddy.tasks.configs.lm_harness import (
-    LMHarnessEvaluatorConfig,
+    LMHarnessEvaluationConfig,
     LMHarnessTaskConfig,
     LocalChatCompletionsConfig,
 )
@@ -13,7 +13,7 @@ __all__ = [
     "SimpleTaskConfig",
     "FinetuningTaskConfig",
     "FinetuningRayConfig",
-    "LMHarnessEvaluatorConfig",
+    "LMHarnessEvaluationConfig",
     "LMHarnessTaskConfig",
     "LocalChatCompletionsConfig",
     "PrometheusEvaluationConfig",

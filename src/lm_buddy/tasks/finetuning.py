@@ -14,6 +14,7 @@ from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
     WandbArtifactConfig,
+    WandbArtifactLoader,
     WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
@@ -70,8 +71,13 @@ def run_finetuning(config: FinetuningTaskConfig, artifact_loader: ArtifactLoader
 class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
     """Task for supervised finetuning of a causal language model."""
 
-    def __init__(self, config: FinetuningTaskConfig, artifact_loader: ArtifactLoader):
-        super().__init__(self, config, TaskType.FINETUNING, artifact_loader)
+    def __init__(
+        self,
+        config: FinetuningTaskConfig,
+        artifact_loader: ArtifactLoader = WandbArtifactLoader(),
+    ):
+        super().__init__(config)
+        self._artifact_loader = artifact_loader
 
     @property
     def task_type(self) -> TaskType:
@@ -79,7 +85,7 @@ class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
 
     def _run_internal(self) -> list[TaskOutput]:
         # Place the artifact loader in Ray object store
-        artifact_loader_ref = ray.put(self.artifact_loader)
+        artifact_loader_ref = ray.put(self._artifact_loader)
 
         # Define training function internally to capture the artifact loader ref as a closure
         # Reference: https://docs.ray.io/en/latest/ray-core/objects.html#closure-capture-of-objects
@@ -115,7 +121,7 @@ class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
 
         # Generate task outputs from training result
         task_outputs = self._get_task_outputs(result)
-        return task_outputs
+        return [task_outputs]
 
     def _get_task_output(self, result: Result) -> list[TaskOutput]:
         if result.checkpoint is None:
@@ -123,28 +129,29 @@ class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
             return []
 
         model_path = Path(f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}")
-        # Register a model artifact if tracking is enabled and Ray saved a checkpoint
-        if self.config.tracking:
-            with wandb_init_from_config(
-                self.config.tracking,
-                resume=WandbResumeMode.MUST,  # Must resume from the just-completed run
-            ) as run:
-                model_artifact = build_directory_artifact(
-                    artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
-                    artifact_type=ArtifactType.MODEL,
-                    dir_path=model_path,
-                    reference=True,
-                )
-                print("Logging artifact for model checkpoint...")
-                model_artifact = self.artifact_loader.log_artifact(model_artifact)
-                artifact_config = WandbArtifactConfig.from_artifact(model_artifact)
-        else:
-            artifact_config = None
+        model_artifact_config = self._log_model_artifact(model_path)
+        model_output = ModelOutput(
+            path=model_path,
+            artifact=model_artifact_config,
+            is_adapter=self.config.adapter is not None,
+        )
+        return [model_output]
 
-        return [
-            ModelOutput(
-                path=model_path,
-                artifact=artifact_config,
-                is_adapter=self.config.adapter is not None,
+    def _log_model_artifact(self, model_path: Path) -> WandbArtifactConfig | None:
+        if self.config.tracking is None:
+            return None
+
+        # Register a model artifact if tracking is enabled and Ray saved a checkpoint
+        with wandb_init_from_config(
+            self.config.tracking,
+            resume=WandbResumeMode.MUST,  # Must resume from the just-completed run
+        ) as run:
+            model_artifact = build_directory_artifact(
+                artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
+                artifact_type=ArtifactType.MODEL,
+                dir_path=model_path,
+                reference=True,
             )
-        ]
+            print("Logging artifact for model checkpoint...")
+            model_artifact = self._artifact_loader.log_artifact(model_artifact)
+            return WandbArtifactConfig.from_artifact(model_artifact)

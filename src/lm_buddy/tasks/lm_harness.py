@@ -14,6 +14,7 @@ from lm_buddy.integrations.huggingface import (
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
+    WandbArtifactLoader,
     WandbResumeMode,
     build_table_artifact,
     default_artifact_name,
@@ -44,8 +45,17 @@ def get_numeric_metrics(
 class LMHarnessTask(LMBuddyTask[LMHarnessTaskConfig]):
     """Evaluation task with lm-evaluation-harness framework."""
 
-    def __init__(self, config: LMHarnessTaskConfig, artifact_loader: ArtifactLoader):
-        super().__init__(self, config, TaskType.EVALUATION, artifact_loader)
+    def __init__(
+        self,
+        config: LMHarnessTaskConfig,
+        artifact_loader: ArtifactLoader = WandbArtifactLoader(),
+    ):
+        super().__init__(self, config)
+        self._artifact_loader = artifact_loader
+
+    @property
+    def task_type(self) -> TaskType:
+        return TaskType.EVALUATION
 
     def _run_internal(self) -> list[TaskOutput]:
         print(
