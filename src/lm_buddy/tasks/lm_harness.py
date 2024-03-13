@@ -66,8 +66,8 @@ class LMHarnessTask(LMBuddyTask[LMHarnessTaskConfig]):
             with wandb_init_from_config(
                 self.config.tracking,
                 parameters=self.config.evaluator,  # Log eval settings in W&B run
-                resume=WandbResumeMode.ALLOW,
                 job_type=self.task_type,
+                resume=WandbResumeMode.ALLOW,
             ) as run:
                 eval_results = self._load_and_evaluate(self.config, self.artifact_loader)
                 eval_artifact = build_table_artifact(

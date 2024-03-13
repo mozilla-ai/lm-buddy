@@ -13,13 +13,13 @@ class TaskOutput:
 
 @dataclass
 class ModelOutput(TaskOutput):
-    storage_path: Path
+    path: Path
     is_adapter: bool
 
 
 @dataclass
 class DatasetOutput(TaskOutput):
-    storage_path: Path
+    path: Path
 
 
 @dataclass

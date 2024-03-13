@@ -34,6 +34,11 @@ def is_tracking_enabled(config: FinetuningTaskConfig) -> bool:
 
 
 def run_finetuning(config: FinetuningTaskConfig, artifact_loader: ArtifactLoader):
+    """Run finetuning from the finetuning task config.
+
+    This method is detached from the `FinetuningTask` so it can be executed
+    on remote Ray workers without being bound to the state of the task class.
+    """
     # Load the HF assets from configurations
     # Internally, artifact lineages are declared for the active training run
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
@@ -94,7 +99,9 @@ class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
             config = FinetuningTaskConfig(**config_data)
             if is_tracking_enabled(config):
                 with wandb_init_from_config(
-                    config.tracking, resume=WandbResumeMode.NEVER, job_type=self.task_type
+                    config.tracking,
+                    resume=WandbResumeMode.NEVER,
+                    job_type=TaskType.FINETUNING,
                 ):
                     run_finetuning(config, artifact_loader)
             else:
@@ -129,10 +136,10 @@ class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
             return []
 
         ckpt_path = Path(result.checkpoint.path) / RayTrainReportCallback.CHECKPOINT_NAME
-        model_artifact_config = self._log_model_artifact(ckpt_path)
+        artifact_config = self._log_model_artifact(ckpt_path)
         model_output = ModelOutput(
             path=ckpt_path,
-            artifact=model_artifact_config,
+            artifact=artifact_config,
             is_adapter=self.config.adapter is not None,
         )
         return [model_output]
@@ -146,12 +153,19 @@ class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
             self.config.tracking,
             resume=WandbResumeMode.MUST,  # Must resume from the just-completed run
         ) as run:
-            model_artifact = build_directory_artifact(
+            print("Logging artifact for model checkpoint...")
+            artifact = build_directory_artifact(
                 artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
                 artifact_type=ArtifactType.MODEL,
                 dir_path=model_path,
                 reference=True,
             )
-            print("Logging artifact for model checkpoint...")
-            model_artifact = self._artifact_loader.log_artifact(model_artifact)
-            return WandbArtifactConfig.from_artifact(model_artifact)
+            self._artifact_loader.log_artifact(artifact)
+
+            # Return reference to artifact to include in task output
+            return WandbArtifactConfig(
+                name=artifact.name,
+                project=run.project,
+                entity=run.entity,
+                version="latest",
+            )
