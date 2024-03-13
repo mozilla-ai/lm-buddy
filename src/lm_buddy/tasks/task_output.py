@@ -6,20 +6,19 @@ from pydantic.dataclasses import dataclass
 from lm_buddy.integrations.wandb import WandbArtifactConfig
 
 
-@dataclass
 class TaskOutput:
     artifact: WandbArtifactConfig | None
 
 
 @dataclass
 class ModelOutput(TaskOutput):
-    filesystem_path: Path
+    storage_path: Path
     is_adapter: bool
 
 
 @dataclass
 class DatasetOutput(TaskOutput):
-    filesystem_path: Path
+    storage_path: Path
 
 
 @dataclass

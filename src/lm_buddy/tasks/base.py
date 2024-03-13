@@ -21,7 +21,7 @@ class TaskType(str, Enum):
 
 @dataclass
 class TaskResult:
-    outputs: list[TaskOutput]
+    output: TaskOutput
     task_type: TaskType
     execution_time: datetime.timedelta
 

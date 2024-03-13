@@ -19,6 +19,7 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
+from lm_buddy.paths import LoadableAssetPath
 from lm_buddy.tasks.base import LMBuddyTask, TaskType
 from lm_buddy.tasks.configs import FinetuningTaskConfig
 from lm_buddy.tasks.task_output import ModelOutput, TaskOutput
