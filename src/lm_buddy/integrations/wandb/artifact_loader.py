@@ -41,4 +41,4 @@ class WandbArtifactLoader:
             return api.artifact(config.wandb_path())
 
     def log_artifact(self, artifact: wandb.Artifact) -> wandb.Artifact:
-        return wandb.run.log_artifact(artifact)
+        return wandb.log_artifact(artifact)

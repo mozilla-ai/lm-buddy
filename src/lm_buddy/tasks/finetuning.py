@@ -13,12 +13,12 @@ from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
+    WandbArtifactConfig,
     WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.integrations.wandb.artifact_config import WandbArtifactConfig
 from lm_buddy.tasks.base import LMBuddyTask, TaskType
 from lm_buddy.tasks.configs import FinetuningTaskConfig
 from lm_buddy.tasks.task_output import ModelOutput, TaskOutput
@@ -67,10 +67,11 @@ def run_finetuning(config: FinetuningTaskConfig, artifact_loader: ArtifactLoader
     trainer.train()
 
 
-class FinetuningTask(LMBuddyTask):
+class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
+    """Task for supervised finetuning of a causal language model."""
+
     def __init__(self, config: FinetuningTaskConfig, artifact_loader: ArtifactLoader):
-        super().__init__(self, artifact_loader)
-        self.config = config
+        super().__init__(self, config, TaskType.FINETUNING, artifact_loader)
 
     @property
     def task_type(self) -> TaskType:
@@ -87,9 +88,7 @@ class FinetuningTask(LMBuddyTask):
             config = FinetuningTaskConfig(**config_data)
             if is_tracking_enabled(config):
                 with wandb_init_from_config(
-                    config.tracking,
-                    resume=WandbResumeMode.NEVER,
-                    job_type=LMBuddyTask.FINETUNING,
+                    config.tracking, resume=WandbResumeMode.NEVER, job_type=self.task_type
                 ):
                     run_finetuning(config, artifact_loader)
             else:
@@ -118,7 +117,7 @@ class FinetuningTask(LMBuddyTask):
         task_outputs = self._get_task_outputs(result)
         return task_outputs
 
-    def _get_task_outputs(self, result: Result) -> list[TaskOutput]:
+    def _get_task_output(self, result: Result) -> list[TaskOutput]:
         if result.checkpoint is None:
             # If Ray did not save a checkpoint, no outputs can be produced from the task
             return []

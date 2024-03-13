@@ -91,7 +91,7 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
-        config_path = self.resolve_asset_path(config.load_from)
+        config_path = self.resolve_asset_path(config.path)
         return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path)
 
     def load_pretrained_model(
@@ -119,7 +119,7 @@ class HuggingFaceAssetLoader:
 
         # TODO: HuggingFace has many AutoModel classes with different "language model heads"
         #   Can we abstract this to load with any type of AutoModel class?
-        model_path = self.resolve_asset_path(config.load_from)
+        model_path = self.resolve_asset_path(config.path)
         return AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=model_path,
             trust_remote_code=config.trust_remote_code,
@@ -133,7 +133,7 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
         """
-        tokenizer_path, revision = self.resolve_asset_path(config.load_from)
+        tokenizer_path, revision = self.resolve_asset_path(config.path)
         tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=tokenizer_path,
             revision=revision,
@@ -152,9 +152,9 @@ class HuggingFaceAssetLoader:
         When loading from HuggingFace directly, the `Dataset` is for the provided split.
         When loading from disk, the saved files must be for a dataset else an exception is raised.
         """
-        dataset_path, revision = self.resolve_asset_path(config.load_from)
+        dataset_path, revision = self.resolve_asset_path(config.path)
         # Dataset loading requires a different method if from a HF vs. disk
-        if isinstance(config.load_from, HuggingFaceRepoID):
+        if isinstance(config.path, HuggingFaceRepoID):
             return load_dataset(dataset_path, revision=revision, split=config.split)
         else:
             match load_from_disk(dataset_path):

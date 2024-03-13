@@ -47,7 +47,7 @@ class FinetuningJobConfig(LMBuddyJobConfig):
                 case dict() as model_data:
                     values["tokenizer"]["load_from"] = model_data["load_from"]
                 case AutoModelConfig() as model_config:
-                    values["tokenizer"]["load_from"] = model_config.load_from
+                    values["tokenizer"]["load_from"] = model_config.path
                 # No fallback necessary, downstream validation will flag invalid model types
         return values
 

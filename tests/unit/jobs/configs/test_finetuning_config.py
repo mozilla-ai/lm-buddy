@@ -65,8 +65,8 @@ def test_argument_validation():
         tokenizer=tokenizer_repo.repo_id,
         dataset=dataset_config,
     )
-    assert allowed_config.model.load_from == model_repo
-    assert allowed_config.tokenizer.load_from == tokenizer_repo
+    assert allowed_config.model.path == model_repo
+    assert allowed_config.tokenizer.path == tokenizer_repo
 
     # Check passing invalid arguments is validated for each asset type
     with pytest.raises(ValidationError):
@@ -78,4 +78,4 @@ def test_argument_validation():
 
     # Check that tokenizer is set to model path when absent
     missing_tokenizer_config = FinetuningJobConfig(model=model_repo.repo_id, dataset=dataset_config)
-    assert missing_tokenizer_config.tokenizer.load_from == model_repo
+    assert missing_tokenizer_config.tokenizer.path == model_repo
