@@ -26,7 +26,7 @@ from lm_buddy.integrations.wandb import (
     WandbArtifactConfig,
     get_artifact_filesystem_path,
 )
-from lm_buddy.paths import HuggingFaceAssetPath
+from lm_buddy.paths import LoadableAssetPath
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -65,7 +65,7 @@ class HuggingFaceAssetLoader:
     def __init__(self, artifact_loader: ArtifactLoader):
         self._artifact_loader = artifact_loader
 
-    def resolve_asset_path(self, path: HuggingFaceAssetPath) -> str:
+    def resolve_asset_path(self, path: LoadableAssetPath) -> str:
         """Resolve the actual HuggingFace name/path from a config.
 
         Currently, two config types contain references to a loadable HuggingFace path:

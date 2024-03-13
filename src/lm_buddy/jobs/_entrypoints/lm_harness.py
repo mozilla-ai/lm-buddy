@@ -8,7 +8,7 @@ from lm_eval.models.openai_completions import OpenaiCompletionsLM
 from lm_buddy.integrations.huggingface import (
     AutoModelConfig,
     HuggingFaceAssetLoader,
-    HuggingFaceAssetPath,
+    LoadableAssetPath,
     resolve_peft_and_pretrained,
 )
 from lm_buddy.integrations.wandb import (
@@ -67,7 +67,7 @@ def load_harness_model(
 
         case LocalChatCompletionsConfig() as local_config:
             model = local_config.inference.engine
-            if isinstance(model, HuggingFaceAssetPath):
+            if isinstance(model, LoadableAssetPath):
                 model, _ = hf_loader.resolve_asset_path(model)
             # If tokenizer is not provided, it is set to the value of model internally
             return OpenaiCompletionsLM(

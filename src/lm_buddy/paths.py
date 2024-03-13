@@ -36,5 +36,5 @@ class HuggingFaceRepoID(BaseLMBuddyConfig):
         return x
 
 
-HuggingFaceAssetPath = Path | HuggingFaceRepoID | WandbArtifactConfig
-"""Type that can be resolved to a path for loading a HuggingFace asset."""
+LoadableAssetPath = Path | HuggingFaceRepoID | WandbArtifactConfig
+"""A value that can be resolved to a path for loading an asset from disk."""

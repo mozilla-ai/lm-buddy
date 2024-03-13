@@ -4,12 +4,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 
-from lm_buddy.integrations.huggingface import HuggingFaceAssetPath
-from lm_buddy.integrations.wandb import ArtifactLoader, ArtifactType
-from lm_buddy.types import BaseLMBuddyConfig
+from lm_buddy.integrations.huggingface import LoadableAssetPath
+from lm_buddy.integrations.wandb import ArtifactLoader
 
 
-class TaskType(Enum):
+class TaskType(str, Enum):
     FINETUNING = "finetuning"
     EVALUATION = "evaluation"
 
@@ -17,16 +16,15 @@ class TaskType(Enum):
 @dataclass
 class TaskResult:
     task_type: TaskType
-    artifact_type: ArtifactType
-    artifact_path: HuggingFaceAssetPath
+    asset_paths: list[LoadableAssetPath]
     execution_time: datetime.timedelta
 
 
 class LMBuddyTask(ABC):
-    """Abstract interface for a single task within the LMBuddy.
+    """Base interface for a single task within the LMBuddy.
 
-    A task is parameterized by a single configuration containing all of its settings,
-    and returns a `TaskResult` referencing the artifact produced by the task.
+    A task is parameterized by a task configuration containing all of its settings,
+    and returns a `TaskResult` referencing the assets produced by the task.
     """
 
     @property
@@ -34,27 +32,16 @@ class LMBuddyTask(ABC):
     def task_type(self) -> TaskType:
         pass
 
-    @property
     @abstractmethod
-    def task_config(self) -> BaseLMBuddyConfig:  # TODO: Specialize this type
-        pass
-
-    @property
-    @abstractmethod
-    def artifact_type(self) -> ArtifactType:
-        pass
-
-    @abstractmethod
-    def _run_internal(self, artifact_loader: ArtifactLoader) -> HuggingFaceAssetPath:
+    def _run_internal(self, artifact_loader: ArtifactLoader) -> list[LoadableAssetPath]:
         pass
 
     def run(self, artifact_loader: ArtifactLoader) -> TaskResult:
         start_time = time.time()
-        artifact_path = self._run_internal(artifact_loader)
+        asset_paths = self._run_internal(artifact_loader)
         elapsed = time.time() - start_time
         return TaskResult(
             task_type=self.task_type,
-            artifact_type=self.artifact_type,
-            artifact_path=artifact_path,
+            asset_paths=asset_paths,
             execution_time=datetime.timedelta(seconds=elapsed),
         )

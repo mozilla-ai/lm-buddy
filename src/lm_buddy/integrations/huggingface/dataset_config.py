@@ -1,6 +1,6 @@
 from pydantic import model_validator
 
-from lm_buddy.paths import HuggingFaceAssetPath, HuggingFaceRepoID
+from lm_buddy.paths import HuggingFaceRepoID, LoadableAssetPath
 from lm_buddy.types import BaseLMBuddyConfig
 
 DEFAULT_TEXT_FIELD: str = "text"
@@ -9,7 +9,7 @@ DEFAULT_TEXT_FIELD: str = "text"
 class DatasetConfig(BaseLMBuddyConfig):
     """Base configuration to load a HuggingFace dataset."""
 
-    path: HuggingFaceAssetPath
+    path: LoadableAssetPath
     split: str | None = None
     test_size: float | None = None
     seed: int | None = None
