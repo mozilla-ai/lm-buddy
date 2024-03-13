@@ -1,21 +1,20 @@
-from lm_buddy.jobs.configs.base import LMBuddyJobConfig
-from lm_buddy.jobs.configs.finetuning import FinetuningJobConfig, FinetuningRayConfig
-from lm_buddy.jobs.configs.lm_harness import (
+from lm_buddy.tasks.configs.finetuning import FinetuningRayConfig, FinetuningTaskConfig
+from lm_buddy.tasks.configs.lm_harness import (
     LMHarnessEvaluatorConfig,
-    LMHarnessJobConfig,
+    LMHarnessTaskConfig,
     LocalChatCompletionsConfig,
 )
-from lm_buddy.jobs.configs.prometheus import PrometheusEvaluationTaskConfig, PrometheusJobConfig
-from lm_buddy.jobs.configs.simple import SimpleJobConfig
+from lm_buddy.tasks.configs.prometheus import PrometheusEvaluationConfig, PrometheusTaskConfig
+from lm_buddy.tasks.configs.simple import SimpleTaskConfig
 
 __all__ = [
-    "SimpleJobConfig",
-    "FinetuningJobConfig",
+    "SimpleTaskConfig",
+    "FinetuningTaskConfig",
     "FinetuningRayConfig",
     "LMHarnessEvaluatorConfig",
-    "LMHarnessJobConfig",
+    "LMHarnessTaskConfig",
     "LocalChatCompletionsConfig",
-    "PrometheusEvaluationTaskConfig",
-    "PrometheusJobConfig",
-    "SimpleJobConfig",
+    "PrometheusEvaluationConfig",
+    "PrometheusTaskConfig",
+    "SimpleTaskConfig",
 ]

@@ -1,7 +1,9 @@
+from pathlib import Path
 from typing import Any
 
 import ray
-from ray.train import CheckpointConfig, RunConfig, ScalingConfig
+from ray import train
+from ray.train import CheckpointConfig, Result, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
 from ray.train.torch import TorchTrainer
 from transformers import TrainingArguments
@@ -16,11 +18,21 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.tasks.common import LMBuddyTask
-from lm_buddy.tasks.utils import is_rank_zero_worker
+from lm_buddy.integrations.wandb.artifact_config import WandbArtifactConfig
+from lm_buddy.tasks.base import LMBuddyTask, TaskType
+from lm_buddy.tasks.configs import FinetuningTaskConfig
+from lm_buddy.tasks.task_output import ModelOutput, TaskOutput
 
 
-def _train_internal(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
+def is_tracking_enabled(config: FinetuningTaskConfig) -> bool:
+    """Return whether the caller is on the rank zero worker within a Ray Train context.
+
+    Reference: https://docs.ray.io/en/latest/train/user-guides/experiment-tracking.html
+    """
+    return config.tracking and train.get_context().get_world_rank() == 0
+
+
+def run_finetuning(config: FinetuningTaskConfig, artifact_loader: ArtifactLoader):
     # Load the HF assets from configurations
     # Internally, artifact lineages are declared for the active training run
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
@@ -28,10 +40,9 @@ def _train_internal(config: FinetuningJobConfig, artifact_loader: ArtifactLoader
     tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
     datasets = hf_loader.load_and_split_dataset(config.dataset)
 
-    is_tracking_enabled = config.tracking and is_rank_zero_worker()
     training_args = TrainingArguments(
         output_dir="out",  # Local checkpoint path on a worker
-        report_to="wandb" if is_tracking_enabled else "none",
+        report_to="wandb" if is_tracking_enabled(config) else "none",
         use_cpu=not config.ray.use_gpu,
         push_to_hub=False,
         disable_tqdm=True,
@@ -56,53 +67,85 @@ def _train_internal(config: FinetuningJobConfig, artifact_loader: ArtifactLoader
     trainer.train()
 
 
-def run_finetuning(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
-    # Place the artifact loader in Ray object store
-    artifact_loader_ref = ray.put(artifact_loader)
+class FinetuningTask(LMBuddyTask):
+    def __init__(self, config: FinetuningTaskConfig, artifact_loader: ArtifactLoader):
+        super().__init__(self, artifact_loader)
+        self.config = config
 
-    # Define training function internally to capture the artifact loader ref as a closure
-    # Reference: https://docs.ray.io/en/latest/ray-core/objects.html#closure-capture-of-objects
-    def training_function(config_data: dict[str, Any]):
-        artifact_loader = ray.get(artifact_loader_ref)
-        config = FinetuningJobConfig(**config_data)
-        if is_tracking_enabled(config):
+    @property
+    def task_type(self) -> TaskType:
+        return TaskType.FINETUNING
+
+    def _run_internal(self) -> list[TaskOutput]:
+        # Place the artifact loader in Ray object store
+        artifact_loader_ref = ray.put(self.artifact_loader)
+
+        # Define training function internally to capture the artifact loader ref as a closure
+        # Reference: https://docs.ray.io/en/latest/ray-core/objects.html#closure-capture-of-objects
+        def training_function_per_worker(config_data: dict[str, Any]):
+            artifact_loader = ray.get(artifact_loader_ref)
+            config = FinetuningTaskConfig(**config_data)
+            if is_tracking_enabled(config):
+                with wandb_init_from_config(
+                    config.tracking,
+                    resume=WandbResumeMode.NEVER,
+                    job_type=LMBuddyTask.FINETUNING,
+                ):
+                    run_finetuning(config, artifact_loader)
+            else:
+                run_finetuning(config, artifact_loader)
+
+        # Construct Ray train configurations from input config
+        scaling_config = ScalingConfig(
+            use_gpu=self.config.ray.use_gpu,
+            num_workers=self.config.ray.num_workers,
+        )
+        run_config = RunConfig(
+            name=self.config.tracking.name if self.config.tracking else None,
+            storage_path=self.config.ray.storage_path,
+            checkpoint_config=CheckpointConfig(num_to_keep=1),
+        )
+        trainer = TorchTrainer(
+            train_loop_per_worker=training_function_per_worker,
+            train_loop_config=self.config.model_dump(),
+            scaling_config=scaling_config,
+            run_config=run_config,
+        )
+        result = trainer.fit()
+        print(f"Training result: {result}")
+
+        # Generate task outputs from training result
+        task_outputs = self._get_task_outputs(result)
+        return task_outputs
+
+    def _get_task_outputs(self, result: Result) -> list[TaskOutput]:
+        if result.checkpoint is None:
+            # If Ray did not save a checkpoint, no outputs can be produced from the task
+            return []
+
+        model_path = Path(f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}")
+        # Register a model artifact if tracking is enabled and Ray saved a checkpoint
+        if self.config.tracking:
             with wandb_init_from_config(
-                config.tracking,
-                resume=WandbResumeMode.NEVER,
-                job_type=LMBuddyTask.FINETUNING,
-            ):
-                load_and_train(config, artifact_loader)
+                self.config.tracking,
+                resume=WandbResumeMode.MUST,  # Must resume from the just-completed run
+            ) as run:
+                model_artifact = build_directory_artifact(
+                    artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
+                    artifact_type=ArtifactType.MODEL,
+                    dir_path=model_path,
+                    reference=True,
+                )
+                print("Logging artifact for model checkpoint...")
+                model_artifact = self.artifact_loader.log_artifact(model_artifact)
+                artifact_config = WandbArtifactConfig.from_artifact(model_artifact)
         else:
-            load_and_train(config, artifact_loader)
+            artifact_config = None
 
-    # Construct Ray train configurations from input config
-    scaling_config = ScalingConfig(
-        use_gpu=config.ray.use_gpu,
-        num_workers=config.ray.num_workers,
-    )
-    run_config = RunConfig(
-        name=config.tracking.name if config.tracking else None,
-        storage_path=config.ray.storage_path,
-        checkpoint_config=CheckpointConfig(num_to_keep=1),
-    )
-    trainer = TorchTrainer(
-        train_loop_per_worker=training_function,
-        train_loop_config=config.model_dump(),
-        scaling_config=scaling_config,
-        run_config=run_config,
-    )
-    result = trainer.fit()
-    print(f"Training result: {result}")
-
-    # Register a model artifact if tracking is enabled and Ray saved a checkpoint
-    if config.tracking and result.checkpoint:
-        # Must resume from the just-completed training run
-        with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
-            model_artifact = build_directory_artifact(
-                artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
-                artifact_type=ArtifactType.MODEL,
-                dir_path=f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}",
-                reference=True,
+        return [
+            ModelOutput(
+                path=model_path,
+                artifact=artifact_config,
+                is_adapter=self.config.adapter is not None,
             )
-            print("Logging artifact for model checkpoint...")
-            artifact_loader.log_artifact(model_artifact)
+        ]

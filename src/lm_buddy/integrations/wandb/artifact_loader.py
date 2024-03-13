@@ -20,7 +20,7 @@ class ArtifactLoader(Protocol):
         """
         pass
 
-    def log_artifact(self, artifact: wandb.Artifact) -> None:
+    def log_artifact(self, artifact: wandb.Artifact) -> wandb.Artifact:
         """Log an artifact, declaring it as an output of the currently active W&B run."""
         pass
 
@@ -40,5 +40,5 @@ class WandbArtifactLoader:
             api = wandb.Api()
             return api.artifact(config.wandb_path())
 
-    def log_artifact(self, artifact: wandb.Artifact) -> None:
-        return wandb.log_artifact(artifact)
+    def log_artifact(self, artifact: wandb.Artifact) -> wandb.Artifact:
+        return wandb.run.log_artifact(artifact)

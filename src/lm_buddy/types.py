@@ -34,7 +34,7 @@ class BaseLMBuddyConfig(
     arbitrary_types_allowed=True,
     validate_assignment=True,
 ):
-    """Base class for all Pydantic configs in the library.
+    """Base class for all Pydantic models in the library.
 
     Defines some common settings used by all subclasses.
     """

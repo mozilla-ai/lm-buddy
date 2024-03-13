@@ -1,14 +1,16 @@
 import datetime
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from enum import Enum
 
-from lm_buddy.integrations.huggingface import LoadableAssetPath
+from pydantic import dataclass
+
 from lm_buddy.integrations.wandb import ArtifactLoader
+from lm_buddy.tasks.task_output import TaskOutput
 
 
 class TaskType(str, Enum):
+    SIMPLE = "simple"
     FINETUNING = "finetuning"
     EVALUATION = "evaluation"
 
@@ -16,7 +18,7 @@ class TaskType(str, Enum):
 @dataclass
 class TaskResult:
     task_type: TaskType
-    asset_paths: list[LoadableAssetPath]
+    outputs: list[TaskOutput]
     execution_time: datetime.timedelta
 
 
@@ -27,21 +29,20 @@ class LMBuddyTask(ABC):
     and returns a `TaskResult` referencing the assets produced by the task.
     """
 
-    @property
-    @abstractmethod
-    def task_type(self) -> TaskType:
-        pass
+    def __init__(self, task_type: TaskType, artifact_loader: ArtifactLoader):
+        self.task_type = task_type
+        self.artifact_loader = artifact_loader
 
     @abstractmethod
-    def _run_internal(self, artifact_loader: ArtifactLoader) -> list[LoadableAssetPath]:
+    def _run_internal(self) -> list[TaskOutput]:
         pass
 
-    def run(self, artifact_loader: ArtifactLoader) -> TaskResult:
+    def run(self) -> TaskResult:
         start_time = time.time()
-        asset_paths = self._run_internal(artifact_loader)
+        outputs = self._run_internal()
         elapsed = time.time() - start_time
         return TaskResult(
+            outputs=outputs,
             task_type=self.task_type,
-            asset_paths=asset_paths,
             execution_time=datetime.timedelta(seconds=elapsed),
         )
