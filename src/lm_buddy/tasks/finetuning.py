@@ -121,17 +121,17 @@ class FinetuningTask(LMBuddyTask[FinetuningTaskConfig]):
 
         # Generate task outputs from training result
         task_outputs = self._get_task_outputs(result)
-        return [task_outputs]
+        return task_outputs
 
-    def _get_task_output(self, result: Result) -> list[TaskOutput]:
+    def _get_task_outputs(self, result: Result) -> list[TaskOutput]:
         if result.checkpoint is None:
             # If Ray did not save a checkpoint, no outputs can be produced from the task
             return []
 
-        model_path = Path(f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}")
-        model_artifact_config = self._log_model_artifact(model_path)
+        ckpt_path = Path(result.checkpoint.path) / RayTrainReportCallback.CHECKPOINT_NAME
+        model_artifact_config = self._log_model_artifact(ckpt_path)
         model_output = ModelOutput(
-            path=model_path,
+            path=ckpt_path,
             artifact=model_artifact_config,
             is_adapter=self.config.adapter is not None,
         )

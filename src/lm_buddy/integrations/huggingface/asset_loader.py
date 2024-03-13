@@ -133,10 +133,9 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
         """
-        tokenizer_path, revision = self.resolve_asset_path(config.path)
+        tokenizer_path = self.resolve_asset_path(config.path)
         tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=tokenizer_path,
-            revision=revision,
             trust_remote_code=config.trust_remote_code,
             use_fast=config.use_fast,
         )
@@ -152,10 +151,10 @@ class HuggingFaceAssetLoader:
         When loading from HuggingFace directly, the `Dataset` is for the provided split.
         When loading from disk, the saved files must be for a dataset else an exception is raised.
         """
-        dataset_path, revision = self.resolve_asset_path(config.path)
+        dataset_path = self.resolve_asset_path(config.path)
         # Dataset loading requires a different method if from a HF vs. disk
         if isinstance(config.path, HuggingFaceRepoID):
-            return load_dataset(dataset_path, revision=revision, split=config.split)
+            return load_dataset(dataset_path, split=config.split)
         else:
             match load_from_disk(dataset_path):
                 case Dataset() as dataset:
