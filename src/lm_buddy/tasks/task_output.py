@@ -6,6 +6,7 @@ from pydantic.dataclasses import dataclass
 from lm_buddy.integrations.wandb import WandbArtifactConfig
 
 
+@dataclass
 class TaskOutput:
     artifact: WandbArtifactConfig | None
 

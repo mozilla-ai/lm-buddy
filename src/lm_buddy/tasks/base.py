@@ -7,10 +7,10 @@ from typing import Generic, TypeVar
 from pydantic import dataclass
 
 from lm_buddy.integrations.wandb import ArtifactLoader
+from lm_buddy.tasks.configs import LMBuddyTaskConfig
 from lm_buddy.tasks.task_output import TaskOutput
-from lm_buddy.types import BaseLMBuddyConfig
 
-ConfigType = TypeVar("ConfigType", bound=BaseLMBuddyConfig)
+ConfigType = TypeVar("ConfigType", bound=LMBuddyTaskConfig)
 
 
 class TaskType(str, Enum):
@@ -21,7 +21,7 @@ class TaskType(str, Enum):
 
 @dataclass
 class TaskResult:
-    output: TaskOutput
+    outputs: list[TaskOutput]
     task_type: TaskType
     execution_time: datetime.timedelta
 
@@ -44,7 +44,7 @@ class LMBuddyTask(Generic[ConfigType], ABC):
         self.artifact_loader = artifact_loader
 
     @abstractmethod
-    def _run_internal(self) -> list[TaskOutput]:
+    def _run_internal(self, config: ConfigType) -> list[TaskOutput]:
         pass
 
     def run(self) -> TaskResult:

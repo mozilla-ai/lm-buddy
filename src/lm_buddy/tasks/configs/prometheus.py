@@ -3,6 +3,7 @@ from pydantic import Field
 from lm_buddy.integrations.huggingface import TextDatasetConfig
 from lm_buddy.integrations.vllm import VLLMCompletionsConfig
 from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.tasks.configs import LMBuddyTaskConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -20,12 +21,17 @@ class PrometheusEvaluationConfig(BaseLMBuddyConfig):
     conversation_system_message: str = "You are a fair evaluator language model."
 
 
-class PrometheusTaskConfig(BaseLMBuddyConfig):
+class PrometheusTaskConfig(LMBuddyTaskConfig):
     """Configuration for a Prometheus judge evaluation task."""
 
-    judge_model: VLLMCompletionsConfig
+    judge_model: VLLMCompletionsConfig = Field(
+        description="Externally hosted Prometheus judge model."
+    )
     dataset: TextDatasetConfig = Field(
         description="Dataset of text completions to evaluate using the Prometheus judge model."
     )
-    evaluation: PrometheusEvaluationConfig = Field(default_factory=PrometheusEvaluationConfig)
+    evaluation: PrometheusEvaluationConfig = Field(
+        default_factory=PrometheusEvaluationConfig,
+        description="Settings for the Prometheus evaluation.",
+    )
     tracking: WandbRunConfig | None = None
