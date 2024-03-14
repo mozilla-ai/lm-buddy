@@ -1,8 +1,6 @@
 import click
 
-import lm_buddy
-from lm_buddy.buddy import LMBuddy
-from lm_buddy.integrations.wandb import WandbArtifactLoader
+from lm_buddy import LMBuddy
 from lm_buddy.jobs.configs import (
     FinetuningJobConfig,
     LMHarnessJobConfig,
@@ -10,7 +8,10 @@ from lm_buddy.jobs.configs import (
     SimpleJobConfig,
 )
 
-buddy = LMBuddy(artifact_loader=WandbArtifactLoader())
+# TODO(RD2024-125): Collapse the run commands into `lm-buddy finetune` and `lm-buddy evaluate`
+#   to match the methods on the `LMBuddy` class
+
+buddy = LMBuddy()
 
 
 @click.group(name="run", help="Run an LM Buddy job.")
@@ -22,7 +23,7 @@ def group():
 @click.option("--config", type=str)
 def run_simple(config: str) -> None:
     config = SimpleJobConfig.from_yaml_file(config)
-    buddy.finetune(config)
+    buddy.simple(config)
 
 
 @group.command("finetuning", help="Run the HuggingFace LLM finetuning job.")
@@ -43,4 +44,4 @@ def run_lm_harness(config: str) -> None:
 @click.option("--config", type=str)
 def run_prometheus(config: str) -> None:
     config = PrometheusJobConfig.from_yaml_file(config)
-    lm_buddy.run_job(config)
+    buddy.evaluate(config)

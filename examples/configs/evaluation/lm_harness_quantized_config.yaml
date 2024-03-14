@@ -4,7 +4,7 @@ model:
   torch_dtype: "bfloat16"
 
 # Settings specific to lm_harness.evaluate
-evaluator:
+evaluation:
   tasks: ["hellaswag", "mmlu"]
   num_fewshot: 5
   limit: 10

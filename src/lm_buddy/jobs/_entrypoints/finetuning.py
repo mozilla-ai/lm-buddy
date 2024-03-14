@@ -13,12 +13,12 @@ from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
+    WandbArtifactConfig,
     WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.integrations.wandb.artifact_config import WandbArtifactConfig
 from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType
 from lm_buddy.jobs.configs import FinetuningJobConfig
 

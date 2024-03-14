@@ -21,7 +21,7 @@ def local_completions_config(inference_server_config):
 
 
 @pytest.fixture
-def lm_harness_evaluator_config():
+def lm_harness_evaluation_config():
     return LMHarnessEvaluationConfig(
         tasks=["task1", "task2", "task3"],
         num_fewshot=5,
@@ -35,19 +35,19 @@ def lm_harness_job_config(
     local_completions_config,
     quantization_config,
     wandb_run_config,
-    lm_harness_evaluator_config,
+    lm_harness_evaluation_config,
 ):
     if request.param == "model_config_with_artifact":
         return LMHarnessJobConfig(
             model=model_config_with_artifact,
-            evaluator=lm_harness_evaluator_config,
+            evaluation=lm_harness_evaluation_config,
             tracking=wandb_run_config,
             quantization=quantization_config,
         )
     elif request.param == "local_completions_config":
         return LMHarnessJobConfig(
             model=local_completions_config,
-            evaluator=lm_harness_evaluator_config,
+            evaluation=lm_harness_evaluation_config,
             tracking=wandb_run_config,
             quantization=quantization_config,
         )
