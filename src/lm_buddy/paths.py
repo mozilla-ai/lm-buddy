@@ -41,10 +41,12 @@ def is_valid_huggingface_repo_id(s: str):
 
 def validate_loadable_path(x: Any) -> Any:
     match x:
-        case str() if Path(x).is_absolute():
-            return FilesystemPath(path=x)
-        case str() if is_valid_huggingface_repo_id(x):
-            return HuggingFaceRepoID(repo_id=x)
+        case Path() as p:
+            return FilesystemPath(path=p)
+        case str() as s if Path(s).is_absolute():
+            return FilesystemPath(path=s)
+        case str() as s if is_valid_huggingface_repo_id(s):
+            return HuggingFaceRepoID(repo_id=s)
         case str():
             raise ValueError(f"{x} is neither a valid HuggingFace repo ID or an absolute path.")
         case _:
@@ -61,6 +63,6 @@ LoadableAssetPath = Annotated[
 The path is represented by either a `FileSystemPath`, a `HuggingFaceRepoID`
 or a `WandbArtifactConfig` that can be resolved to a path via the artifact's manifest.
 
-This type contains built-in Pydantic validation logic to convert absolute path strings
-to `FilesystemPaths` and other strings to `HuggingFaceRepoID`s.
+This type is annotated with Pydantic validation logic to convert absolute path strings
+to `FilesystemPath`s and other strings to `HuggingFaceRepoID`s.
 """
