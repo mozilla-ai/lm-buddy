@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from lm_buddy.integrations.vllm import InferenceServerConfig
 from lm_buddy.jobs.configs import (
-    LMHarnessEvaluatorConfig,
+    LMHarnessEvaluationConfig,
     LMHarnessJobConfig,
     LocalChatCompletionsConfig,
 )
@@ -22,7 +22,7 @@ def local_completions_config(inference_server_config):
 
 @pytest.fixture
 def lm_harness_evaluator_config():
-    return LMHarnessEvaluatorConfig(
+    return LMHarnessEvaluationConfig(
         tasks=["task1", "task2", "task3"],
         num_fewshot=5,
     )

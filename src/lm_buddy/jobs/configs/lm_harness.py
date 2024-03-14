@@ -35,7 +35,7 @@ class LocalChatCompletionsConfig(BaseLMBuddyConfig):
         return config
 
 
-class LMHarnessEvaluatorConfig(BaseLMBuddyConfig):
+class LMHarnessEvaluationConfig(BaseLMBuddyConfig):
     """Misc settings provided to an lm-harness evaluation job."""
 
     tasks: conlist(str, min_length=1)
@@ -48,6 +48,6 @@ class LMHarnessJobConfig(LMBuddyJobConfig):
     """Configuration to run an lm-evaluation-harness evaluation job."""
 
     model: AutoModelConfig | LocalChatCompletionsConfig
-    evaluator: LMHarnessEvaluatorConfig
+    evaluation: LMHarnessEvaluationConfig
     quantization: QuantizationConfig | None = None
     tracking: WandbRunConfig | None = None

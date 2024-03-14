@@ -1,7 +1,7 @@
 from lm_buddy.jobs.configs.base import LMBuddyJobConfig
 from lm_buddy.jobs.configs.finetuning import FinetuningJobConfig, FinetuningRayConfig
 from lm_buddy.jobs.configs.lm_harness import (
-    LMHarnessEvaluatorConfig,
+    LMHarnessEvaluationConfig,
     LMHarnessJobConfig,
     LocalChatCompletionsConfig,
 )
@@ -15,7 +15,7 @@ __all__ = [
     "SimpleJobConfig",
     "FinetuningJobConfig",
     "FinetuningRayConfig",
-    "LMHarnessEvaluatorConfig",
+    "LMHarnessEvaluationConfig",
     "LMHarnessJobConfig",
     "LocalChatCompletionsConfig",
     "PrometheusEvaluationTaskConfig",

@@ -9,7 +9,7 @@ DEFAULT_TEXT_FIELD: str = "text"
 class DatasetConfig(BaseLMBuddyConfig):
     """Base configuration to load a HuggingFace dataset."""
 
-    path: LoadableAssetPath
+    load_from: LoadableAssetPath
     split: str | None = None
     test_size: float | None = None
     seed: int | None = None
@@ -21,7 +21,7 @@ class DatasetConfig(BaseLMBuddyConfig):
         This makes it such that the `load_dataset` function returns the type `Dataset`
         instead of `DatasetDict`, which makes some of the downstream logic easier.
         """
-        if config.split is None and isinstance(config.path, str):
+        if config.split is None and isinstance(config.load_from, str):
             raise ValueError(
                 "A `split` must be specified when loading a dataset directly from HuggingFace."
             )

@@ -55,12 +55,12 @@ class FinetuningJobConfig(LMBuddyJobConfig):
     def validate_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
-            return AutoModelConfig(path=x)
+            return AutoModelConfig(load_from=x)
         return x
 
     @field_validator("tokenizer", mode="before")
     def validate_tokenizer_arg(cls, x):
         """Allow for passing just a path string as the tokenizer argument."""
         if isinstance(x, str):
-            return AutoTokenizerConfig(path=x)
+            return AutoTokenizerConfig(load_from=x)
         return x

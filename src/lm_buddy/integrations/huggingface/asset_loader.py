@@ -90,7 +90,7 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
-        config_path = self.resolve_asset_path(config.path)
+        config_path = self.resolve_asset_path(config.load_from)
         return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path)
 
     def load_pretrained_model(
@@ -118,7 +118,7 @@ class HuggingFaceAssetLoader:
 
         # TODO: HuggingFace has many AutoModel classes with different "language model heads"
         #   Can we abstract this to load with any type of AutoModel class?
-        model_path = self.resolve_asset_path(config.path)
+        model_path = self.resolve_asset_path(config.load_from)
         return AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=model_path,
             trust_remote_code=config.trust_remote_code,
@@ -132,7 +132,7 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
         """
-        tokenizer_path = self.resolve_asset_path(config.path)
+        tokenizer_path = self.resolve_asset_path(config.load_from)
         tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=tokenizer_path,
             trust_remote_code=config.trust_remote_code,

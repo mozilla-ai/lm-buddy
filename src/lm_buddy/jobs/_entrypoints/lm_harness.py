@@ -18,12 +18,12 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import EvaluationOutput, JobOutput, LMBuddyJobType
+from lm_buddy.jobs.common import EvaluationOutput, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
 from lm_buddy.paths import LoadableAssetPath
 
 
-def get_numeric_metrics(
+def _get_numeric_metrics(
     results: dict[str, dict[str, Any]],
 ) -> dict[str, list[tuple[str, float]]]:
     """Filter non-numeric values from the evaluation results.
@@ -40,7 +40,7 @@ def get_numeric_metrics(
     return numeric_results
 
 
-def load_harness_model(
+def _load_harness_model(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
 ) -> HFLM | OpenaiCompletionsLM:
@@ -48,7 +48,7 @@ def load_harness_model(
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path, revision = hf_loader.resolve_asset_path(model_config.load_from)
+            model_path = hf_loader.resolve_asset_path(model_config.load_from)
             model_path, peft_path = resolve_peft_and_pretrained(model_path)
             quantization_kwargs: dict[str, Any] = (
                 config.quantization.model_dump() if config.quantization else {}
@@ -58,7 +58,6 @@ def load_harness_model(
                 pretrained=model_path,
                 tokenizer=model_path,
                 peft=peft_path,
-                revision=revision if revision else "main",
                 device="cuda" if torch.cuda.device_count() > 0 else "cpu",
                 trust_remote_code=config.model.trust_remote_code,
                 dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
@@ -82,14 +81,14 @@ def load_harness_model(
             raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
-def load_and_evaluate(
+def _run_eval(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
 ) -> dict[str, list[tuple[str, float]]]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
-    llm = load_harness_model(config, artifact_loader)
+    llm = _load_harness_model(config, artifact_loader)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
         tasks=config.evaluator.tasks,
@@ -98,22 +97,25 @@ def load_and_evaluate(
         limit=config.evaluator.limit,
         log_samples=False,
     )
-    eval_results = get_numeric_metrics(eval_results["results"])
+    eval_results = _get_numeric_metrics(eval_results["results"])
     print(f"Obtained evaluation results: {eval_results}")
     return eval_results
 
 
-def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: ArtifactLoader) -> EvaluationOutput:
+def run_lm_harness(
+    config: LMHarnessJobConfig,
+    artifact_loader: ArtifactLoader,
+) -> EvaluationOutput:
     print(f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}")
 
     if config.tracking is not None:
         with wandb_init_from_config(
             config.tracking,
-            parameters=config.evaluator,  # Log eval settings in W&B run
+            parameters=config.evaluation,  # Log eval settings in W&B run
             resume=WandbResumeMode.ALLOW,
             job_type=LMBuddyJobType.EVALUATION,
         ) as run:
-            eval_results = load_and_evaluate(config, artifact_loader)
+            eval_results = _run_eval(config, artifact_loader)
             eval_artifact = build_table_artifact(
                 artifact_name=default_artifact_name(run.name, ArtifactType.EVALUATION),
                 artifact_type=ArtifactType.EVALUATION,
@@ -123,4 +125,4 @@ def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: ArtifactLoader) 
             print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(eval_artifact)
     else:
-        load_and_evaluate(config, artifact_loader)
+        _run_eval(config, artifact_loader)

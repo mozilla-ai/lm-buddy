@@ -5,6 +5,6 @@ from lm_buddy.types import BaseLMBuddyConfig
 class AutoTokenizerConfig(BaseLMBuddyConfig):
     """Settings passed to a HuggingFace AutoTokenizer instantiation."""
 
-    path: LoadableAssetPath
+    load_from: LoadableAssetPath
     trust_remote_code: bool | None = None
     use_fast: bool | None = None
