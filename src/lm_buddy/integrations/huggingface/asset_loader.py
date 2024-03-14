@@ -65,12 +65,7 @@ class HuggingFaceAssetLoader:
         self._artifact_loader = artifact_loader
 
     def resolve_asset_path(self, path: LoadableAssetPath) -> str:
-        """Resolve the actual HuggingFace name/path from a config.
-
-        Currently, two config types contain references to a loadable HuggingFace path:
-        (1) A `HuggingFaceRepoConfig` that contains the repo path directly
-        (2) A `WandbArtifactConfig` where the filesystem path is resolved from the artifact
-        """
+        """Resolve the actual HuggingFace name/path from a `LoadableAssetPath`."""
         match path:
             case Path() as x:
                 return str(x)

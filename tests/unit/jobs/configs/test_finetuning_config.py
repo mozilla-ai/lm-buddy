@@ -1,8 +1,9 @@
 import pytest
 from pydantic import ValidationError
 
-from lm_buddy.integrations.huggingface import HuggingFaceRepoConfig, TextDatasetConfig
+from lm_buddy.integrations.huggingface import TextDatasetConfig
 from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
+from lm_buddy.paths import HuggingFaceRepoID
 from tests.test_utils import copy_pydantic_json
 
 
@@ -52,10 +53,10 @@ def test_load_example_config(examples_dir):
 
 
 def test_argument_validation():
-    model_repo = HuggingFaceRepoConfig(repo_id="model_path")
-    tokenizer_repo = HuggingFaceRepoConfig(repo_id="dataset_path")
+    model_repo = HuggingFaceRepoID(repo_id="model_path")
+    tokenizer_repo = HuggingFaceRepoID(repo_id="dataset_path")
     dataset_config = TextDatasetConfig(
-        load_from=HuggingFaceRepoConfig(repo_id="dataset_path"),
+        load_from=HuggingFaceRepoID(repo_id="dataset_path"),
         split="train",
     )
 
