@@ -1,6 +1,7 @@
 from typing import Any
 
 import lm_eval
+import pandas as pd
 import torch
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
@@ -13,6 +14,7 @@ from lm_buddy.integrations.huggingface import (
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
+    WandbArtifactConfig,
     WandbResumeMode,
     build_table_artifact,
     default_artifact_name,
@@ -23,21 +25,21 @@ from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
 from lm_buddy.paths import LoadableAssetPath
 
 
-def _get_numeric_metrics(
+def _get_per_task_dataframes(
     results: dict[str, dict[str, Any]],
-) -> dict[str, list[tuple[str, float]]]:
-    """Filter non-numeric values from the evaluation results.
+) -> dict[str, pd.DataFrame]:
+    """Create a `pd.DataFrame` of numeric metrics for each evaluation task.
 
     This is necessary because artifact tables must have a single datatype for each column.
 
     lm-harness returns mostly numeric values, but there are also some misc string-valued metrics.
     Filtering down to only numeric values allows us to produce a valid table artifact.
     """
-    numeric_results = {}
-    for key, data in results.items():
+    dfs = {}
+    for task_name, data in results.items():
         numeric_rows = [(k, v) for k, v in data.items() if isinstance(v, int | float)]
-        numeric_results[key] = numeric_rows
-    return numeric_results
+        dfs[task_name] = pd.DataFrame(data=numeric_rows, columns=["metric", "value"])
+    return dfs
 
 
 def _load_harness_model(
@@ -84,7 +86,7 @@ def _load_harness_model(
 def _run_eval(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
-) -> dict[str, list[tuple[str, float]]]:
+) -> dict[str, pd.DataFrame]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
@@ -97,9 +99,8 @@ def _run_eval(
         limit=config.evaluator.limit,
         log_samples=False,
     )
-    eval_results = _get_numeric_metrics(eval_results["results"])
     print(f"Obtained evaluation results: {eval_results}")
-    return eval_results
+    return _get_per_task_dataframes(eval_results["results"])
 
 
 def run_lm_harness(
@@ -116,13 +117,26 @@ def run_lm_harness(
             job_type=LMBuddyJobType.EVALUATION,
         ) as run:
             eval_results = _run_eval(config, artifact_loader)
+            print("Logging artifact for evaluation results...")
             eval_artifact = build_table_artifact(
                 artifact_name=default_artifact_name(run.name, ArtifactType.EVALUATION),
                 artifact_type=ArtifactType.EVALUATION,
-                columns=["metric", "value"],
                 tables=eval_results,
             )
-            print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(eval_artifact)
+            # Create an artifact config to reference the new table artifact
+            eval_artifact_config = WandbArtifactConfig(
+                name=eval_artifact.name,
+                project=run.project,
+                entity=run.entity,
+            )
     else:
-        _run_eval(config, artifact_loader)
+        eval_results = _run_eval(config, artifact_loader)
+        eval_artifact_config = None
+
+    return EvaluationOutput(
+        results=eval_results,
+        results_artifact=eval_artifact_config,
+        dataset_path=None,
+        dataset_artifact=None,
+    )

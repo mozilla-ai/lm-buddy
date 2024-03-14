@@ -1,8 +1,8 @@
 from enum import Enum
 from pathlib import Path
-from typing import Any
 from urllib.parse import ParseResult, urlparse
 
+import pandas as pd
 import wandb
 
 
@@ -91,23 +91,22 @@ def build_directory_artifact(
 def build_table_artifact(
     artifact_name: str,
     artifact_type: ArtifactType,
-    columns: list[str],
-    tables: dict[str, list[list[Any]]],
+    tables: dict[str, pd.DataFrame],
 ) -> wandb.Artifact:
     """Build an artifact containing one or more table entries.
 
     Args:
         artifact_name (str): Name of the artifact.
         artifact_type (ArtifactType): Type of artifact.
-        columns (list[str]): Column names for the tables.
-        tables (dict[str, list[list[Any]]]): Mapping from table name to table rows.
+        tables (dict[str, pd.DataFrame]): Mapping from table name to table data
+            in the form of a `pd.DataFrame` object.
 
     Returns:
         wandb.Artifact: The artifact containing the table(s).
     """
     artifact = wandb.Artifact(artifact_name, type=artifact_type)
     for table_name, table_data in tables.items():
-        table = wandb.Table(data=table_data, columns=columns)
+        table = wandb.Table(data=table_data)
         artifact.add(table, name=table_name)
     return artifact
 

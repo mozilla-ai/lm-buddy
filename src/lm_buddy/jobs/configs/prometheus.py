@@ -21,7 +21,7 @@ class PrometheusEvaluationConfig(BaseLMBuddyConfig):
     conversation_system_message: str = "You are a fair evaluator language model."
 
 
-class PrometheusTaskConfig(LMBuddyJobConfig):
+class PrometheusJobConfig(LMBuddyJobConfig):
     """Configuration for a Prometheus judge evaluation task."""
 
     prometheus: VLLMCompletionsConfig = Field(
