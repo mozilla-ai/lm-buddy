@@ -1,6 +1,6 @@
 from lm_buddy.integrations.wandb import ArtifactLoader, WandbArtifactLoader
 from lm_buddy.jobs._entrypoints import run_finetuning, run_lm_harness, run_prometheus, run_simple
-from lm_buddy.jobs.common import EvaluationOutput, FinetuningOutput, SimpleOutput
+from lm_buddy.jobs.common import EvaluationResult, FinetuningResult, SimpleResult
 from lm_buddy.jobs.configs import (
     EvaluationJobConfig,
     FinetuningJobConfig,
@@ -19,15 +19,15 @@ class LMBuddy:
     def __init__(self, artifact_loader: ArtifactLoader = WandbArtifactLoader()):
         self._artifact_loader = artifact_loader
 
-    def simple(self, config: SimpleJobConfig) -> SimpleOutput:
+    def simple(self, config: SimpleJobConfig) -> SimpleResult:
         """Run a simple test task."""
         return run_simple(config)
 
-    def finetune(self, config: FinetuningJobConfig) -> FinetuningOutput:
+    def finetune(self, config: FinetuningJobConfig) -> FinetuningResult:
         """Run a supervised finetuning task with the provided configuration."""
         return run_finetuning(config)
 
-    def evaluate(self, config: EvaluationJobConfig) -> EvaluationOutput:
+    def evaluate(self, config: EvaluationJobConfig) -> EvaluationResult:
         """Run an evaluation task with the provided configuration.
 
         The underlying evaluation framework is determined by the configuration type.

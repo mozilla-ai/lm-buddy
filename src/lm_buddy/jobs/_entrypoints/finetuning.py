@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 import ray
@@ -17,7 +18,8 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import FinetuningOutput, LMBuddyJobType
+from lm_buddy.integrations.wandb.artifact_config import WandbArtifactConfig
+from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType
 from lm_buddy.jobs.configs import FinetuningJobConfig
 
 
@@ -65,7 +67,7 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
 def run_finetuning(
     config: FinetuningJobConfig,
     artifact_loader: ArtifactLoader,
-) -> FinetuningOutput:
+) -> FinetuningResult:
     # Place the artifact loader in Ray object store
     artifact_loader_ref = ray.put(artifact_loader)
 
@@ -104,14 +106,31 @@ def run_finetuning(
     print(f"Training result: {result}")
 
     # Register a model artifact if tracking is enabled and Ray saved a checkpoint
-    if config.tracking and result.checkpoint:
-        # Must resume from the just-completed training run
-        with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
-            model_artifact = build_directory_artifact(
-                artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
-                artifact_type=ArtifactType.MODEL,
-                dir_path=f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}",
-                reference=True,
-            )
-            print("Logging artifact for model checkpoint...")
-            artifact_loader.log_artifact(model_artifact)
+    ckpt_path, artifact_config = None, None
+    if result.checkpoint:
+        ckpt_path = Path(f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}")
+        if config.tracking:
+            # Must resume from the just-completed training run
+            with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
+                model_artifact = build_directory_artifact(
+                    artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
+                    artifact_type=ArtifactType.MODEL,
+                    dir_path=ckpt_path,
+                    reference=True,
+                )
+                print("Logging artifact for model checkpoint...")
+                artifact_loader.log_artifact(model_artifact)
+                # Create an artifact config referencing the new artifact
+                artifact_config = WandbArtifactConfig(
+                    name=model_artifact.name,
+                    project=run.project,
+                    entity=run.entity,
+                )
+
+    # Return finetuning result object
+    return FinetuningResult(
+        checkpoint_path=ckpt_path,
+        checkpoint_artifact=artifact_config,
+        metrics=result.metrics or {},
+        is_adapter=config.adapter is not None,
+    )

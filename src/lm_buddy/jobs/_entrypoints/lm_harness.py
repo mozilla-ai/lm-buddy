@@ -20,12 +20,12 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import EvaluationOutput, LMBuddyJobType
+from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
 from lm_buddy.paths import LoadableAssetPath
 
 
-def _get_per_task_dataframes(
+def get_per_task_dataframes(
     results: dict[str, dict[str, Any]],
 ) -> dict[str, pd.DataFrame]:
     """Create a `pd.DataFrame` of numeric metrics for each evaluation task.
@@ -42,7 +42,7 @@ def _get_per_task_dataframes(
     return dfs
 
 
-def _load_harness_model(
+def load_harness_model(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
 ) -> HFLM | OpenaiCompletionsLM:
@@ -83,30 +83,30 @@ def _load_harness_model(
             raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
-def _run_eval(
+def run_eval(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
 ) -> dict[str, pd.DataFrame]:
     print("Initializing lm-harness tasks...")
     lm_eval.tasks.initialize_tasks()
 
-    llm = _load_harness_model(config, artifact_loader)
+    llm = load_harness_model(config, artifact_loader)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
-        tasks=config.evaluator.tasks,
-        batch_size=config.evaluator.batch_size,
-        num_fewshot=config.evaluator.num_fewshot,
-        limit=config.evaluator.limit,
+        tasks=config.evaluation.tasks,
+        batch_size=config.evaluation.batch_size,
+        num_fewshot=config.evaluation.num_fewshot,
+        limit=config.evaluation.limit,
         log_samples=False,
     )
     print(f"Obtained evaluation results: {eval_results}")
-    return _get_per_task_dataframes(eval_results["results"])
+    return get_per_task_dataframes(eval_results["results"])
 
 
 def run_lm_harness(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
-) -> EvaluationOutput:
+) -> EvaluationResult:
     print(f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}")
 
     if config.tracking is not None:
@@ -116,27 +116,27 @@ def run_lm_harness(
             resume=WandbResumeMode.ALLOW,
             job_type=LMBuddyJobType.EVALUATION,
         ) as run:
-            eval_results = _run_eval(config, artifact_loader)
-            print("Logging artifact for evaluation results...")
-            eval_artifact = build_table_artifact(
+            eval_tables = run_eval(config, artifact_loader)
+            table_artifact = build_table_artifact(
                 artifact_name=default_artifact_name(run.name, ArtifactType.EVALUATION),
                 artifact_type=ArtifactType.EVALUATION,
-                tables=eval_results,
+                tables=eval_tables,
             )
-            artifact_loader.log_artifact(eval_artifact)
+            print("Logging artifact for evaluation results...")
+            artifact_loader.log_artifact(table_artifact)
             # Create an artifact config to reference the new table artifact
-            eval_artifact_config = WandbArtifactConfig(
-                name=eval_artifact.name,
+            table_artifact_config = WandbArtifactConfig(
+                name=table_artifact.name,
                 project=run.project,
                 entity=run.entity,
             )
     else:
-        eval_results = _run_eval(config, artifact_loader)
-        eval_artifact_config = None
+        eval_tables = run_eval(config, artifact_loader)
+        table_artifact_config = None
 
-    return EvaluationOutput(
-        results=eval_results,
-        results_artifact=eval_artifact_config,
+    return EvaluationResult(
+        tables=eval_tables,
+        table_artifact=table_artifact_config,
         dataset_path=None,
         dataset_artifact=None,
     )
