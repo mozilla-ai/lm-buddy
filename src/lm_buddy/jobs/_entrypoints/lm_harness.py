@@ -18,7 +18,7 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import JobOutput, LMBuddyJobType
+from lm_buddy.jobs.common import EvaluationOutput, JobOutput, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
 from lm_buddy.paths import LoadableAssetPath
 
@@ -103,7 +103,7 @@ def load_and_evaluate(
     return eval_results
 
 
-def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: ArtifactLoader) -> list[JobOutput]:
+def run_lm_harness(config: LMHarnessJobConfig, artifact_loader: ArtifactLoader) -> EvaluationOutput:
     print(f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}")
 
     if config.tracking is not None:

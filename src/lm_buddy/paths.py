@@ -48,10 +48,10 @@ LoadableAssetPath = Annotated[
     Path | HuggingFaceRepoID | WandbArtifactConfig,
     BeforeValidator(lambda x: validate_asset_path(x)),
 ]
-"""A value that can be resolved to a path for loading an asset from disk.
+"""A value that can be resolved to a name/path for loading a HuggingFace asset.
 
 During validation, the following conversions occur:
     - Strings representing an absolute path (beginning with a '/') are converted to `Path`s
-    - Other strings are validated and converted to `HuggingFaceRepoID`s
-    - Other objects are validated as `WandbArtifactConfig` instances
+    - Other strings are converted to `HuggingFaceRepoID`s
+    - Other values are passed to the default Pydantic validators
 """

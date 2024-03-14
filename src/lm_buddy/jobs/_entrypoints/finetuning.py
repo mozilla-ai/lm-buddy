@@ -17,7 +17,7 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import LMBuddyJobType
+from lm_buddy.jobs.common import FinetuningOutput, LMBuddyJobType
 from lm_buddy.jobs.configs import FinetuningJobConfig
 
 
@@ -62,7 +62,10 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
     trainer.train()
 
 
-def run_finetuning(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
+def run_finetuning(
+    config: FinetuningJobConfig,
+    artifact_loader: ArtifactLoader,
+) -> FinetuningOutput:
     # Place the artifact loader in Ray object store
     artifact_loader_ref = ray.put(artifact_loader)
 

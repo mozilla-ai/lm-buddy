@@ -20,12 +20,18 @@ class LMBuddy:
         self._artifact_loader = artifact_loader
 
     def simple(self, config: SimpleJobConfig) -> list[JobOutput]:
+        """Run a simple test task."""
         return run_simple(config)
 
     def finetune(self, config: FinetuningJobConfig) -> list[JobOutput]:
+        """Run a supervised finetuning task with the provided configuration."""
         return run_finetuning(config)
 
     def evaluate(self, config: EvaluationJobConfig) -> list[JobOutput]:
+        """Run an evaluation task with the provided configuration.
+
+        The underlying evaluation framework is determined by the configuration type.
+        """
         match config:
             case LMHarnessJobConfig() as lm_harness_config:
                 return run_lm_harness(lm_harness_config, self._artifact_loader)

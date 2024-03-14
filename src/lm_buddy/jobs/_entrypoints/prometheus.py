@@ -21,7 +21,7 @@ from lm_buddy.integrations.wandb import (
     build_directory_artifact,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import LMBuddyJobType
+from lm_buddy.jobs.common import EvaluationOutput, LMBuddyJobType
 from lm_buddy.jobs.configs import PrometheusJobConfig
 
 
@@ -156,8 +156,11 @@ def run_eval(
     return str(output_hf_name)
 
 
-def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader):
-    # instantiate OpenAI client to speak with the vLLM endpoint
+def run_prometheus(
+    config: PrometheusJobConfig,
+    artifact_loader: ArtifactLoader,
+) -> EvaluationOutput:
+    # Instantiate OpenAI client to speak with the vLLM endpoint
     client = OpenAI(base_url=config.prometheus.inference.base_url)
 
     # Register a dataset file artifact if tracking is enabled
