@@ -1,5 +1,4 @@
 import warnings
-from pathlib import Path
 
 import torch
 from accelerate import Accelerator
@@ -25,7 +24,7 @@ from lm_buddy.integrations.wandb import (
     WandbArtifactConfig,
     get_artifact_filesystem_path,
 )
-from lm_buddy.paths import HuggingFaceRepoID, LoadableAssetPath
+from lm_buddy.paths import FilesystemPath, HuggingFaceRepoID, LoadableAssetPath
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -67,8 +66,8 @@ class HuggingFaceAssetLoader:
     def resolve_asset_path(self, path: LoadableAssetPath) -> str:
         """Resolve the actual HuggingFace name/path from a `LoadableAssetPath`."""
         match path:
-            case Path() as x:
-                return str(x)
+            case FilesystemPath(value):
+                return str(value)
             case HuggingFaceRepoID(repo_id):
                 return repo_id
             case WandbArtifactConfig() as artifact_config:
@@ -145,9 +144,9 @@ class HuggingFaceAssetLoader:
         When loading from HuggingFace directly, the `Dataset` is for the provided split.
         When loading from disk, the saved files must be for a dataset else an exception is raised.
         """
-        dataset_path = self.resolve_asset_path(config.path)
+        dataset_path = self.resolve_asset_path(config.load_from)
         # Dataset loading requires a different method if from a HF vs. disk
-        if isinstance(config.path, HuggingFaceRepoID):
+        if isinstance(config.load_from, HuggingFaceRepoID):
             return load_dataset(dataset_path, split=config.split)
         else:
             match load_from_disk(dataset_path):

@@ -1,10 +1,12 @@
-import ray
-
-from lm_buddy.jobs._entrypoints.simple import get_magic_number
+from lm_buddy import LMBuddy
 from lm_buddy.jobs.configs import SimpleJobConfig
+from tests.test_utils import FakeArtifactLoader
 
 
-def test_simple_remote_task():
+def test_simple_job():
     config = SimpleJobConfig(magic_number=42)
-    result = ray.get(get_magic_number.remote(config))
-    assert result == 42
+
+    buddy = LMBuddy(artifact_loader=FakeArtifactLoader())
+
+    result = buddy.simple(config)
+    assert result.magic_number == config.magic_number

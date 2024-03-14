@@ -1,6 +1,6 @@
 import pytest
 
-import lm_buddy
+from lm_buddy import LMBuddy
 from lm_buddy.integrations.huggingface import AutoModelConfig
 from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 from lm_buddy.jobs.configs import LMHarnessEvaluationConfig, LMHarnessJobConfig
@@ -28,7 +28,8 @@ def test_lm_harness_job_with_tracking(llm_model_artifact, job_config):
     artifact_loader.log_artifact(llm_model_artifact)
 
     # Run test job
-    lm_buddy.run_job(job_config, artifact_loader=artifact_loader)
+    buddy = LMBuddy(artifact_loader)
+    buddy.evaluate(job_config)
 
     # One input artifact, and one eval artifact produced
     assert artifact_loader.num_artifacts() == 2
@@ -43,7 +44,8 @@ def test_lm_harness_job_no_tracking(llm_model_artifact, job_config):
     artifact_loader.log_artifact(llm_model_artifact)
 
     # Run test job
-    lm_buddy.run_job(job_config, artifact_loader=artifact_loader)
+    buddy = LMBuddy(artifact_loader)
+    buddy.evaluate(job_config)
 
     # One input artifact, no additional eval artifacts produced
     assert artifact_loader.num_artifacts() == 1

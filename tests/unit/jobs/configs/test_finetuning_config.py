@@ -53,10 +53,10 @@ def test_load_example_config(examples_dir):
 
 
 def test_argument_validation():
-    model_repo = HuggingFaceRepoID(repo_id="model_path")
-    tokenizer_repo = HuggingFaceRepoID(repo_id="dataset_path")
+    model_repo = HuggingFaceRepoID(repo_id="model_repo_id")
+    tokenizer_repo = HuggingFaceRepoID(repo_id="tokenizer_repo_id")
     dataset_config = TextDatasetConfig(
-        load_from=HuggingFaceRepoID(repo_id="dataset_path"),
+        load_from=HuggingFaceRepoID(repo_id="dataset_repo_id"),
         split="train",
     )
 
@@ -71,11 +71,11 @@ def test_argument_validation():
 
     # Check passing invalid arguments is validated for each asset type
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model=12345, tokenizer="tokenizer_path", dataset="dataset_path")
+        FinetuningJobConfig(model=12345, tokenizer="tokenizer_repo_id", dataset="dataset_repo_id")
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model="model_path", tokenizer=12345, dataset="dataset_path")
+        FinetuningJobConfig(model="model_repo_id", tokenizer=12345, dataset="dataset_repo_id")
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model="model_path", tokenizer="tokenizer_path", dataset=12345)
+        FinetuningJobConfig(model="model_repo_id", tokenizer="tokenizer_repo_id", dataset=12345)
 
     # Check that tokenizer is set to model path when absent
     missing_tokenizer_config = FinetuningJobConfig(model=model_repo.repo_id, dataset=dataset_config)

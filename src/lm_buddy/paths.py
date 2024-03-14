@@ -8,6 +8,14 @@ from lm_buddy.integrations.wandb import WandbArtifactConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
+class FilesystemPath(BaseLMBuddyConfig):
+    """Absolute path to an object on the filesystem"""
+
+    __match_args__ = ("path",)
+
+    path: Path
+
+
 class HuggingFaceRepoID(BaseLMBuddyConfig):
     """Repository ID on the HuggingFace Hub."""
 
@@ -31,10 +39,10 @@ def is_valid_huggingface_repo_id(s: str):
         return False
 
 
-def validate_asset_path(x: Any) -> Any:
+def validate_loadable_path(x: Any) -> Any:
     match x:
         case str() if Path(x).is_absolute():
-            return Path(x)
+            return FilesystemPath(path=x)
         case str() if is_valid_huggingface_repo_id(x):
             return HuggingFaceRepoID(repo_id=x)
         case str():
@@ -45,13 +53,14 @@ def validate_asset_path(x: Any) -> Any:
 
 
 LoadableAssetPath = Annotated[
-    Path | HuggingFaceRepoID | WandbArtifactConfig,
-    BeforeValidator(lambda x: validate_asset_path(x)),
+    FilesystemPath | HuggingFaceRepoID | WandbArtifactConfig,
+    BeforeValidator(lambda x: validate_loadable_path(x)),
 ]
-"""A value that can be resolved to a name/path for loading a HuggingFace asset.
+"""Union type representing a loadable HuggingFace path on an LMBuddy configuration.
 
-During validation, the following conversions occur:
-    - Strings representing an absolute path (beginning with a '/') are converted to `Path`s
-    - Other strings are converted to `HuggingFaceRepoID`s
-    - Other values are passed to the default Pydantic validators
+The path is represented by either a `FileSystemPath`, a `HuggingFaceRepoID`
+or a `WandbArtifactConfig` that can be resolved to a path via the artifact's manifest.
+
+This type contains built-in Pydantic validation logic to convert absolute paths
+to `FilesystemPaths` and other string values to `HuggingFaceRepoID`s.
 """

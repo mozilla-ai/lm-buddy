@@ -25,7 +25,7 @@ class LMBuddy:
 
     def finetune(self, config: FinetuningJobConfig) -> FinetuningResult:
         """Run a supervised finetuning task with the provided configuration."""
-        return run_finetuning(config)
+        return run_finetuning(config, self._artifact_loader)
 
     def evaluate(self, config: EvaluationJobConfig) -> EvaluationResult:
         """Run an evaluation task with the provided configuration.
