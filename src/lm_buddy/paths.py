@@ -5,6 +5,15 @@ from huggingface_hub.utils import HFValidationError, validate_repo_id
 from pydantic import BeforeValidator
 
 from lm_buddy.integrations.wandb import WandbArtifactConfig
+from lm_buddy.types import BaseLMBuddyConfig
+
+
+class HuggingFaceRepoID(BaseLMBuddyConfig):
+    """Repository ID on the HuggingFace Hub."""
+
+    __match_args__ = ("repo_id",)
+
+    repo_id: str
 
 
 def is_valid_huggingface_repo_id(s: str):
@@ -27,7 +36,7 @@ def validate_asset_path(x: Any) -> Any:
         case str() if Path(x).is_absolute():
             return Path(x)
         case str() if is_valid_huggingface_repo_id(x):
-            return x
+            return HuggingFaceRepoID(repo_id=x)
         case str():
             raise ValueError(f"{x} is neither a valid HuggingFace repo ID or an absolute path.")
         case _:
@@ -36,13 +45,13 @@ def validate_asset_path(x: Any) -> Any:
 
 
 LoadableAssetPath = Annotated[
-    str | Path | WandbArtifactConfig,
+    Path | HuggingFaceRepoID | WandbArtifactConfig,
     BeforeValidator(lambda x: validate_asset_path(x)),
 ]
 """A value that can be resolved to a path for loading an asset from disk.
 
 During validation, the following conversions occur:
-- Strings representing an absolute path (beginning with a '/') are converted to `Path` instances
-- Other strings are validated as HuggingFace repo IDs
-- Other objects are validated as `WandbArtifactConfig` instances
+    - Strings representing an absolute path (beginning with a '/') are converted to `Path`s
+    - Other strings are validated and converted to `HuggingFaceRepoID`s
+    - Other objects are validated as `WandbArtifactConfig` instances
 """

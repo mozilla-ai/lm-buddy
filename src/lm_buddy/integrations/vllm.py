@@ -16,7 +16,7 @@ class InferenceServerConfig(BaseLMBuddyConfig):
     """
 
     base_url: str
-    engine: LoadableAssetPath | None = None
+    engine: str | LoadableAssetPath | None = None
 
 
 class VLLMCompletionsConfig(BaseLMBuddyConfig):

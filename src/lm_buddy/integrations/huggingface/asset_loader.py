@@ -25,7 +25,7 @@ from lm_buddy.integrations.wandb import (
     WandbArtifactConfig,
     get_artifact_filesystem_path,
 )
-from lm_buddy.paths import LoadableAssetPath
+from lm_buddy.paths import HuggingFaceRepoID, LoadableAssetPath
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -72,8 +72,10 @@ class HuggingFaceAssetLoader:
         (2) A `WandbArtifactConfig` where the filesystem path is resolved from the artifact
         """
         match path:
-            case str() | Path() as x:
+            case Path() as x:
                 return str(x)
+            case HuggingFaceRepoID(repo_id):
+                return repo_id
             case WandbArtifactConfig() as artifact_config:
                 artifact = self._artifact_loader.use_artifact(artifact_config)
                 return str(get_artifact_filesystem_path(artifact))
@@ -150,7 +152,7 @@ class HuggingFaceAssetLoader:
         """
         dataset_path = self.resolve_asset_path(config.path)
         # Dataset loading requires a different method if from a HF vs. disk
-        if isinstance(config.path, str):
+        if isinstance(config.path, HuggingFaceRepoID):
             return load_dataset(dataset_path, split=config.split)
         else:
             match load_from_disk(dataset_path):

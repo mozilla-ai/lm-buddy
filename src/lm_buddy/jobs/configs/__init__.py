@@ -8,6 +8,8 @@ from lm_buddy.jobs.configs.lm_harness import (
 from lm_buddy.jobs.configs.prometheus import PrometheusEvaluationTaskConfig, PrometheusJobConfig
 from lm_buddy.jobs.configs.simple import SimpleJobConfig
 
+EvaluationJobConfig = LMHarnessJobConfig | PrometheusJobConfig
+
 __all__ = [
     "LMBuddyJobConfig",
     "SimpleJobConfig",
@@ -18,5 +20,5 @@ __all__ = [
     "LocalChatCompletionsConfig",
     "PrometheusEvaluationTaskConfig",
     "PrometheusJobConfig",
-    "SimpleJobConfig",
+    "EvaluationJobConfig",
 ]
