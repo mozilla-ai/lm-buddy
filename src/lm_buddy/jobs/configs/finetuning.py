@@ -43,11 +43,11 @@ class FinetuningJobConfig(LMBuddyJobConfig):
             values["tokenizer"] = {}
             match values["model"]:
                 case str() as model_path:
-                    values["tokenizer"]["load_from"] = model_path
+                    values["tokenizer"]["path"] = model_path
                 case dict() as model_data:
-                    values["tokenizer"]["load_from"] = model_data["load_from"]
+                    values["tokenizer"]["path"] = model_data["load_from"]
                 case AutoModelConfig() as model_config:
-                    values["tokenizer"]["load_from"] = model_config.load_from
+                    values["tokenizer"]["path"] = model_config.load_from
                 # No fallback necessary, downstream validation will flag invalid model types
         return values
 
@@ -55,12 +55,12 @@ class FinetuningJobConfig(LMBuddyJobConfig):
     def validate_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
-            return AutoModelConfig(load_from=x)
+            return AutoModelConfig(path=x)
         return x
 
     @field_validator("tokenizer", mode="before")
     def validate_tokenizer_arg(cls, x):
         """Allow for passing just a path string as the tokenizer argument."""
         if isinstance(x, str):
-            return AutoTokenizerConfig(load_from=x)
+            return AutoTokenizerConfig(path=x)
         return x
