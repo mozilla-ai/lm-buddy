@@ -56,11 +56,11 @@ LoadableAssetPath = Annotated[
     FilesystemPath | HuggingFaceRepoID | WandbArtifactConfig,
     BeforeValidator(lambda x: validate_loadable_path(x)),
 ]
-"""Union type representing a loadable HuggingFace path on an LMBuddy configuration.
+"""Union type representing the name/path for loading HuggingFace asset.
 
 The path is represented by either a `FileSystemPath`, a `HuggingFaceRepoID`
 or a `WandbArtifactConfig` that can be resolved to a path via the artifact's manifest.
 
-This type contains built-in Pydantic validation logic to convert absolute paths
-to `FilesystemPaths` and other string values to `HuggingFaceRepoID`s.
+This type contains built-in Pydantic validation logic to convert absolute path strings
+to `FilesystemPaths` and other strings to `HuggingFaceRepoID`s.
 """
