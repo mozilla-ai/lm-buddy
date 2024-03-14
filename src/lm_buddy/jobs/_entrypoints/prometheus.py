@@ -167,16 +167,19 @@ def run_prometheus(
     # Run eval and store output in local filename
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
-            dataset_path = run_eval(config, artifact_loader, client)
+            output_dataset_path = run_eval(config, artifact_loader, client)
+
             # Create a directory artifact for the HF dataset
             dataset_artifact = build_directory_artifact(
-                dir_path=dataset_path,
+                dir_path=output_dataset_path,
                 artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
             )
+
             print("Logging artifact for evaluation dataset...")
             artifact_loader.log_artifact(dataset_artifact)
+
             # Create a config referencing the new artifact
             dataset_artifact_config = WandbArtifactConfig(
                 name=dataset_artifact.name,
@@ -184,13 +187,13 @@ def run_prometheus(
                 entity=run.entity,
             )
     else:
-        dataset_path = run_eval(config, artifact_loader, client)
+        output_dataset_path = run_eval(config, artifact_loader, client)
         dataset_artifact_config = None
 
-    print(f"Evaluation dataset stored at {dataset_path}")
+    print(f"Evaluation dataset stored at {output_dataset_path}")
     return EvaluationResult(
         tables={},
         table_artifact=None,
         dataset_artifact=dataset_artifact_config,
-        dataset_path=dataset_path,
+        dataset_path=output_dataset_path,
     )
