@@ -138,7 +138,7 @@ def run_eval(
             result["prometheus_output"] = []
             result["prometheus_score"] = []
 
-            for idx in range(config.evaluation.num_answers):
+            for _ in range(config.evaluation.num_answers):
                 (feedback, score) = get_response_with_retries(
                     config, client, prompt, config.evaluation.max_retries
                 )
@@ -149,11 +149,11 @@ def run_eval(
             file.write(json.dumps(result) + "\n")
 
     # convert plain json dataset in HF format
-    output_hf_name = str(Path(config.evaluation.output_folder) / "hf" / tracking_name)
+    output_dataset_path = Path(config.evaluation.output_folder) / "hf" / tracking_name
     ds = load_dataset("json", data_files=str(output_fname), split="train")
-    ds.save_to_disk(output_hf_name)
+    ds.save_to_disk(output_dataset_path)
 
-    return str(output_hf_name)
+    return output_dataset_path
 
 
 def run_prometheus(
