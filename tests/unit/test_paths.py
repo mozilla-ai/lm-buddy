@@ -11,11 +11,11 @@ def test_loadable_path_validation():
     # Imbues the LoadableAssetPath type with Pydantic validation methods
     adapter_cls = TypeAdapter(LoadableAssetPath)
 
-    repo_id = adapter_cls.validate_python("repo_id")
-    assert isinstance(repo_id, HuggingFaceRepoID)
+    repo_string = adapter_cls.validate_python("repo_id")
+    assert isinstance(repo_string, HuggingFaceRepoID)
 
-    string_path = adapter_cls.validate_python("/absolute/path")
-    assert isinstance(string_path, FilesystemPath)
+    path_string = adapter_cls.validate_python("/absolute/path")
+    assert isinstance(path_string, FilesystemPath)
 
     path_object = adapter_cls.validate_python(Path("/absolute/path"))
     assert isinstance(path_object, FilesystemPath)
