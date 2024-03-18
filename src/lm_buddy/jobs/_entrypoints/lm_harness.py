@@ -87,7 +87,6 @@ def load_and_evaluate(
     artifact_loader: ArtifactLoader,
 ) -> dict[str, list[tuple[str, float]]]:
     print("Initializing lm-harness tasks...")
-    lm_eval.tasks.initialize_tasks()
 
     llm = load_harness_model(config, artifact_loader)
     eval_results = lm_eval.simple_evaluate(
