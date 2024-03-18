@@ -11,17 +11,9 @@ from lm_buddy.integrations.wandb import WandbArtifactConfig
 class LMBuddyJobType(str, Enum):
     """Enumeration of logical job types runnable via the LM Buddy."""
 
-    SIMPLE = "simple"
     PREPROCESSING = "preprocessing"
     FINETUNING = "finetuning"
     EVALUATION = "evaluation"
-
-
-@dataclass
-class SimpleResult:
-    """Result from a simple test task."""
-
-    magic_number: int
 
 
 @dataclass

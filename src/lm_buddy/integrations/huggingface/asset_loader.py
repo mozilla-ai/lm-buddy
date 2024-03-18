@@ -24,7 +24,7 @@ from lm_buddy.integrations.wandb import (
     WandbArtifactConfig,
     get_artifact_filesystem_path,
 )
-from lm_buddy.paths import FilesystemPath, HuggingFaceRepoID, LoadableAssetPath
+from lm_buddy.paths import AssetPath, FilePath, HuggingFaceRepoID
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -63,10 +63,10 @@ class HuggingFaceAssetLoader:
     def __init__(self, artifact_loader: ArtifactLoader):
         self._artifact_loader = artifact_loader
 
-    def resolve_asset_path(self, path: LoadableAssetPath) -> str:
+    def resolve_asset_path(self, path: AssetPath) -> str:
         """Resolve the actual HuggingFace name/path from a `LoadableAssetPath`."""
         match path:
-            case FilesystemPath(value):
+            case FilePath(value):
                 return str(value)
             case HuggingFaceRepoID(repo_id):
                 return repo_id

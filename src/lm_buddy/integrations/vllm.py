@@ -1,4 +1,4 @@
-from lm_buddy.paths import LoadableAssetPath
+from lm_buddy.paths import AssetPath
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -16,7 +16,7 @@ class InferenceServerConfig(BaseLMBuddyConfig):
     """
 
     base_url: str
-    engine: str | LoadableAssetPath | None = None
+    engine: str | AssetPath | None = None
 
 
 class VLLMCompletionsConfig(BaseLMBuddyConfig):

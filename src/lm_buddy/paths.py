@@ -8,8 +8,8 @@ from lm_buddy.integrations.wandb import WandbArtifactConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
-class FilesystemPath(BaseLMBuddyConfig):
-    """Absolute path to an object on the filesystem"""
+class FilePath(BaseLMBuddyConfig):
+    """Absolute path to an object on the local filesystem."""
 
     __match_args__ = ("path",)
 
@@ -39,12 +39,12 @@ def is_valid_huggingface_repo_id(s: str):
         return False
 
 
-def validate_loadable_path(x: Any) -> Any:
+def validate_asset_path(x: Any) -> Any:
     match x:
         case Path() as p:
-            return FilesystemPath(path=p)
+            return FilePath(path=p)
         case str() as s if Path(s).is_absolute():
-            return FilesystemPath(path=s)
+            return FilePath(path=s)
         case str() as s if is_valid_huggingface_repo_id(s):
             return HuggingFaceRepoID(repo_id=s)
         case str():
@@ -54,9 +54,9 @@ def validate_loadable_path(x: Any) -> Any:
             return x
 
 
-LoadableAssetPath = Annotated[
-    FilesystemPath | HuggingFaceRepoID | WandbArtifactConfig,
-    BeforeValidator(lambda x: validate_loadable_path(x)),
+AssetPath = Annotated[
+    FilePath | HuggingFaceRepoID | WandbArtifactConfig,
+    BeforeValidator(lambda x: validate_asset_path(x)),
 ]
 """Union type representing the name/path for loading HuggingFace asset.
 

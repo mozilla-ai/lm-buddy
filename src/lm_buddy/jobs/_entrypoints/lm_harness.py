@@ -22,7 +22,7 @@ from lm_buddy.integrations.wandb import (
 )
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.paths import LoadableAssetPath
+from lm_buddy.paths import AssetPath
 
 
 def get_per_task_dataframes(
@@ -35,11 +35,11 @@ def get_per_task_dataframes(
     lm-harness returns mostly numeric values, but there are also some misc string-valued metrics.
     Filtering down to only numeric values allows us to produce a valid table artifact.
     """
-    dfs = {}
+    task_dataframes = {}
     for task_name, data in results.items():
         numeric_rows = [(k, v) for k, v in data.items() if isinstance(v, int | float)]
-        dfs[task_name] = pd.DataFrame(data=numeric_rows, columns=["metric", "value"])
-    return dfs
+        task_dataframes[task_name] = pd.DataFrame(data=numeric_rows, columns=["metric", "value"])
+    return task_dataframes
 
 
 def load_harness_model(
@@ -68,7 +68,7 @@ def load_harness_model(
 
         case LocalChatCompletionsConfig() as local_config:
             model = local_config.inference.engine
-            if isinstance(model, LoadableAssetPath):
+            if isinstance(model, AssetPath):
                 model = hf_loader.resolve_asset_path(model)
             # If tokenizer is not provided, it is set to the value of model internally
             return OpenaiCompletionsLM(

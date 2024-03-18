@@ -2,23 +2,12 @@ import json
 
 import click
 
-from lm_buddy.jobs.configs import (
-    FinetuningJobConfig,
-    LMHarnessJobConfig,
-    PrometheusJobConfig,
-    SimpleJobConfig,
-)
+from lm_buddy.jobs.configs import FinetuningJobConfig, LMHarnessJobConfig, PrometheusJobConfig
 
 
 @click.group(name="schema", help="Get a job configuration schema.")
 def group():
     pass
-
-
-@group.command("simple", help="Schema for the simple test job configuration.")
-def schema_simple() -> None:
-    schema = SimpleJobConfig.model_json_schema()
-    click.secho(json.dumps(schema, indent=2))
 
 
 @group.command("finetuning", help="Schema for the finetuning job configuration.")
