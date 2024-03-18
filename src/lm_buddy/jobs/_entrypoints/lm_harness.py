@@ -86,10 +86,7 @@ def load_harness_model(
 def run_eval(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
-) -> dict[str, pd.DataFrame]:
-    print("Initializing lm-harness tasks...")
-    lm_eval.tasks.initialize_tasks()
-
+) -> dict[str, list[tuple[str, float]]]:
     llm = load_harness_model(config, artifact_loader)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
