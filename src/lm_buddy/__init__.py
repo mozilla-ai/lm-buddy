@@ -1,3 +1,3 @@
-from lm_buddy.jobs import run_job
+from lm_buddy.buddy import LMBuddy
 
-__all__ = ["run_job"]
+__all__ = ["LMBuddy"]

@@ -1,7 +1,6 @@
-from pydantic import field_validator, model_validator
+from pydantic import model_validator
 
-from lm_buddy.integrations.huggingface import HuggingFaceRepoConfig, convert_string_to_repo_config
-from lm_buddy.integrations.wandb import WandbArtifactConfig
+from lm_buddy.paths import AssetPath, HuggingFaceRepoID
 from lm_buddy.types import BaseLMBuddyConfig
 
 DEFAULT_TEXT_FIELD: str = "text"
@@ -10,14 +9,10 @@ DEFAULT_TEXT_FIELD: str = "text"
 class DatasetConfig(BaseLMBuddyConfig):
     """Base configuration to load a HuggingFace dataset."""
 
-    load_from: HuggingFaceRepoConfig | WandbArtifactConfig
+    load_from: AssetPath
     split: str | None = None
     test_size: float | None = None
     seed: int | None = None
-
-    _validate_load_from_string = field_validator("load_from", mode="before")(
-        convert_string_to_repo_config
-    )
 
     @model_validator(mode="after")
     def validate_split_if_huggingface_repo(cls, config: "DatasetConfig"):
@@ -26,9 +21,7 @@ class DatasetConfig(BaseLMBuddyConfig):
         This makes it such that the `load_dataset` function returns the type `Dataset`
         instead of `DatasetDict`, which makes some of the downstream logic easier.
         """
-        load_from = config.load_from
-        split = config.split
-        if split is None and isinstance(load_from, HuggingFaceRepoConfig):
+        if config.split is None and isinstance(config.load_from, HuggingFaceRepoID):
             raise ValueError(
                 "A `split` must be specified when loading a dataset directly from HuggingFace."
             )

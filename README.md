@@ -43,9 +43,6 @@ To see all available job commands, run `lm_buddy run --help`
 
 Once LM Buddy is installed in your local Python environment, usage is as follows:
 ```
-# Simple test
-lm_buddy run simple --config simple_config.yaml
-
 # LLM finetuning
 lm_buddy run finetuning --config finetuning_config.yaml
 

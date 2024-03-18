@@ -8,8 +8,8 @@ class WandbArtifactConfig(BaseLMBuddyConfig):
 
     name: str
     project: str
-    version: str = "latest"
     entity: str | None = None
+    version: str = "latest"
 
     @classmethod
     def from_wandb_path(cls, path: str) -> "WandbArtifactConfig":

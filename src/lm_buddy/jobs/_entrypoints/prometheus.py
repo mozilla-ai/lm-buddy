@@ -13,15 +13,16 @@ from fastchat.conversation import get_conv_template
 from openai import Completion, OpenAI, OpenAIError
 from tqdm import tqdm
 
-from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
-from lm_buddy.integrations.huggingface.tokenizer_config import AutoTokenizerConfig
+from lm_buddy.integrations.huggingface import AutoTokenizerConfig, HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
+    WandbArtifactConfig,
     build_directory_artifact,
+    default_artifact_name,
     wandb_init_from_config,
 )
-from lm_buddy.jobs.common import LMBuddyJobType
+from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import PrometheusJobConfig
 
 
@@ -107,7 +108,7 @@ def run_eval(
     config: PrometheusJobConfig,
     artifact_loader: ArtifactLoader,
     client: OpenAI,
-) -> str:
+) -> Path:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     data = hf_loader.load_dataset(config.dataset)
@@ -138,7 +139,7 @@ def run_eval(
             result["prometheus_output"] = []
             result["prometheus_score"] = []
 
-            for idx in range(config.evaluation.num_answers):
+            for _ in range(config.evaluation.num_answers):
                 (feedback, score) = get_response_with_retries(
                     config, client, prompt, config.evaluation.max_retries
                 )
@@ -149,32 +150,50 @@ def run_eval(
             file.write(json.dumps(result) + "\n")
 
     # convert plain json dataset in HF format
-    output_hf_name = str(Path(config.evaluation.output_folder) / "hf" / tracking_name)
+    output_dataset_path = Path(config.evaluation.output_folder) / "hf" / tracking_name
     ds = load_dataset("json", data_files=str(output_fname), split="train")
-    ds.save_to_disk(output_hf_name)
+    ds.save_to_disk(output_dataset_path)
 
-    return str(output_hf_name)
+    return output_dataset_path
 
 
-def run_prometheus(config: PrometheusJobConfig, artifact_loader: ArtifactLoader):
-    # instantiate OpenAI client to speak with the vLLM endpoint
+def run_prometheus(
+    config: PrometheusJobConfig,
+    artifact_loader: ArtifactLoader,
+) -> EvaluationResult:
+    # Instantiate OpenAI client to speak with the vLLM endpoint
     client = OpenAI(base_url=config.prometheus.inference.base_url)
 
-    # Register a dataset file artifact if tracking is enabled
+    # Run eval and store output in local filename
     if config.tracking:
-        with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION):
-            # run eval and store output in local filename
-            output_dataset_name = run_eval(config, artifact_loader, client)
+        with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
+            output_dataset_path = run_eval(config, artifact_loader, client)
 
-            # store HF dataset as a directory artifact
-            artifact = build_directory_artifact(
-                dir_path=output_dataset_name,
-                artifact_name=config.tracking.name,
+            # Create a directory artifact for the HF dataset
+            dataset_artifact = build_directory_artifact(
+                dir_path=output_dataset_path,
+                artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
             )
-            print("Logging artifact for evaluation results...")
-            artifact_loader.log_artifact(artifact)
+
+            print("Logging artifact for evaluation dataset...")
+            artifact_loader.log_artifact(dataset_artifact)
+
+            # Create a config referencing the new artifact
+            dataset_artifact_config = WandbArtifactConfig(
+                name=dataset_artifact.name,
+                project=run.project,
+                entity=run.entity,
+            )
     else:
-        output_dataset_name = run_eval(config, artifact_loader, client)
-        print(f"Evaluation results stored in {output_dataset_name}")
+        output_dataset_path = run_eval(config, artifact_loader, client)
+        dataset_artifact_config = None
+
+    print(f"Evaluation dataset stored at {output_dataset_path}")
+    return EvaluationResult(
+        tables={},
+        table_artifact=None,
+        dataset_artifact=dataset_artifact_config,
+        dataset_path=output_dataset_path,
+    )
