@@ -5,7 +5,6 @@ model:
     # HuggingFace repo for the engine model being hosted
     engine:
       repo_id: "distilgpt2"
-      revision: "main"
     # # W&B artifact can also be specified as the engine model to generate a lineage
     # engine:
     #   name: "wandb-artifact-name"
@@ -15,7 +14,7 @@ model:
   tokenizer_backend: "huggingface"
 
 # Settings specific to lm_harness.evaluate
-evaluator:
+evaluation:
   tasks: ["gsm8k"]
   num_fewshot: 5
   limit: 10

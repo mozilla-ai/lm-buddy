@@ -1,9 +1,12 @@
-from lm_buddy.jobs.configs import SimpleJobConfig
+from lm_buddy.jobs.configs import LMBuddyJobConfig
 
 
 def test_config_as_tempfile():
-    config = SimpleJobConfig(magic_number=42)
+    class TestConfig(LMBuddyJobConfig):
+        magic_number: int
+
+    config = TestConfig(magic_number=42)
     config_name = "my-job-config.yaml"
     with config.to_tempfile(name=config_name) as path:
         assert path.name == config_name
-        assert SimpleJobConfig.from_yaml_file(path) == config
+        assert TestConfig.from_yaml_file(path) == config

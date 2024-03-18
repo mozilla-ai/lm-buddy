@@ -56,7 +56,7 @@ as shown below:
 3. Submit your job with an entrypoint command that invokes `lm_buddy` directly as a module, eg:
 
     ```
-    python -m lm_buddy run finetuning --config config.yaml
+    python -m lm_buddy finetune --config config.yaml
     ```
 
     This is necessary because `py_modules` uploads the `lm_buddy` module to the Ray cluster

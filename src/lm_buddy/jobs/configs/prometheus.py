@@ -7,7 +7,7 @@ from lm_buddy.jobs.configs import LMBuddyJobConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
-class PrometheusEvaluationTaskConfig(BaseLMBuddyConfig):
+class PrometheusEvaluationConfig(BaseLMBuddyConfig):
     """Parameters specific to Prometheus evaluation."""
 
     num_answers: int = 3
@@ -22,17 +22,16 @@ class PrometheusEvaluationTaskConfig(BaseLMBuddyConfig):
 
 
 class PrometheusJobConfig(LMBuddyJobConfig):
-    """Configuration to run a prometheus job."""
+    """Configuration for a Prometheus judge evaluation task."""
 
+    prometheus: VLLMCompletionsConfig = Field(
+        description="Externally hosted Prometheus judge model."
+    )
     dataset: TextDatasetConfig = Field(
         description="Dataset of text completions to evaluate using the Prometheus judge model."
     )
-
-    # vLLM endpoint configuration
-    prometheus: VLLMCompletionsConfig
-
-    # evaluation task configuration
-    evaluation: PrometheusEvaluationTaskConfig | None = None
-
-    # wandb experiment tracking details
+    evaluation: PrometheusEvaluationConfig = Field(
+        default_factory=PrometheusEvaluationConfig,
+        description="Settings for the Prometheus evaluation.",
+    )
     tracking: WandbRunConfig | None = None

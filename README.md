@@ -43,14 +43,12 @@ To see all available job commands, run `lm_buddy run --help`
 
 Once LM Buddy is installed in your local Python environment, usage is as follows:
 ```
-# Simple test
-lm_buddy run simple --config simple_config.yaml
-
 # LLM finetuning
-lm_buddy run finetuning --config finetuning_config.yaml
+lm_buddy finetune --config finetuning_config.yaml
 
 # LLM evaluation
-lm_buddy run lm-harness --config lm_harness_config.yaml
+lm_buddy evaluate lm-harness --config lm_harness_config.yaml
+lm_buddy evaluate prometheus --config prometheus_config.yaml
 ```
 
 See the `examples/configs` folder for examples of the job configuration structure. 
