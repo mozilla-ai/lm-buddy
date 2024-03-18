@@ -34,14 +34,17 @@ To do so, follow the steps:
 1. Compile a locked version of the package requirements from the `pyproject.toml` file, 
 which will create a `requirements.txt` file in the `lm-buddy` repository.
 This can be done using multiple open-source tools, such as
-[pip-tools](https://github.com/jazzband/pip-tools),
+[pip-tools](https://github.com/jazzband/pip-tools),or [uv](https://github.com/astral-sh/uv)
 as shown below:
 
     ```
     # pip-tools
     pip install pip-tools
     pip-compile -o requirements.txt pyproject.toml
-
+    
+    # uv
+    pip install uv
+    uv pip compile -o requirements.txt pyproject.toml
     ```
 
 2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
