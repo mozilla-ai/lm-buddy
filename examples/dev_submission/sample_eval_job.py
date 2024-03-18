@@ -31,7 +31,7 @@ runtime_env = {
 
 # config file is in config dir relative to repo
 client.submit_job(
-    entrypoint="python -m lm_buddy run lm-harness --config lm_harness.yaml",
+    entrypoint="python -m lm_buddy evaluate lm-harness --config lm_harness.yaml",
     runtime_env=runtime_env,
 )
 
