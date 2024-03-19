@@ -1,8 +1,6 @@
 import wandb
 from pydantic import BaseModel
 
-from lm_buddy.integrations.wandb import WandbArtifactConfig
-
 
 def copy_pydantic_json(model: BaseModel) -> BaseModel:
     """Copy a Pydantic model through round-trip JSON serialization."""
@@ -28,8 +26,8 @@ class FakeArtifactLoader:
     def get_artifacts(self) -> list[wandb.Artifact]:
         return list(self._storage.values())
 
-    def use_artifact(self, config: WandbArtifactConfig) -> wandb.Artifact:
-        return self._storage[config.name]
+    def use_artifact(self, path: str) -> wandb.Artifact:
+        return self._storage[path]  # TODO: Fixme
 
     def log_artifact(self, artifact: wandb.Artifact) -> None:
         self._storage[artifact.name] = artifact

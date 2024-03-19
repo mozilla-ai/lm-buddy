@@ -8,6 +8,6 @@ class AutoModelConfig(BaseLMBuddyConfig):
     The model to load can either be a HuggingFace repo or an artifact reference on W&B.
     """
 
-    load_from: AssetPath
+    path: AssetPath
     trust_remote_code: bool = False
     torch_dtype: SerializableTorchDtype | None = None

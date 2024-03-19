@@ -9,40 +9,41 @@ from lm_buddy.integrations.huggingface import (
     TextDatasetConfig,
 )
 from lm_buddy.integrations.vllm import InferenceServerConfig
-from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.paths import build_wandb_asset_path
 
 
 @pytest.fixture
 def model_config_with_repo_id():
-    return AutoModelConfig(load_from="mistral-ai/mistral-7", trust_remote_code=True)
+    return AutoModelConfig(path="mistral-ai/mistral-7", trust_remote_code=True)
 
 
 @pytest.fixture
 def model_config_with_artifact():
-    artifact = WandbArtifactConfig(name="model", project="project")
-    return AutoModelConfig(load_from=artifact, trust_remote_code=True, torch_dtype="float16")
+    path = build_wandb_asset_path(name="model", project="project")
+    return AutoModelConfig(path=path, trust_remote_code=True, torch_dtype="float16")
 
 
 @pytest.fixture
 def tokenizer_config_with_repo_id():
-    return AutoTokenizerConfig(load_from="mistral-ai/mistral-7", trust_remote_code=True)
+    return AutoTokenizerConfig(path="mistral-ai/mistral-7", trust_remote_code=True)
 
 
 @pytest.fixture
 def tokenizer_config_with_artifact():
-    artifact = WandbArtifactConfig(name="tokenizer", project="project")
-    return AutoTokenizerConfig(load_from=artifact, trust_remote_code=True)
+    path = build_wandb_asset_path(name="tokenizer", project="project")
+    return AutoTokenizerConfig(path=path, trust_remote_code=True)
 
 
 @pytest.fixture
 def dataset_config_with_repo_id():
-    return TextDatasetConfig(load_from="databricks/dolly15k", text_field="text", split="train")
+    return TextDatasetConfig(path="databricks/dolly15k", text_field="text", split="train")
 
 
 @pytest.fixture
 def dataset_config_with_artifact():
-    artifact = WandbArtifactConfig(name="dataset", project="project")
-    return TextDatasetConfig(load_from=artifact, split="train")
+    path = build_wandb_asset_path(name="dataset", project="project")
+    return TextDatasetConfig(path=path, split="train")
 
 
 @pytest.fixture
@@ -68,5 +69,5 @@ def wandb_run_config():
 
 @pytest.fixture
 def inference_server_config():
-    artifact = WandbArtifactConfig(name="model", project="project")
-    return InferenceServerConfig(base_url="http://0.0.0.0:8000", engine=artifact)
+    engine = build_wandb_asset_path(name="model", project="project")
+    return InferenceServerConfig(base_url="http://0.0.0.0:8000", engine=engine)

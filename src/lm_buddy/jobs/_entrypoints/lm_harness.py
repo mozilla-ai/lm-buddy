@@ -14,7 +14,6 @@ from lm_buddy.integrations.huggingface import (
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    WandbArtifactConfig,
     WandbResumeMode,
     build_table_artifact,
     default_artifact_name,
@@ -22,7 +21,7 @@ from lm_buddy.integrations.wandb import (
 )
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.paths import AssetPath
+from lm_buddy.paths import AssetPath, build_wandb_asset_path
 
 
 def get_per_task_dataframes(
@@ -50,7 +49,7 @@ def load_harness_model(
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path = hf_loader.resolve_asset_path(model_config.load_from)
+            model_path = hf_loader.resolve_asset_path(model_config.path)
             model_path, peft_path = resolve_peft_and_pretrained(model_path)
             quantization_kwargs: dict[str, Any] = (
                 config.quantization.model_dump() if config.quantization else {}
@@ -86,7 +85,7 @@ def load_harness_model(
 def run_eval(
     config: LMHarnessJobConfig,
     artifact_loader: ArtifactLoader,
-) -> dict[str, list[tuple[str, float]]]:
+) -> dict[str, pd.DataFrame]:
     llm = load_harness_model(config, artifact_loader)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
@@ -121,19 +120,16 @@ def run_lm_harness(
             )
             print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(table_artifact)
-            # Create an artifact config to reference the new table artifact
-            table_artifact_config = WandbArtifactConfig(
+
+            # Create a wandb asset path to reference the new table artifact
+            result_asset_path = build_wandb_asset_path(
                 name=table_artifact.name,
                 project=run.project,
                 entity=run.entity,
+                version="latest",
             )
     else:
         eval_tables = run_eval(config, artifact_loader)
-        table_artifact_config = None
+        result_asset_path = None
 
-    return EvaluationResult(
-        tables=eval_tables,
-        table_artifact=table_artifact_config,
-        dataset_path=None,
-        dataset_artifact=None,
-    )
+    return EvaluationResult(tables=eval_tables, table_path=result_asset_path, dataset_path=None)

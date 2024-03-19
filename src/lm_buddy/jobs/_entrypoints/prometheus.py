@@ -17,13 +17,13 @@ from lm_buddy.integrations.huggingface import AutoTokenizerConfig, HuggingFaceAs
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    WandbArtifactConfig,
     build_directory_artifact,
     default_artifact_name,
     wandb_init_from_config,
 )
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import PrometheusJobConfig
+from lm_buddy.paths import build_file_asset_path, build_wandb_asset_path
 
 
 @dataclass
@@ -114,7 +114,7 @@ def run_eval(
     data = hf_loader.load_dataset(config.dataset)
 
     # get the tokenizer
-    tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
+    tokenizer_config = AutoTokenizerConfig(path=config.prometheus.inference.engine)
     tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
 
     # enable / disable tqdm
@@ -150,11 +150,11 @@ def run_eval(
             file.write(json.dumps(result) + "\n")
 
     # convert plain json dataset in HF format
-    output_dataset_path = Path(config.evaluation.output_folder) / "hf" / tracking_name
+    dataset_dir = Path(config.evaluation.output_folder) / "hf" / tracking_name
     ds = load_dataset("json", data_files=str(output_fname), split="train")
-    ds.save_to_disk(output_dataset_path)
+    ds.save_to_disk(dataset_dir)
 
-    return output_dataset_path
+    return dataset_dir
 
 
 def run_prometheus(
@@ -167,11 +167,11 @@ def run_prometheus(
     # Run eval and store output in local filename
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
-            output_dataset_path = run_eval(config, artifact_loader, client)
+            dataset_dir = run_eval(config, artifact_loader, client)
 
             # Create a directory artifact for the HF dataset
             dataset_artifact = build_directory_artifact(
-                dir_path=output_dataset_path,
+                dir_path=dataset_dir,
                 artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
@@ -181,19 +181,15 @@ def run_prometheus(
             artifact_loader.log_artifact(dataset_artifact)
 
             # Create a config referencing the new artifact
-            dataset_artifact_config = WandbArtifactConfig(
+            result_asset_path = build_wandb_asset_path(
                 name=dataset_artifact.name,
-                project=run.project,
+                project=run.name,
                 entity=run.entity,
+                version="latest",
             )
     else:
-        output_dataset_path = run_eval(config, artifact_loader, client)
-        dataset_artifact_config = None
+        dataset_dir = run_eval(config, artifact_loader, client)
+        result_asset_path = build_file_asset_path(dataset_dir)
 
-    print(f"Evaluation dataset stored at {output_dataset_path}")
-    return EvaluationResult(
-        tables={},
-        table_artifact=None,
-        dataset_artifact=dataset_artifact_config,
-        dataset_path=output_dataset_path,
-    )
+    print(f"Evaluation results stored at {result_asset_path}")
+    return EvaluationResult(tables={}, table_path=None, dataset_path=result_asset_path)

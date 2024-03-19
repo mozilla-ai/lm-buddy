@@ -1,30 +1,23 @@
-from pathlib import Path
-
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from lm_buddy.integrations.wandb import WandbArtifactConfig
-from lm_buddy.paths import AssetPath, FilePath, HuggingFaceRepoID
+from lm_buddy.paths import AssetPath, AssetSource
 
 
 def test_asset_path_validation():
     # Imbues the LoadableAssetPath type with Pydantic validation methods
     adapter_cls = TypeAdapter(AssetPath)
 
-    repo_string = adapter_cls.validate_python("repo_id")
-    assert isinstance(repo_string, HuggingFaceRepoID)
+    repo_path = adapter_cls.validate_python("hf://repo_id")
+    assert repo_path.scheme == AssetSource.HUGGINGFACE
 
-    path_string = adapter_cls.validate_python("/absolute/path")
-    assert isinstance(path_string, FilePath)
+    file_path = adapter_cls.validate_python("file:///absolute/path")
+    assert file_path.scheme == AssetSource.FILE
 
-    path_object = adapter_cls.validate_python(Path("/absolute/path"))
-    assert isinstance(path_object, FilePath)
-
-    artifact_config = WandbArtifactConfig(name="artifact", project="project")
-    artifact_config = adapter_cls.validate_python(artifact_config)
-    assert isinstance(artifact_config, WandbArtifactConfig)
+    wandb_path = adapter_cls.validate_python("wandb://entity/project/name:version")
+    assert wandb_path.scheme == AssetSource.WANDB
 
     with pytest.raises(ValidationError):
-        adapter_cls.validate_python("bad...repo_id")
+        adapter_cls.validate_python("hf://bad...repo_id")
     with pytest.raises(ValidationError):
-        adapter_cls.validate_python(120850120)
+        adapter_cls.validate_python("file://not/absolute")

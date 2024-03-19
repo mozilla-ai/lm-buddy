@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Any
 
 import ray
@@ -13,7 +12,6 @@ from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    WandbArtifactConfig,
     WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
@@ -21,6 +19,7 @@ from lm_buddy.integrations.wandb import (
 )
 from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType
 from lm_buddy.jobs.configs import FinetuningJobConfig
+from lm_buddy.paths import build_file_asset_path, build_wandb_asset_path
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):
@@ -106,31 +105,34 @@ def run_finetuning(
     print(f"Training result: {result}")
 
     # Register a model artifact if tracking is enabled and Ray saved a checkpoint
-    ckpt_path, artifact_config = None, None
     if result.checkpoint:
-        ckpt_path = Path(f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}")
+        checkpoint_dir = f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}"
         if config.tracking:
             # Must resume from the just-completed training run
             with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
                 model_artifact = build_directory_artifact(
                     artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
                     artifact_type=ArtifactType.MODEL,
-                    dir_path=ckpt_path,
+                    dir_path=checkpoint_dir,
                     reference=True,
                 )
                 print("Logging artifact for model checkpoint...")
                 artifact_loader.log_artifact(model_artifact)
-                # Create an artifact config referencing the new artifact
-                artifact_config = WandbArtifactConfig(
+
+                # Return a wandb asset path referencing the checkpoint dir
+                result_asset_path = build_wandb_asset_path(
                     name=model_artifact.name,
                     project=run.project,
                     entity=run.entity,
+                    version="latest",
                 )
+        else:
+            # Return a file asset path referencing the checkpoint dir
+            result_asset_path = build_file_asset_path(checkpoint_dir)
 
     # Return finetuning result object
     return FinetuningResult(
-        checkpoint_path=ckpt_path,
-        checkpoint_artifact=artifact_config,
+        checkpoint_path=result_asset_path,
         metrics=result.metrics or {},
         is_adapter=config.adapter is not None,
     )

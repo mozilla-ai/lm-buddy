@@ -3,7 +3,6 @@ from pydantic import ValidationError
 
 from lm_buddy.integrations.huggingface import TextDatasetConfig
 from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
-from lm_buddy.paths import HuggingFaceRepoID
 from tests.test_utils import copy_pydantic_json
 
 
@@ -53,30 +52,39 @@ def test_load_example_config(examples_dir):
 
 
 def test_argument_validation():
-    model_repo = HuggingFaceRepoID(repo_id="model_repo_id")
-    tokenizer_repo = HuggingFaceRepoID(repo_id="tokenizer_repo_id")
-    dataset_config = TextDatasetConfig(
-        load_from=HuggingFaceRepoID(repo_id="dataset_repo_id"),
-        split="train",
-    )
+    model_repo_path = "hf://model_repo_id"
+    tokenizer_repo_path = "hf://tokenizer_repo_id"
+    dataset_config = TextDatasetConfig(path="hf://dataset_repo_id", split="train")
 
     # Strings should be upcast to configs as the path argument
     allowed_config = FinetuningJobConfig(
-        model=model_repo.repo_id,
-        tokenizer=tokenizer_repo.repo_id,
+        model=model_repo_path,
+        tokenizer=tokenizer_repo_path,
         dataset=dataset_config,
     )
-    assert allowed_config.model.load_from == model_repo
-    assert allowed_config.tokenizer.load_from == tokenizer_repo
+    assert str(allowed_config.model.path) == model_repo_path
+    assert str(allowed_config.tokenizer.path) == tokenizer_repo_path
 
     # Check passing invalid arguments is validated for each asset type
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model=12345, tokenizer="tokenizer_repo_id", dataset="dataset_repo_id")
+        FinetuningJobConfig(
+            model=12345,
+            tokenizer="hf://tokenizer_repo_id",
+            dataset="hf://dataset_repo_id",
+        )
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model="model_repo_id", tokenizer=12345, dataset="dataset_repo_id")
+        FinetuningJobConfig(
+            model="hf://model_repo_id",
+            tokenizer=12345,
+            dataset="hf://dataset_repo_id",
+        )
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model="model_repo_id", tokenizer="tokenizer_repo_id", dataset=12345)
+        FinetuningJobConfig(
+            model="hf://model_repo_id",
+            tokenizer="hf://tokenizer_repo_id",
+            dataset=12345,
+        )
 
     # Check that tokenizer is set to model path when absent
     missing_tokenizer_config = FinetuningJobConfig(model=model_repo.repo_id, dataset=dataset_config)
-    assert missing_tokenizer_config.tokenizer.load_from == model_repo
+    assert missing_tokenizer_config.tokenizer.path == model_repo

@@ -1,6 +1,6 @@
 # Model to evaluate
 model:
-  load_from: "distilgpt2"
+  path: "hf://distilgpt2"
   torch_dtype: "bfloat16"
 
 # Settings specific to lm_harness.evaluate

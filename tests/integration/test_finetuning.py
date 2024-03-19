@@ -2,18 +2,19 @@ import pytest
 
 from lm_buddy import LMBuddy
 from lm_buddy.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
-from lm_buddy.integrations.wandb import ArtifactType, WandbArtifactConfig, WandbRunConfig
+from lm_buddy.integrations.wandb import ArtifactType, WandbRunConfig
 from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
+from lm_buddy.paths import build_wandb_asset_path
 from tests.test_utils import FakeArtifactLoader
 
 
 @pytest.fixture
 def job_config(llm_model_artifact, text_dataset_artifact):
     model_config = AutoModelConfig(
-        load_from=WandbArtifactConfig(name=llm_model_artifact.name, project="test")
+        path=build_wandb_asset_path(name=llm_model_artifact.name, project="test")
     )
     dataset_config = TextDatasetConfig(
-        load_from=WandbArtifactConfig(name=text_dataset_artifact.name, project="test"),
+        path=build_wandb_asset_path(name=text_dataset_artifact.name, project="test"),
         text_field="text",
         split="train",
     )
