@@ -86,5 +86,5 @@ def test_argument_validation():
         )
 
     # Check that tokenizer is set to model path when absent
-    missing_tokenizer_config = FinetuningJobConfig(model=model_repo.repo_id, dataset=dataset_config)
-    assert missing_tokenizer_config.tokenizer.path == model_repo
+    missing_tokenizer_config = FinetuningJobConfig(model=model_repo_path, dataset=dataset_config)
+    assert str(missing_tokenizer_config.tokenizer.path) == model_repo_path

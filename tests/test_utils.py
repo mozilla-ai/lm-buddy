@@ -27,7 +27,8 @@ class FakeArtifactLoader:
         return list(self._storage.values())
 
     def use_artifact(self, path: str) -> wandb.Artifact:
-        return self._storage[path]  # TODO: Fixme
+        artifact_name = path.split("/")[-1].split(":")[0]
+        return self._storage[artifact_name]
 
     def log_artifact(self, artifact: wandb.Artifact) -> None:
         self._storage[artifact.name] = artifact
