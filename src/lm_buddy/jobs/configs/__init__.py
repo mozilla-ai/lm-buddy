@@ -5,20 +5,11 @@ from lm_buddy.jobs.configs.lm_harness import (
     LMHarnessJobConfig,
     LocalChatCompletionsConfig,
 )
-<<<<<<< HEAD
 from lm_buddy.jobs.configs.prometheus import PrometheusEvaluationConfig, PrometheusJobConfig
+from lm_buddy.jobs.configs.ragas import RagasEvaluationConfig, RagasJobConfig
 
-EvaluationJobConfig = LMHarnessJobConfig | PrometheusJobConfig
-=======
-from lm_buddy.jobs.configs.ragas import (
-    RagasConfig,
-    RagasEvaluationDatasetConfig,
-    RagasEvaluationJobConfig,
-    RagasRayConfig,
-    RagasvLLMJudgeConfig,
-)
-from lm_buddy.jobs.configs.simple import SimpleJobConfig
->>>>>>> ca0e1d6 (moved files)
+EvaluationJobConfig = LMHarnessJobConfig | PrometheusJobConfig | RagasJobConfig
+
 
 __all__ = [
     "LMBuddyJobConfig",
@@ -27,17 +18,9 @@ __all__ = [
     "LMHarnessEvaluationConfig",
     "LMHarnessJobConfig",
     "LocalChatCompletionsConfig",
-<<<<<<< HEAD
     "PrometheusEvaluationConfig",
     "PrometheusJobConfig",
+    "RagasEvaluationConfig",
+    "RagasJobConfig",
     "EvaluationJobConfig",
-=======
-    "SimpleJobConfig",
-    "RagasEvaluationJobConfig",
-    "RagasConfig",
-    "RagasEvaluationDatasetConfig",
-    "RagasRayConfig",
-    "run_ragas_evaluation",
-    "RagasvLLMJudgeConfig",
->>>>>>> ca0e1d6 (moved files)
 ]
