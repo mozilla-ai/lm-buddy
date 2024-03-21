@@ -1,110 +1,105 @@
-import os
 from pathlib import Path
 
-import ray
-from datasets import Dataset, DatasetDict, IterableDataset, IterableDatasetDict, load_dataset
-from langchain.chat_models import ChatOpenAI
-from langchain_core.embeddings import Embeddings
+from datasets import load_dataset
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_openai import ChatOpenAI
+from lmbuddy.integrations.huggingface import HuggingFaceAssetLoader
 from ragas import evaluate
+from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
-from lm_buddy.integrations.wandb import get_wandb_summary, update_wandb_summary
-from lm_buddy.jobs.ragas import RagasEvaluationJobConfig
+from lm_buddy.integrations.wandb import artifact_loader
+from lm_buddy.integrations.wandb.artifact_config import WandbArtifactConfig
+from lm_buddy.integrations.wandb.artifact_utils import (
+    ArtifactType,
+    build_directory_artifact,
+    default_artifact_name,
+)
+from lm_buddy.integrations.wandb.run_utils import wandb_init_from_config
+from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
+from lm_buddy.jobs.configs import RagasJobConfig
 
-
-def resolve_data_path(config: RagasEvaluationJobConfig) -> str:
-    data_path = None
-    if config.data_path:
-        print("Attempting to resolve data path from existing W&B data processing run...")
-        run_summary = get_wandb_summary(config.wandb_env)
-        path = Path(run_summary["dataset_path"])
-        print(f"Using data path from wandb run: {path}")
-        if not path.exists():
-            raise (FileNotFoundError(f"{path} cannot be found."))
-        data_path = str(path)
-    else:
-        data_path = str(config.data_path)
-    print(f"Dataset directory path: {data_path}")
-    return data_path
-
-
-def _load_dataset_for_ragas_eval(
-    config: RagasEvaluationJobConfig,
-) -> DatasetDict | Dataset | IterableDatasetDict | IterableDataset:
-    evaluation_dataset_to_load = config.dataset.data_path
-
-    print(f"Loading dataset from {evaluation_dataset_to_load}")
-    dataset = (
-        load_dataset(evaluation_dataset_to_load)
-        if config.is_hf_dataset
-        else load_dataset("parquet", data_files=evaluation_dataset_to_load)
-    )
-
-    print(
-        f"Remapping data columns to be ragas compatible with \
-          the following {config.data_column_names}"
-    )
-    dataset.rename_column("question", config.data_column_names["question"])
-    dataset.rename_column("answer", config.data_column_names["answer"])
-    dataset.rename_column("contexts", config.data_column_names["contexts"])
-
-    return dataset
+RAGAS_METRICS_MAP = {
+    "faithfulness": faithfulness,
+    "answer_relevancy": answer_relevancy,
+    "context_recall": context_recall,
+    "context_precision": context_precision,
+}
 
 
-def evaluation_task(config: RagasEvaluationJobConfig) -> None:
+def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> Path:
+    # load dataset from W&B artifact
+    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+    evaluation_dataset = hf_loader.load_dataset(config.dataset)
+
     # ragas custom model args
     ragas_args = {}
 
-    # set up custom embedding model for ragas (only supports langchain embedding models right now)
-    if config.judge_model.embedding_model:
-        ragas_args["embeddings"] = Embeddings(
-            model=config.judge_model.embedding_model
-        )  # any langchain embedding instance
+    # load embedding model
+    ragas_args["embeddings"] = HuggingFaceEmbeddings(model_name=config.evaluation.embedding_model)
 
-    # set up custom judge LLM model (called from vllm server)
-    if config.judge_model.language_model:
-        # create vLLM Langchain instance
-        vllm_entry = ChatOpenAI(
-            model=config.judge_model.language_model,
-            openai_api_key=config.judge_model.openai_api_key,
-            # get api endpoint from environment variable
-            openai_api_base=os.environ.get("VLLM_JUDGE_ENDPOINT"),
-            max_tokens=config.judge_model.max_tokens,
-            temperature=config.judge_model.temperature,
-        )
+    # configure ragas to point to vllm instance for generation
+    ragas_args["llm"] = ChatOpenAI(
+        model=config.evaluation.language_model,
+        openai_api_key=config.evaluation.openai_api_key,
+        # get api endpoint from environment variable
+        openai_api_base=config.ragas_inference_server,
+        max_tokens=config.evaluation.max_tokens,
+        temperature=config.evaluation.temperature,
+        top_k=config.evaluation.top_k,
+    )
 
-        ragas_args["llm"] = vllm_entry
+    result = evaluate(
+        dataset=evaluation_dataset,
+        metrics=RAGAS_METRICS_MAP[config.evaluation.metrics],
+        **ragas_args,
+    )
+    result_df = result.to_pandas()
 
-    dataset = _load_dataset_for_ragas_eval(config)
+    # open the output file for writing and iterate on samples
+    tracking_name = config.tracking.name if config.tracking is not None else "output.json"
+    output_fname = Path(config.evaluation.output_folder) / tracking_name
+    result_df.to_json(output_fname)
 
-    print("Initializing ragas eval task...")
-    result = evaluate(dataset=dataset, metrics=config.metrics, **ragas_args)
+    # convert plain json dataset in HF format
+    output_dataset_path = Path(config.evaluation.output_folder) / "hf" / tracking_name
+    ds = load_dataset("json", data_files=str(output_fname), split="train")
+    ds.save_to_disk(output_dataset_path)
 
-    print(f"Obtained evaluation results: {result}")
-
-    if config.wandb_env:
-        print("Logging results to W&B...")
-        update_wandb_summary(config.wandb_env, result)
+    return output_dataset_path
 
 
-def run_ragas_evaluation(config: RagasEvaluationJobConfig):
-    print(f"Received job configuration: {config}")
+def run_ragas(config: RagasJobConfig, artifact_loader: artifact_loader) -> EvaluationResult:
+    # Run eval and store output in local filename
+    if config.tracking:
+        with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
+            output_dataset_path = run_eval(config, artifact_loader)
 
-    # Resolve path and ensure exists
-    evaluation_dataset_to_load = resolve_data_path(config)
+            # Create a directory artifact for the HF dataset
+            dataset_artifact = build_directory_artifact(
+                dir_path=output_dataset_path,
+                artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
+                artifact_type=ArtifactType.DATASET,
+                reference=False,
+            )
 
-    # Using .options() to dynamically specify resource requirements
-    eval_func = evaluation_task.options(num_gpus=config.num_gpus)
-    eval_future = eval_func.remote(config, evaluation_dataset_to_load)
+            print("Logging artifact for evaluation dataset...")
+            artifact_loader.log_artifact(dataset_artifact)
 
-    timeout_seconds = config.timeout.seconds if config.timeout else None
-    try:
-        print("Waiting on evaluation task...")
-        ray.get(eval_future, timeout=timeout_seconds)
-        print("Evaluation successfully completed")
-    except TimeoutError:
-        print(
-            f"Evaluation task timed out after {timeout_seconds} sec. "
-            "If the evaluation runner finished but the task failed to shut down, "
-            "please check if your results were still generated and persisted."
-        )
-        raise
+            # Create a config referencing the new artifact
+            dataset_artifact_config = WandbArtifactConfig(
+                name=dataset_artifact.name,
+                project=run.project,
+                entity=run.entity,
+            )
+
+    else:
+        output_dataset_path = run_eval(config, artifact_loader)
+        dataset_artifact_config = None
+
+    print(f"Evaluation dataset stored at {output_dataset_path}")
+    return EvaluationResult(
+        tables={},
+        table_artifact=None,
+        dataset_artifact=dataset_artifact_config,
+        dataset_path=output_dataset_path,
+    )
