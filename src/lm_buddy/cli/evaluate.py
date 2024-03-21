@@ -1,7 +1,7 @@
 import click
 
 from lm_buddy import LMBuddy
-from lm_buddy.jobs.configs import LMHarnessJobConfig, PrometheusJobConfig
+from lm_buddy.jobs.configs import LMHarnessJobConfig, PrometheusJobConfig, RagasJobConfig
 
 
 @click.group(name="evaluate", help="Run an LM Buddy evaluation job.")
@@ -22,6 +22,15 @@ def lm_harness_command(config: str) -> None:
 @click.option("--config", type=str)
 def prometheus_command(config: str) -> None:
     config = PrometheusJobConfig.from_yaml_file(config)
+
+    buddy = LMBuddy()
+    buddy.evaluate(config)
+
+
+@group.command("ragas", help="Run the ragas evaluation job.")
+@click.option("--config", type=str)
+def ragas_command(config: str) -> None:
+    config = RagasJobConfig.from_yaml_file(config)
 
     buddy = LMBuddy()
     buddy.evaluate(config)
