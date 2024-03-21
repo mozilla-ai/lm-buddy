@@ -1,48 +1,38 @@
-import datetime
 from pathlib import Path
 
 from pydantic import Field, field_validator
-from ragas.metrics import (
-    answer_relevancy,
-    context_precision,
-    context_recall,
-    faithfulness,
-)
-from ragas.metrics.base import MetricWithLLM
 
 from lm_buddy.integrations.huggingface import AutoModelConfig
+from lm_buddy.integrations.huggingface.dataset_config import TextDatasetConfig
 from lm_buddy.integrations.vllm import InferenceServerConfig
 from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
 
-class RagasConfig(BaseLMBuddyConfig):
-    """misc settings for ragas eval job"""
+class RagasEvaluationConfig(BaseLMBuddyConfig):
+    """Parameters specifically required for RAGAs Evaluation"""
 
-    metrics: list[MetricWithLLM] = [
-        faithfulness,
-        answer_relevancy,
-        context_recall,
-        context_precision,
+    metrics: list[str] | None = [
+        "faithfulness",
+        "answer_relevancy",
+        "context_recall",
+        "context_precision",
     ]
 
-    # path to store the generated ratings/evaluations of each dataset sample
-    result_path: str | Path | None = None
-
-
-class RagasvLLMJudgeConfig(BaseLMBuddyConfig):
-    """
-    Configuration class for a vLLM hosted judge model
-    Requires a vLLM endpoint that the model will hit instead of the openAI default,
-    the url for which is to be passed as env variable
-    """
-
-    language_model: AutoModelConfig
-    embedding_model: AutoModelConfig
+    # openAI API key if using openAI for judge models
     openai_api_key: str | None = "nokey"
-    inference_server: InferenceServerConfig
-    max_tokens: int | None = 5
-    temperature: float | None = 0
+
+    # language model and embedding models used as evaluation judges
+    language_model: AutoModelConfig | None = "kittn/mistral-7B-v0.1-hf"
+    embedding_model: AutoModelConfig | None = "sentence-transformers/all-mpnet-base-v2"
+
+    # decoding parameters for judge models
+    max_tokens: int | None = 4000
+    temperature: float | None = 0.7
+    top_k: int | None = 1
+
+    # path to store the generated ratings/evaluations of each dataset sample
+    output_folder: str | Path | None = "/tmp"
 
     @field_validator("language_model", mode="before", always=True)
     def validate_inference_model_arg(cls, x):
@@ -59,26 +49,7 @@ class RagasvLLMJudgeConfig(BaseLMBuddyConfig):
         return x
 
 
-class RagasRayConfig(BaseLMBuddyConfig):
-    """Misc settings for Ray compute for ragas eval job."""
-
-    num_gpus: int | float | None = 0
-    timeout: datetime.timedelta | None = None
-
-
-class RagasEvaluationDatasetConfig(BaseLMBuddyConfig):
-    """to configure the evaluation dataset source"""
-
-    data_path: str | Path | None = None
-
-    # columns of relevant maps
-    question_col: str | None = "question"
-    answer_col: str | None = "answer"
-    context_col: str | None = "contexts"
-    ground_truth_col: str | None = None
-
-
-class RagasEvaluationJobConfig(BaseLMBuddyConfig):
+class RagasJobConfig(BaseLMBuddyConfig):
     """Configuration to run a Ragas evaluation job.
 
     This job loads a dataset from an existing path on our cluster.
@@ -86,16 +57,21 @@ class RagasEvaluationJobConfig(BaseLMBuddyConfig):
     the contexts (retrieved), and optionally a ground truth field.
     """
 
+    # vllm inference server for generation
+    ragas_inference_server: InferenceServerConfig = Field(
+        description="Externally hosted Ragas judge model."
+    )
+
+    # dataset containing the relevant fields required for ragas evaluation
+    dataset: TextDatasetConfig = Field(
+        description="Dataset of text completions to evaluate using the Prometheus judge model."
+    )
+
     # evaluation settings for ragas
-
-    dataset: RagasEvaluationDatasetConfig
-    evaluator: RagasConfig
-
-    # Judge LLM settings
-    judge_model: RagasvLLMJudgeConfig | None = None
+    evaluation: RagasEvaluationConfig = Field(
+        default_factory=RagasEvaluationConfig,
+        description="Settings for the Ragas evaluation.",
+    )
 
     # wandb model run to associate to the ragas evaluator
     tracking: WandbRunConfig | None = None
-
-    # ray settings
-    ray: RagasRayConfig = Field(default_factory=RagasRayConfig)
