@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from pydantic import Field, field_validator
 
 from lm_buddy.integrations.huggingface import AutoModelConfig
@@ -45,9 +43,7 @@ class RagasJobConfig(BaseLMBuddyConfig):
     """
 
     # vllm inference server for generation
-    judge: VLLMCompletionsConfig = Field(
-        description="Externally hosted Ragas judge model."
-    )
+    judge: VLLMCompletionsConfig = Field(description="Externally hosted Ragas judge model.")
 
     # dataset containing the relevant fields required for ragas evaluation
     dataset: TextDatasetConfig = Field(
