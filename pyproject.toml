@@ -12,7 +12,6 @@ authors = [
     { name = "Davide Eynard", email = "davide@mozilla.ai" },
     { name = "Imtihan Ahmed", email = "imtihan@mozilla.ai" },
 ]
-]
 description = "Ray-centric library for finetuning and evaluation of (large) language models."
 readme = "README.md"
 license = { file = "LICENSE.md" }
