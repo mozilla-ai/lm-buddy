@@ -1,0 +1,37 @@
+dataset:
+  load_from:
+    name: "wandb_file_artifact_name.json"
+    version: "latest"
+    project: "lm-buddy-prometheus"
+    entity: "mozilla-ai"
+  # field containing scoring instructions in the json file
+  text_field: "instruction"
+
+judge:
+  # vllm evaluation server with model name
+  inference:
+    base_url: "http://your.vllm.server:8000/v1"
+    engine: "DiscoResearch/mixtral-7b-8expert"
+  max_tokens: 4000
+  temperature: 0.7
+  top_k: 1
+
+evaluation:
+  #choose which metrics to report from https://docs.ragas.io/en/latest/concepts/metrics/index.html
+  metrics: [
+        "faithfulness",
+        "answer_relevancy",
+        "context_recall",
+        "context_precision",
+    ]
+  # dummy openAI api key, needed for ragas shenanigans
+  openai_api_key: "nokey"
+  # any embedding model in huggingface, will be loaded in-memory (typically <1gb)
+  embedding_model: "sentence-transformers/all-mpnet-base-v2"
+
+tracking:
+  name: "lm-buddy-ragas"
+  project: "lm-buddy-examples"
+  entity: "mozilla-ai""
+
+  
