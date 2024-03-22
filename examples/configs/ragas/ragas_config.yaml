@@ -32,6 +32,7 @@ evaluation:
 tracking:
   name: "lm-buddy-ragas"
   project: "lm-buddy-examples"
-  entity: "mozilla-ai""
+  entity: "mozilla-ai"
+  
 
   
