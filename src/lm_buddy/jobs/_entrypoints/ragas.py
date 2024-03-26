@@ -4,7 +4,7 @@ from datasets import load_dataset
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
 from lmbuddy.integrations.huggingface import HuggingFaceAssetLoader
-from ragas import evaluate
+from ragas import evaluate as ragas_evaluate
 from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
 from lm_buddy.integrations.wandb import artifact_loader
@@ -48,7 +48,7 @@ def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> Path:
         top_k=config.judge.top_k,
     )
 
-    result = evaluate(
+    result = ragas_evaluate(
         dataset=evaluation_dataset,
         metrics=RAGAS_METRICS_MAP[config.evaluation.metrics],
         **ragas_args,
