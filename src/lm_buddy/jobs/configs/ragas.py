@@ -47,7 +47,7 @@ class RagasJobConfig(BaseLMBuddyConfig):
 
     # dataset containing the relevant fields required for ragas evaluation
     dataset: TextDatasetConfig = Field(
-        description="Dataset of text completions to evaluate using the Prometheus judge model."
+        description="Dataset of text completions to evaluate using the Ragas judge model."
     )
 
     # evaluation settings for ragas

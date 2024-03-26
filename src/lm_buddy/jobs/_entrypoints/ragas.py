@@ -69,7 +69,7 @@ def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> Path:
 
 
 def run_ragas(config: RagasJobConfig, artifact_loader: artifact_loader) -> EvaluationResult:
-    # Run eval and store output in local filename
+    # Run ragas eval and store output in local filename
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
             output_dataset_path = run_eval(config, artifact_loader)
@@ -82,7 +82,7 @@ def run_ragas(config: RagasJobConfig, artifact_loader: artifact_loader) -> Evalu
                 reference=False,
             )
 
-            print("Logging artifact for evaluation dataset...")
+            print("Logging dataset artifact for Ragas evaluation ...")
             artifact_loader.log_artifact(dataset_artifact)
 
             # Create a config referencing the new artifact
