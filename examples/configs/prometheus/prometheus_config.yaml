@@ -32,4 +32,4 @@ evaluation:
 tracking:
   name: "lm-buddy-prometheus"
   project: "lm-buddy-examples"
-  entity: "mozilla-ai"
+  entity: "sample"
