@@ -17,4 +17,4 @@ quantization:
 tracking:
   name: "lm-buddy-lm-harness"
   project: "lm-buddy-examples"
-  entity: "mozilla-ai"
+  entity: "sample"

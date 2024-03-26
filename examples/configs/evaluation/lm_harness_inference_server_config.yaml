@@ -22,4 +22,4 @@ evaluation:
 tracking:
   name: "lm-buddy-lm-harness-inference"
   project: "lm-buddy-examples"
-  entity: "mozilla-ai"
+  entity: "sample"
