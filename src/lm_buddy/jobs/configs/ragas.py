@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field, field_validator
 
 from lm_buddy.integrations.huggingface import AutoModelConfig
@@ -6,16 +8,25 @@ from lm_buddy.integrations.vllm import VLLMCompletionsConfig
 from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.types import BaseLMBuddyConfig
 
+RagasEvaluationMetric = Literal[
+    "faithfulness",
+    "answer_relevancy",
+    "context_recall",
+    "context_precision",
+]
+
 
 class RagasEvaluationConfig(BaseLMBuddyConfig):
     """Parameters specifically required for RAGAs Evaluation"""
 
-    metrics: list[str] | None = [
-        "faithfulness",
-        "answer_relevancy",
-        "context_recall",
-        "context_precision",
-    ]
+    metrics: list[RagasEvaluationMetric] = Field(
+        default_factory=[
+            "faithfulness",
+            "answer_relevancy",
+            "context_recall",
+            "context_precision",
+        ]
+    )
 
     # openAI API key if using openAI for judge models
     openai_api_key: str | None = "EMPTY"
