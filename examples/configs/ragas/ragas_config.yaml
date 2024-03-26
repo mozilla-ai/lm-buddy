@@ -24,8 +24,7 @@ evaluation:
         "context_recall",
         "context_precision",
     ]
-  # dummy openAI api key, needed for ragas shenanigans
-  openai_api_key: "nokey"
+
   # any embedding model in huggingface, will be loaded in-memory (typically <1gb)
   embedding_model: "sentence-transformers/all-mpnet-base-v2"
 

@@ -18,7 +18,7 @@ class RagasEvaluationConfig(BaseLMBuddyConfig):
     ]
 
     # openAI API key if using openAI for judge models
-    openai_api_key: str | None = "nokey"
+    openai_api_key: str | None = "EMPTY"
 
     # language model and embedding models used as evaluation judges
     embedding_model: AutoModelConfig | None = "sentence-transformers/all-mpnet-base-v2"
