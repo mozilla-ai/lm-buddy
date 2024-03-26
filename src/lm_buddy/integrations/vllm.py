@@ -40,3 +40,4 @@ class VLLMCompletionsConfig(BaseLMBuddyConfig):
     frequency_penalty: float | None = None
     temperature: float | None = None
     top_p: float | None = None
+    top_k: int | None = None
