@@ -20,16 +20,13 @@ class RagasEvaluationConfig(BaseLMBuddyConfig):
     """Parameters specifically required for RAGAs Evaluation"""
 
     metrics: list[RagasEvaluationMetric] = Field(
-        default_factory=[
+        default=[
             "faithfulness",
             "answer_relevancy",
             "context_recall",
             "context_precision",
         ]
     )
-
-    # openAI API key if using openAI for judge models
-    openai_api_key: str | None = "EMPTY"
 
     # language model and embedding models used as evaluation judges
     embedding_model: AutoModelConfig | None = "sentence-transformers/all-mpnet-base-v2"

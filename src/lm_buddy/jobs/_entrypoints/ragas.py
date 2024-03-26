@@ -40,7 +40,7 @@ def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> Path:
     # configure ragas to point to vllm instance for generation
     ragas_args["llm"] = ChatOpenAI(
         model=config.ragas_inference_server.engine,
-        openai_api_key=config.evaluation.openai_api_key,
+        openai_api_key="EMPTY",  # needed to hit custom openai endpoint
         # get api endpoint from environment variable
         openai_api_base=config.judge.inference.base_url,
         max_tokens=config.judge.max_tokens,
