@@ -10,3 +10,4 @@ def cli():
 
 cli.add_command(finetune.command)
 cli.add_command(evaluate.group)
+cli.add_command(serve.group)
