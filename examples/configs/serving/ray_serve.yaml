@@ -1,0 +1,16 @@
+applications:
+  - name: app1
+    route_prefix: /
+    import_path: jobs:_entrypoints:ray_serve
+    runtime_env:
+      working_dir: "https://github.com/ray-project/serve_config_examples/archive/36862c251615e258a58285934c7c41cffd1ee3b7.zip"
+      pip:
+        - torch
+        - transformers
+    deployments:
+      - name: Translator
+        num_replicas: 2
+        ray_actor_options:
+          num_cpus: 0.2
+          num_gpus: 0.0
+
