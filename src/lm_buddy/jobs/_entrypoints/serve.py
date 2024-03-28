@@ -10,8 +10,11 @@ from lm_buddy.jobs.configs import FinetuningJobConfig
 from lm_buddy.jobs.configs.ray_serve import RayServeConfig
 from typing import Dict
 
+config = RayServeConfig
 
-@serve.deployment
+@serve.deployment(num_replicas=config.deployments.num_replicas,
+                      ray_actor_options={"num_cpus": config.deployments.ray_actor_options.num_cpus,
+                                         "num_gpus": config.deployments.ray_actor_options.num_gpus})
 class ModelDeployment():
     def __init__(self, model):
         self._model = pipeline(model)
@@ -20,16 +23,10 @@ class ModelDeployment():
         return self._model(request.query_params["text"])[0]
 
 
-def serve(
-    config: RayServeConfig,
-    artifact_loader: ArtifactLoader,
-):
+def serve(artifact_loader: ArtifactLoader):
+
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     model = hf_loader.load_pretrained_model(config.model)
-
-    @serve.deployment(num_replicas=config.deployments.num_replicas,
-                      ray_actor_options={"num_cpus": config.deployments.ray_actor_options.num_cpus,
-                                         "num_gpus": config.deployments.ray_actor_options.num_gpus})
 
     model = ModelDeployment(model)
 
