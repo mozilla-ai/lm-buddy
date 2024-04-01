@@ -3,10 +3,10 @@ from pathlib import Path
 from datasets import load_dataset
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
-from lmbuddy.integrations.huggingface import HuggingFaceAssetLoader
 from ragas import evaluate as ragas_evaluate
 from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
+from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import artifact_loader
 from lm_buddy.integrations.wandb.artifact_config import WandbArtifactConfig
 from lm_buddy.integrations.wandb.artifact_utils import (
