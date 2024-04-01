@@ -34,7 +34,7 @@ class RagasEvaluationConfig(BaseLMBuddyConfig):
     # path to store the generated ratings/evaluations of each dataset sample
     output_folder: str = "/tmp"
 
-    @field_validator("embedding_model", mode="before", always=True)
+    @field_validator("embedding_model", mode="before")
     def validate_embedding_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
