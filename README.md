@@ -39,7 +39,7 @@ installation of this package requires Python between `[3.10, 3.11)`.
 ## CLI usage
 
 LM Buddy exposes a CLI with a few commands, one for each type of job.
-To see all available job commands, run `lm_buddy run --help`
+You can explore the CLI options by running `lm-buddy --help`.
 
 Once LM Buddy is installed in your local Python environment, usage is as follows:
 ```
