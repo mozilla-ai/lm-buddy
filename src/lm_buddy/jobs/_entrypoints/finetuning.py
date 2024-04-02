@@ -20,7 +20,7 @@ from lm_buddy.integrations.wandb import (
 from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType
 from lm_buddy.jobs.configs import FinetuningJobConfig
-from lm_buddy.paths import format_file_prefix, format_wandb_prefix
+from lm_buddy.paths import format_file_path, format_wandb_path
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):
@@ -111,21 +111,20 @@ def run_finetuning(
     # Register a model artifact if tracking is enabled and Ray saved a checkpoint
     checkpoint_path, checkpoint_artifact_path = None, None
     if result.checkpoint:
-        checkpoint_path = format_file_prefix(
+        checkpoint_path = format_file_path(
             f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}"
         )
         if config.tracking:
             # Must resume from the just-completed training run
             with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
-                artifact_name = default_artifact_name(run.name, ArtifactType.MODEL)
                 checkpoint_artifact = build_directory_artifact(
-                    artifact_name=artifact_name,
+                    artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
                     artifact_type=ArtifactType.MODEL,
                     dir_path=checkpoint_path,
                     reference=True,
                 )
-                checkpoint_artifact_path = format_wandb_prefix(
-                    artifact_name, run.project, run.entity
+                checkpoint_artifact_path = format_wandb_path(
+                    checkpoint_artifact.name, run.project, run.entity
                 )
 
                 print("Logging artifact for finetuning checkpoint...")

@@ -9,18 +9,18 @@ from lm_buddy.integrations.huggingface import (
     TextDatasetConfig,
 )
 from lm_buddy.integrations.vllm import InferenceServerConfig
-from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from lm_buddy.integrations.wandb import WandbRunConfig
 
 
 @pytest.fixture
 def model_config_with_repo_id():
-    return AutoModelConfig(path="mistral-ai/mistral-7", trust_remote_code=True)
+    return AutoModelConfig(path="hf://mistral-ai/mistral-7", trust_remote_code=True)
 
 
 @pytest.fixture
 def model_config_with_artifact():
-    artifact = WandbArtifactConfig(name="model", project="project")
-    return AutoModelConfig(path=artifact, trust_remote_code=True, torch_dtype="float16")
+    artifact_path = "wandb://project/model-artifact:latest"
+    return AutoModelConfig(path=artifact_path, trust_remote_code=True, torch_dtype="float16")
 
 
 @pytest.fixture
@@ -30,19 +30,19 @@ def tokenizer_config_with_repo_id():
 
 @pytest.fixture
 def tokenizer_config_with_artifact():
-    artifact = WandbArtifactConfig(name="tokenizer", project="project")
-    return AutoTokenizerConfig(path=artifact, trust_remote_code=True)
+    artifact_path = "wandb://project/tokenizer-artifact:latest"
+    return AutoTokenizerConfig(path=artifact_path, trust_remote_code=True)
 
 
 @pytest.fixture
 def dataset_config_with_repo_id():
-    return TextDatasetConfig(path="databricks/dolly15k", text_field="text", split="train")
+    return TextDatasetConfig(path="hf://databricks/dolly15k", text_field="text", split="train")
 
 
 @pytest.fixture
 def dataset_config_with_artifact():
-    artifact = WandbArtifactConfig(name="dataset", project="project")
-    return TextDatasetConfig(path=artifact, split="train")
+    artifact_path = "wandb://project/dataset-artifact:latest"
+    return TextDatasetConfig(path=artifact_path)
 
 
 @pytest.fixture
@@ -68,5 +68,5 @@ def wandb_run_config():
 
 @pytest.fixture
 def inference_server_config():
-    artifact = WandbArtifactConfig(name="model", project="project")
-    return InferenceServerConfig(base_url="http://0.0.0.0:8000", engine=artifact)
+    engine = "wandb://entity/project/model-artifact:latest"
+    return InferenceServerConfig(base_url="http://0.0.0.0:8000", engine=engine)

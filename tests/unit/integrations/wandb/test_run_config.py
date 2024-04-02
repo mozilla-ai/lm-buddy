@@ -5,7 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from lm_buddy.integrations.wandb import WandbRunConfig
-from tests.test_utils import copy_pydantic_json
+from tests.utils import copy_pydantic_json
 
 
 @pytest.fixture

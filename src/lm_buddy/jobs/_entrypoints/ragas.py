@@ -19,8 +19,8 @@ from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import RagasJobConfig
 from lm_buddy.paths import (
     FilePath,
-    format_file_prefix,
-    format_wandb_prefix,
+    format_file_path,
+    format_wandb_path,
     strip_path_prefix,
 )
 
@@ -75,7 +75,7 @@ def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> FilePat
     ds = load_dataset("json", data_files=str(output_fname), split="train")
     ds.save_to_disk(output_dataset_path)
 
-    return format_file_prefix(output_dataset_path)
+    return format_file_path(output_dataset_path)
 
 
 def run_ragas(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> EvaluationResult:
@@ -91,7 +91,7 @@ def run_ragas(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> Evalua
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
             )
-            dataset_artifact_path = format_wandb_prefix(
+            dataset_artifact_path = format_wandb_path(
                 dataset_artifact.name, run.project, run.entity
             )
 

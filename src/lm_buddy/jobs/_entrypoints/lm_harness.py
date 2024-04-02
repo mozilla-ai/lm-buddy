@@ -21,7 +21,7 @@ from lm_buddy.integrations.wandb import (
 )
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.paths import format_wandb_prefix, strip_path_prefix
+from lm_buddy.paths import format_wandb_path, strip_path_prefix
 
 
 def get_per_task_dataframes(
@@ -116,7 +116,7 @@ def run_lm_harness(
                 artifact_type=ArtifactType.EVALUATION,
                 tables=eval_tables,
             )
-            table_artifact_path = format_wandb_prefix(table_artifact.name, run.project, run.entity)
+            table_artifact_path = format_wandb_path(table_artifact.name, run.project, run.entity)
 
             print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(table_artifact)

@@ -2,7 +2,7 @@ import pytest
 import torch
 
 from lm_buddy.integrations.huggingface import QuantizationConfig
-from tests.test_utils import copy_pydantic_json
+from tests.utils import copy_pydantic_json
 
 
 @pytest.fixture

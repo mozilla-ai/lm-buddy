@@ -66,7 +66,7 @@ class HuggingFaceAssetLoader:
         self._artifact_loader = artifact_loader
 
     def resolve_asset_path(self, path: AssetPath) -> FilePath | HuggingFacePath:
-        """Resolve the loadable version of an `AssetPath`.
+        """Resolve an `AssetPath` to a `FilePath` or `HuggingFacePath` that can be loaded.
 
         W&B paths are resolved to file paths given the artifact manifest.
         The returned path contains the `PathPrefix`.

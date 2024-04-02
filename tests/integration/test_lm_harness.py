@@ -2,15 +2,16 @@ import pytest
 
 from lm_buddy import LMBuddy
 from lm_buddy.integrations.huggingface import AutoModelConfig
-from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.jobs.configs import LMHarnessEvaluationConfig, LMHarnessJobConfig
-from tests.test_utils import FakeArtifactLoader
+from lm_buddy.paths import format_wandb_path
+from tests.utils import FakeArtifactLoader
 
 
 @pytest.fixture
 def job_config(llm_model_artifact):
     model_config = AutoModelConfig(
-        path=WandbArtifactConfig(name=llm_model_artifact.name, project="test")
+        path=format_wandb_path(llm_model_artifact.name, project="test"),
     )
 
     tracking_config = WandbRunConfig(name="test-lm-harness-job")
