@@ -15,6 +15,7 @@ from lm_buddy.integrations.wandb.artifact_utils import (
     default_artifact_name,
 )
 from lm_buddy.integrations.wandb.run_utils import wandb_init_from_config
+from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import RagasJobConfig
 
@@ -30,6 +31,7 @@ def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> Path:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     evaluation_dataset = hf_loader.load_dataset(config.dataset)
+    evaluation_dataset = preprocess_text_dataset(evaluation_dataset, config.dataset)
 
     # ragas custom model args
     ragas_args = {}
