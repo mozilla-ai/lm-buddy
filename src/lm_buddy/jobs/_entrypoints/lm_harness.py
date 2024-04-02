@@ -21,7 +21,7 @@ from lm_buddy.integrations.wandb import (
 )
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.paths import format_wandb_path, strip_path_prefix
+from lm_buddy.paths import AssetPath
 
 
 def get_per_task_dataframes(
@@ -67,9 +67,8 @@ def load_harness_model(
 
         case LocalChatCompletionsConfig() as local_config:
             engine_path = hf_loader.resolve_asset_path(local_config.inference.engine)
-            engine_path = strip_path_prefix(engine_path)
             return OpenaiCompletionsLM(
-                model=engine_path,
+                model=engine_path.strip_prefix(),
                 base_url=local_config.inference.base_url,
                 tokenizer_backend=local_config.tokenizer_backend,
                 truncate=local_config.truncate,
@@ -116,7 +115,7 @@ def run_lm_harness(
                 artifact_type=ArtifactType.EVALUATION,
                 tables=eval_tables,
             )
-            table_artifact_path = format_wandb_path(table_artifact.name, run.project, run.entity)
+            table_artifact_path = AssetPath.from_wandb(table_artifact.name, run.project, run.entity)
 
             print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(table_artifact)

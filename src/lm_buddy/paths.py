@@ -1,16 +1,17 @@
-import re
 from enum import Enum
 from pathlib import Path
-from typing import Annotated
+from typing import Any
+from urllib.parse import ParseResult, urlparse
 
 from huggingface_hub.utils import HFValidationError, validate_repo_id
-from pydantic import AfterValidator
+from pydantic import GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 
 
-class PathPrefix(str, Enum):
-    FILE = "file://"
-    HUGGINGFACE = "hf://"
-    WANDB = "wandb://"
+class PathScheme(str, Enum):
+    FILE = "file"
+    HUGGINGFACE = "hf"
+    WANDB = "wandb"
 
 
 def is_valid_huggingface_repo_id(s: str):
@@ -28,68 +29,65 @@ def is_valid_huggingface_repo_id(s: str):
         return False
 
 
-def strip_path_prefix(path: str) -> str:
-    """Strip 'prefix://' from the start of a string."""
-    pattern = "^\w+\:\/\/"
-    return re.sub(pattern, "", path)
+def validate_asset_path(path: str) -> "AssetPath":
+    match urlparse(path):
+        case ParseResult(scheme=PathScheme.FILE, path=file_path):
+            if not Path(file_path).is_absolute():
+                raise ValueError(f"{file_path} is not an absolute file path.")
+        case ParseResult(scheme=PathScheme.HUGGINGFACE, netloc=repo_id):
+            if not is_valid_huggingface_repo_id(repo_id):
+                raise ValueError(f"{repo_id} is not a valid HuggingFace repo ID.")
+        case ParseResult(scheme=PathScheme.WANDB):
+            # TODO: Validate the W&B path structure?
+            pass
+        case _:
+            allowed = {x.value for x in PathScheme}
+            raise ValueError(f"{path} does not begin with an allowed prefix: {allowed}")
+    return AssetPath(path)
 
 
-def validate_path_prefix(path: str, prefix: PathPrefix) -> None:
-    if not path.startswith(prefix):
-        raise ValueError(f"{path} does not start with the expected prefix {prefix}.")
-    return path
+class AssetPath(str):
+    """String representing the name/path for loading an asset.
 
+    The path begins with one of the allowed `PathScheme`s that determine how to load the asset.
+    """
 
-def validate_file_path(path: str) -> str:
-    path = validate_path_prefix(path, PathPrefix.FILE)
-    raw_path = strip_path_prefix(path)
-    if not Path(raw_path).is_absolute():
-        raise ValueError(f"{raw_path} is not an absolute file path.")
-    return path
+    @classmethod
+    def from_file(cls, path: str | Path) -> "AssetPath":
+        path = Path(path).absolute()
+        return cls(f"{PathScheme.FILE}://{path}")
 
+    @classmethod
+    def from_repo_id(cls, repo_id: str) -> "AssetPath":
+        return cls(f"{PathScheme.HUGGINGFACE}://{repo_id}")
 
-def validate_hf_path(path: str) -> str:
-    path = validate_path_prefix(path, PathPrefix.HUGGINGFACE)
-    raw_path = strip_path_prefix(path)
-    if not is_valid_huggingface_repo_id(raw_path):
-        raise ValueError(f"{raw_path} is not a valid HuggingFace repo ID.")
-    return path
+    @classmethod
+    def from_wandb(
+        cls,
+        name: str,
+        project: str,
+        entity: str | None = None,
+        version: str = "latest",
+    ) -> "AssetPath":
+        base_path = "/".join(x for x in [entity, project, name] if x is not None)
+        return cls(f"{PathScheme.WANDB}://{base_path}:{version}")
 
+    @property
+    def scheme(self) -> PathScheme:
+        scheme = urlparse(self).scheme
+        return PathScheme(scheme)
 
-def validate_wandb_path(path: str) -> str:
-    path = validate_path_prefix(path, PathPrefix.WANDB)
-    return path
+    def strip_prefix(self) -> str:
+        """Strip 'scheme://' from the start of a path string."""
+        scheme = self.scheme
+        return self.replace(f"{scheme}://", "")
 
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        """Defining Pydantic validation logic on a custom class.
 
-FilePath = Annotated[str, AfterValidator(lambda x: validate_file_path(x))]
-"""Path string of the form 'file:///absolute/path/to/asset'."""
-
-HuggingFacePath = Annotated[str, AfterValidator(lambda x: validate_hf_path(x))]
-"""Path string of the form 'hf://repo-name'."""
-
-WandbArtifactPath = Annotated[str, AfterValidator(lambda x: validate_wandb_path(x))]
-"""Path string of the form 'wandb://entity/project/name:version'."""
-
-AssetPath = FilePath | HuggingFacePath | WandbArtifactPath
-"""String representing the name/path for loading a HuggingFace asset.
-
-The path begins with one of the allowed `PathPrefix`s that determine how to load the asset.
-"""
-
-
-def format_file_path(path: str | Path) -> FilePath:
-    return f"{PathPrefix.FILE}{path}"
-
-
-def format_huggingface_path(repo: str) -> HuggingFacePath:
-    return f"{PathPrefix.HUGGINGFACE}{repo}"
-
-
-def format_wandb_path(
-    name: str,
-    project: str,
-    entity: str | None = None,
-    version: str = "latest",
-) -> WandbArtifactPath:
-    base_path = "/".join(x for x in [entity, project, name] if x is not None)
-    return f"{PathPrefix.WANDB}{base_path}:{version}"
+        Reference: https://docs.pydantic.dev/latest/concepts/types/
+        """
+        return core_schema.no_info_after_validator_function(validate_asset_path, handler(str))

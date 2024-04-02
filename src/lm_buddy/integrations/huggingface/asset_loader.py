@@ -19,16 +19,11 @@ from lm_buddy.integrations.huggingface import (
     DatasetConfig,
     QuantizationConfig,
 )
-from lm_buddy.integrations.wandb import (
-    ArtifactLoader,
-    get_artifact_directory,
-)
-from lm_buddy.paths import AssetPath, FilePath, HuggingFacePath, PathPrefix, strip_path_prefix
+from lm_buddy.integrations.wandb import ArtifactLoader, get_artifact_directory
+from lm_buddy.paths import AssetPath, PathScheme
 
 
-def resolve_peft_and_pretrained(
-    path: FilePath | HuggingFacePath,
-) -> tuple[str, str | None]:
+def resolve_peft_and_pretrained(path: AssetPath) -> tuple[str, str | None]:
     """Helper method for determining if a path corresponds to a PEFT model.
 
     A PEFT model contains an `adapter_config.json` in its directory.
@@ -44,7 +39,7 @@ def resolve_peft_and_pretrained(
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
     try:
-        path = strip_path_prefix(path)
+        path = path.strip_prefix()
         peft_config = PeftConfig.from_pretrained(path)
         return peft_config.base_model_name_or_path, path
     except ValueError as e:
@@ -65,15 +60,15 @@ class HuggingFaceAssetLoader:
     def __init__(self, artifact_loader: ArtifactLoader):
         self._artifact_loader = artifact_loader
 
-    def resolve_asset_path(self, path: AssetPath) -> FilePath | HuggingFacePath:
+    def resolve_asset_path(self, path: AssetPath) -> AssetPath:
         """Resolve an `AssetPath` to a `FilePath` or `HuggingFacePath` that can be loaded.
 
         W&B paths are resolved to file paths given the artifact manifest.
-        The returned path contains the `PathPrefix`.
+        The returned path still contains the `PathScheme` and prefix.
         """
-        if path.startswith((PathPrefix.FILE, PathPrefix.HUGGINGFACE)):
+        if path.scheme in [PathScheme.FILE, PathScheme.WANDB]:
             return path
-        elif path.startswith(PathPrefix.WANDB):
+        elif path.scheme == PathScheme.WANDB:
             artifact = self._artifact_loader.use_artifact(path)
             return get_artifact_directory(artifact)
         else:
@@ -88,8 +83,7 @@ class HuggingFaceAssetLoader:
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
         config_path = self.resolve_asset_path(config.path)
-        config_path = strip_path_prefix(config_path)
-        return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path)
+        return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path.strip_prefix())
 
     def load_pretrained_model(
         self,
@@ -117,9 +111,8 @@ class HuggingFaceAssetLoader:
         # TODO: HuggingFace has many AutoModel classes with different "language model heads"
         #   Can we abstract this to load with any type of AutoModel class?
         model_path = self.resolve_asset_path(config.path)
-        model_path = strip_path_prefix(model_path)
         return AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path=model_path,
+            pretrained_model_name_or_path=model_path.strip_prefix(),
             trust_remote_code=config.trust_remote_code,
             torch_dtype=config.torch_dtype,
             quantization_config=bnb_config,
@@ -132,9 +125,8 @@ class HuggingFaceAssetLoader:
         An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
         """
         tokenizer_path = self.resolve_asset_path(config.path)
-        tokenizer_path = strip_path_prefix(tokenizer_path)
         tokenizer = AutoTokenizer.from_pretrained(
-            pretrained_model_name_or_path=tokenizer_path,
+            pretrained_model_name_or_path=tokenizer_path.strip_prefix(),
             trust_remote_code=config.trust_remote_code,
             use_fast=config.use_fast,
         )
@@ -152,10 +144,10 @@ class HuggingFaceAssetLoader:
         """
         dataset_path = self.resolve_asset_path(config.path)
         # Dataset loading requires a different method if from a HF vs. disk
-        if dataset_path.startswith(PathPrefix.HUGGINGFACE):
-            return load_dataset(strip_path_prefix(dataset_path), split=config.split)
+        if dataset_path.scheme == PathScheme.HUGGINGFACE:
+            return load_dataset(dataset_path.strip_prefix(), split=config.split)
         else:
-            match load_from_disk(strip_path_prefix(dataset_path)):
+            match load_from_disk(dataset_path.strip_prefix()):
                 case Dataset() as dataset:
                     return dataset
                 case other:

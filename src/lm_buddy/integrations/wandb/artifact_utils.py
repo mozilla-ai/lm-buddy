@@ -5,7 +5,7 @@ from urllib.parse import ParseResult, urlparse
 import pandas as pd
 import wandb
 
-from lm_buddy.paths import FilePath, format_file_path, strip_path_prefix
+from lm_buddy.paths import AssetPath
 
 
 class ArtifactType(str, Enum):
@@ -24,7 +24,7 @@ def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
 
 def get_artifact_directory(
     artifact: wandb.Artifact, *, download_root_path: str | None = None
-) -> FilePath:
+) -> AssetPath:
     """Get the directory containing the artifact's data.
 
     If the artifact references data already on the filesystem, simply return that path.
@@ -35,16 +35,16 @@ def get_artifact_directory(
         match urlparse(entry.ref):
             case ParseResult(scheme="file", path=file_path):
                 dir_path = Path(file_path).parent
-                return format_file_path(dir_path)
+                return AssetPath.from_file(dir_path)
     # No filesystem references found in the manifest -> download the artifact
     download_path = artifact.download(root=download_root_path)
-    return format_file_path(download_path)
+    return AssetPath.from_file(download_path)
 
 
 def build_directory_artifact(
     artifact_name: str,
     artifact_type: ArtifactType,
-    dir_path: FilePath,
+    dir_path: AssetPath,
     *,
     reference: bool = False,
     entry_name: str | None = None,
@@ -71,8 +71,7 @@ def build_directory_artifact(
         # We can pass the URI scheme if necessary later
         artifact.add_reference(uri=dir_path, max_objects=max_objects, name=entry_name)
     else:
-        dir_path = strip_path_prefix(dir_path)
-        artifact.add_dir(dir_path, name=entry_name)
+        artifact.add_dir(dir_path.strip_prefix(), name=entry_name)
     return artifact
 
 

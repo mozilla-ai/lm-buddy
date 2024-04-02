@@ -24,7 +24,7 @@ from lm_buddy.integrations.wandb import (
 from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import PrometheusJobConfig
-from lm_buddy.paths import FilePath, format_file_path, format_wandb_path
+from lm_buddy.paths import AssetPath
 
 
 @dataclass
@@ -109,7 +109,7 @@ def run_eval(
     config: PrometheusJobConfig,
     artifact_loader: ArtifactLoader,
     client: OpenAI,
-) -> FilePath:
+) -> AssetPath:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     dataset = hf_loader.load_dataset(config.dataset)
@@ -156,7 +156,7 @@ def run_eval(
     ds = load_dataset("json", data_files=str(output_fname), split="train")
     ds.save_to_disk(output_dataset_path)
 
-    return format_file_path(output_dataset_path)
+    return AssetPath.from_file(output_dataset_path)
 
 
 def run_prometheus(
@@ -178,7 +178,7 @@ def run_prometheus(
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
             )
-            dataset_artifact_path = format_wandb_path(
+            dataset_artifact_path = AssetPath.from_wandb(
                 dataset_artifact.name, run.project, run.entity
             )
 
