@@ -33,6 +33,10 @@ class TextDatasetConfig(DatasetConfig):
 
     Inherits fields from the the base `DatasetConfig`.
     The dataset should contain a single text column named by the `text_field` parameter.
+
+    A `prompt_template` can be provided to format columns of the dataset.
+    The formatted prompt is added to the dataset as the `text_field`.
     """
 
     text_field: str = DEFAULT_TEXT_FIELD
+    prompt_template: str | None = None

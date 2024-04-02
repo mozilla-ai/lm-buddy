@@ -22,6 +22,7 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
+from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import PrometheusJobConfig
 
@@ -111,14 +112,15 @@ def run_eval(
 ) -> Path:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
-    data = hf_loader.load_dataset(config.dataset)
+    dataset = hf_loader.load_dataset(config.dataset)
+    dataset = preprocess_text_dataset(dataset, config.dataset)
 
     # get the tokenizer
     tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
     tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
 
     # enable / disable tqdm
-    dataset_iterable = tqdm(data) if config.evaluation.enable_tqdm else data
+    dataset_iterable = tqdm(dataset) if config.evaluation.enable_tqdm else dataset
 
     # open the output file for writing and iterate on samples
     tracking_name = config.tracking.name if config.tracking is not None else "output.json"
