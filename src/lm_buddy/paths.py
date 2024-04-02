@@ -1,3 +1,5 @@
+import re
+from enum import Enum
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -6,6 +8,17 @@ from pydantic import BeforeValidator
 
 from lm_buddy.integrations.wandb import WandbArtifactConfig
 from lm_buddy.types import BaseLMBuddyConfig
+
+
+def strip_path_prefix(path: str) -> str:
+    pattern = "^\w+\:\/\/"  # Matches '{prefix}://' at start of string
+    return re.sub(pattern, "", path)
+
+
+class PathPrefix(str, Enum):
+    FILE = "file://"
+    WANDB = "wandb://"
+    HUGGINGFACE = "hf://"
 
 
 class FilePath(BaseLMBuddyConfig):
