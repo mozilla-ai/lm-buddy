@@ -66,7 +66,7 @@ class HuggingFaceAssetLoader:
         W&B paths are resolved to file paths given the artifact manifest.
         The returned path still contains the `PathScheme` and prefix.
         """
-        if path.scheme in [PathScheme.FILE, PathScheme.WANDB]:
+        if path.scheme in [PathScheme.FILE, PathScheme.HUGGINGFACE]:
             return path
         elif path.scheme == PathScheme.WANDB:
             artifact = self._artifact_loader.use_artifact(path)

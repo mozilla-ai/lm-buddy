@@ -58,7 +58,7 @@ class AssetPath(str):
         return cls(f"{PathScheme.FILE}://{path}")
 
     @classmethod
-    def from_repo_id(cls, repo_id: str) -> "AssetPath":
+    def from_huggingface_repo(cls, repo_id: str) -> "AssetPath":
         return cls(f"{PathScheme.HUGGINGFACE}://{repo_id}")
 
     @classmethod

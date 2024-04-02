@@ -5,7 +5,7 @@ from urllib.parse import ParseResult, urlparse
 import pandas as pd
 import wandb
 
-from lm_buddy.paths import AssetPath
+from lm_buddy.paths import AssetPath, PathScheme
 
 
 class ArtifactType(str, Enum):
@@ -33,7 +33,7 @@ def get_artifact_directory(
     """
     for entry in artifact.manifest.entries.values():
         match urlparse(entry.ref):
-            case ParseResult(scheme="file", path=file_path):
+            case ParseResult(scheme=PathScheme.FILE, path=file_path):
                 dir_path = Path(file_path).parent
                 return AssetPath.from_file(dir_path)
     # No filesystem references found in the manifest -> download the artifact
