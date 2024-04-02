@@ -38,7 +38,7 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
     tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
 
     datasets = hf_loader.load_and_split_dataset(config.dataset)
-    for split, dataset in datasets:
+    for split, dataset in datasets.items():
         datasets[split] = preprocess_text_dataset(dataset, config.dataset)
 
     training_args = TrainingArguments(
