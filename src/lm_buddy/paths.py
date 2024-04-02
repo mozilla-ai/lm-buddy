@@ -71,19 +71,19 @@ The path begins with one of the allowed `PathPrefix`s that determine how to load
 """
 
 
-def format_file_path(path: str | Path) -> FilePath:
+def format_file_prefix(path: str | Path) -> FilePath:
     return f"{PathPrefix.FILE}{path}"
 
 
-def format_huggingface_path(repo_name: str) -> HuggingFacePath:
-    return f"{PathPrefix.HUGGINGFACE}{repo_name}"
+def format_huggingface_prefix(repo: str) -> HuggingFacePath:
+    return f"{PathPrefix.HUGGINGFACE}{repo}"
 
 
-def format_wandb_artifact_path(
+def format_wandb_prefix(
     name: str,
     project: str,
     entity: str | None,
     version: str = "latest",
 ) -> WandbArtifactPath:
-    npe = "/".join(x for x in [entity, project, name] if x is not None)
-    return f"{PathPrefix.WANDB}{npe}:{version}"
+    base_path = "/".join(x for x in [entity, project, name] if x is not None)
+    return f"{PathPrefix.WANDB}{base_path}:{version}"

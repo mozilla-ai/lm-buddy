@@ -1,14 +1,14 @@
 from pathlib import Path
 
 from datasets import load_dataset
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_openai import ChatOpenAI
 from ragas import evaluate as ragas_evaluate
 from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
-from lm_buddy.integrations.wandb import artifact_loader
-from lm_buddy.integrations.wandb.artifact_utils import (
+from lm_buddy.integrations.wandb import (
+    ArtifactLoader,
     ArtifactType,
     build_directory_artifact,
     default_artifact_name,
@@ -17,7 +17,12 @@ from lm_buddy.integrations.wandb.run_utils import wandb_init_from_config
 from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import RagasJobConfig
-from lm_buddy.paths import FilePath, format_file_path, format_wandb_artifact_path
+from lm_buddy.paths import (
+    FilePath,
+    format_file_prefix,
+    format_wandb_prefix,
+    strip_path_prefix,
+)
 
 RAGAS_METRICS_MAP = {
     "faithfulness": faithfulness,
@@ -27,7 +32,7 @@ RAGAS_METRICS_MAP = {
 }
 
 
-def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> FilePath:
+def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> FilePath:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     evaluation_dataset = hf_loader.load_dataset(config.dataset)
@@ -37,13 +42,16 @@ def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> FilePa
     ragas_args = {}
 
     # load embedding model
-    ragas_args["embeddings"] = HuggingFaceEmbeddings(model_name=config.evaluation.embedding_model)
+    embedding_model = hf_loader.resolve_asset_path(config.evaluation.embedding_model.path)
+    embedding_model = strip_path_prefix(embedding_model)
+    ragas_args["embeddings"] = HuggingFaceEmbeddings(model_name=embedding_model)
 
     # configure ragas to point to vllm instance for generation
+    inference_engine = hf_loader.resolve_asset_path(config.judge.inference.engine)
+    inference_engine = strip_path_prefix(inference_engine)
     ragas_args["llm"] = ChatOpenAI(
-        model=config.ragas_inference_server.engine,
+        model=inference_engine,
         openai_api_key="EMPTY",  # needed to hit custom openai endpoint
-        # get api endpoint from environment variable
         openai_api_base=config.judge.inference.base_url,
         max_tokens=config.judge.max_tokens,
         temperature=config.judge.temperature,
@@ -67,23 +75,23 @@ def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> FilePa
     ds = load_dataset("json", data_files=str(output_fname), split="train")
     ds.save_to_disk(output_dataset_path)
 
-    return format_file_path(output_dataset_path)
+    return format_file_prefix(output_dataset_path)
 
 
-def run_ragas(config: RagasJobConfig, artifact_loader: artifact_loader) -> EvaluationResult:
+def run_ragas(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> EvaluationResult:
     # Run ragas eval and store output in local filename
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
-            output_dataset_path = run_eval(config, artifact_loader)
+            output_file_path = run_eval(config, artifact_loader)
 
             # Create a directory artifact for the HF dataset
             dataset_artifact = build_directory_artifact(
-                dir_path=output_dataset_path,
+                dir_path=output_file_path,
                 artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
             )
-            dataset_artifact_path = format_wandb_artifact_path(
+            dataset_artifact_path = format_wandb_prefix(
                 dataset_artifact.name, run.project, run.entity
             )
 
@@ -91,13 +99,13 @@ def run_ragas(config: RagasJobConfig, artifact_loader: artifact_loader) -> Evalu
             artifact_loader.log_artifact(dataset_artifact)
 
     else:
-        output_dataset_path = run_eval(config, artifact_loader)
+        output_file_path = run_eval(config, artifact_loader)
         dataset_artifact_path = None
 
-    print(f"Evaluation dataset stored at {output_dataset_path}")
+    print(f"Evaluation dataset stored at {output_file_path}")
     return EvaluationResult(
         tables={},
         table_artifact_path=None,
-        dataset_path=output_dataset_path,
+        dataset_path=output_file_path,
         dataset_artifact_path=dataset_artifact_path,
     )
