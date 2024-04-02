@@ -116,7 +116,7 @@ def run_eval(
     dataset = preprocess_text_dataset(dataset, config.dataset)
 
     # get the tokenizer
-    tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
+    tokenizer_config = AutoTokenizerConfig(path=config.prometheus.inference.engine)
     tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
 
     # enable / disable tqdm

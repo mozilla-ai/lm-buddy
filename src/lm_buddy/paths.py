@@ -1,40 +1,15 @@
 import re
 from enum import Enum
-from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated
 
 from huggingface_hub.utils import HFValidationError, validate_repo_id
-from pydantic import BeforeValidator
-
-from lm_buddy.integrations.wandb import WandbArtifactConfig
-from lm_buddy.types import BaseLMBuddyConfig
-
-
-def strip_path_prefix(path: str) -> str:
-    pattern = "^\w+\:\/\/"  # Matches '{prefix}://' at start of string
-    return re.sub(pattern, "", path)
+from pydantic import AfterValidator
 
 
 class PathPrefix(str, Enum):
     FILE = "file://"
     WANDB = "wandb://"
     HUGGINGFACE = "hf://"
-
-
-class FilePath(BaseLMBuddyConfig):
-    """Absolute path to an object on the local filesystem."""
-
-    __match_args__ = ("path",)
-
-    path: Path
-
-
-class HuggingFaceRepoID(BaseLMBuddyConfig):
-    """Repository ID on the HuggingFace Hub."""
-
-    __match_args__ = ("repo_id",)
-
-    repo_id: str
 
 
 def is_valid_huggingface_repo_id(s: str):
@@ -52,30 +27,25 @@ def is_valid_huggingface_repo_id(s: str):
         return False
 
 
-def validate_asset_path(x: Any) -> Any:
-    match x:
-        case Path() as p:
-            return FilePath(path=p)
-        case str() as s if Path(s).is_absolute():
-            return FilePath(path=s)
-        case str() as s if is_valid_huggingface_repo_id(s):
-            return HuggingFaceRepoID(repo_id=s)
-        case str():
-            raise ValueError(f"{x} is neither a valid HuggingFace repo ID or an absolute path.")
-        case _:
-            # Handled by downstream "after" validators
-            return x
+def validate_asset_path(path: str) -> str:
+    if path.startswith((PathPrefix.FILE, PathPrefix.WANDB)):
+        return path
+    elif path.startswith(PathPrefix.HUGGINGFACE):
+        raw_path = strip_path_prefix(path)
+        if not is_valid_huggingface_repo_id(raw_path):
+            raise ValueError(f"{path} is not a valid HuggingFace repo ID.")
+    else:
+        allowed = {x.value for x in PathPrefix}
+        raise ValueError(f"{path} does not start with one of the allowed prefixes: {allowed}")
 
 
-AssetPath = Annotated[
-    FilePath | HuggingFaceRepoID | WandbArtifactConfig,
-    BeforeValidator(lambda x: validate_asset_path(x)),
-]
-"""Union type representing the name/path for loading HuggingFace asset.
+AssetPath = Annotated[str, AfterValidator(lambda x: validate_asset_path(x))]
+"""String representing the name/path for loading a HuggingFace asset.
 
-The path is represented by either a `FileSystemPath`, a `HuggingFaceRepoID`
-or a `WandbArtifactConfig` that can be resolved to a path via the artifact's manifest.
-
-This type is annotated with Pydantic validation logic to convert absolute path strings
-to `FilesystemPath`s and other strings to `HuggingFaceRepoID`s.
+The path begins with one of the allowed `PathPrefix`s that determine how to load the asset.
 """
+
+
+def strip_path_prefix(path: AssetPath) -> str:
+    pattern = "^\w+\:\/\/"  # Matches '{prefix}://' at start of string
+    return re.sub(pattern, "", path)

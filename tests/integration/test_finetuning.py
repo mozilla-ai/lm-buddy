@@ -10,10 +10,10 @@ from tests.test_utils import FakeArtifactLoader
 @pytest.fixture
 def job_config(llm_model_artifact, text_dataset_artifact):
     model_config = AutoModelConfig(
-        load_from=WandbArtifactConfig(name=llm_model_artifact.name, project="test")
+        path=WandbArtifactConfig(name=llm_model_artifact.name, project="test")
     )
     dataset_config = TextDatasetConfig(
-        load_from=WandbArtifactConfig(name=text_dataset_artifact.name, project="test"),
+        path=WandbArtifactConfig(name=text_dataset_artifact.name, project="test"),
         text_field="text",
         split="train",
     )

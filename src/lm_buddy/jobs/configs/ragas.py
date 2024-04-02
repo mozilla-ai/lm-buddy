@@ -38,7 +38,7 @@ class RagasEvaluationConfig(BaseLMBuddyConfig):
     def validate_embedding_model_arg(cls, x):
         """Allow for passing just a path string as the model argument."""
         if isinstance(x, str):
-            return AutoModelConfig(load_from=x)
+            return AutoModelConfig(path=x)
         return x
 
 

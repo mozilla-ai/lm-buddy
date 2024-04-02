@@ -1,21 +1,16 @@
 # Base model to load for finetuning
 model:
-  load_from:
-    repo_id: "distilgpt2"
+  path: "hf://distilgpt2"
   # Can also specify the asset to load as a W&B artifact
-  # load_from:
-  #   name: "artifact-name"
-  #   project: "artifact-project"
-  #   version: "v0"
+  # path: "wandb://artifact-project/artifact-name:v0"
   torch_dtype: "bfloat16"
 
 # Tokenizer section (when not defined, will default to the model value)
-# tokenizer: "distilgpt2"
+# tokenizer: "hf://distilgpt2"
 
 # Text dataset to use for training
 dataset:
-  load_from:
-    repo_id: "imdb"
+  path: "hf://imdb"
   split: "train[:100]"
   test_size: 0.2
   text_field: "text"

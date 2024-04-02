@@ -1,16 +1,12 @@
 dataset:
-  load_from:
-    name: "wandb_file_artifact_name.json"
-    version: "latest"
-    project: "lm-buddy-prometheus"
-    entity: "mozilla-ai"
+  path: "wandb://sample-entity/lm-buddy-examples/wandb-file-artifact:latest"
   # field containing scoring instructions in the json file
   text_field: "instruction"
 
 prometheus:
   inference:
     base_url: "http://your.vllm.server:8000/v1"
-    engine: "kaist-ai/prometheus-13b-v1.0"
+    engine: "hf://kaist-ai/prometheus-13b-v1.0"
   best_of: 1
   max_tokens: 512
   frequency_penalty: 1.03

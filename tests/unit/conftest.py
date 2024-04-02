@@ -14,35 +14,35 @@ from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
 
 @pytest.fixture
 def model_config_with_repo_id():
-    return AutoModelConfig(load_from="mistral-ai/mistral-7", trust_remote_code=True)
+    return AutoModelConfig(path="mistral-ai/mistral-7", trust_remote_code=True)
 
 
 @pytest.fixture
 def model_config_with_artifact():
     artifact = WandbArtifactConfig(name="model", project="project")
-    return AutoModelConfig(load_from=artifact, trust_remote_code=True, torch_dtype="float16")
+    return AutoModelConfig(path=artifact, trust_remote_code=True, torch_dtype="float16")
 
 
 @pytest.fixture
 def tokenizer_config_with_repo_id():
-    return AutoTokenizerConfig(load_from="mistral-ai/mistral-7", trust_remote_code=True)
+    return AutoTokenizerConfig(path="mistral-ai/mistral-7", trust_remote_code=True)
 
 
 @pytest.fixture
 def tokenizer_config_with_artifact():
     artifact = WandbArtifactConfig(name="tokenizer", project="project")
-    return AutoTokenizerConfig(load_from=artifact, trust_remote_code=True)
+    return AutoTokenizerConfig(path=artifact, trust_remote_code=True)
 
 
 @pytest.fixture
 def dataset_config_with_repo_id():
-    return TextDatasetConfig(load_from="databricks/dolly15k", text_field="text", split="train")
+    return TextDatasetConfig(path="databricks/dolly15k", text_field="text", split="train")
 
 
 @pytest.fixture
 def dataset_config_with_artifact():
     artifact = WandbArtifactConfig(name="dataset", project="project")
-    return TextDatasetConfig(load_from=artifact, split="train")
+    return TextDatasetConfig(path=artifact, split="train")
 
 
 @pytest.fixture

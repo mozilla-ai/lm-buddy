@@ -13,7 +13,7 @@ def test_dataset_loading(xyz_dataset_artifact):
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
 
     artifact_config = WandbArtifactConfig(name=xyz_dataset_artifact.name, project="project")
-    dataset_config = DatasetConfig(load_from=artifact_config, test_size=0.2, seed=0)
+    dataset_config = DatasetConfig(path=artifact_config, test_size=0.2, seed=0)
 
     dataset = hf_loader.load_dataset(dataset_config)
     assert type(dataset) is Dataset
@@ -30,7 +30,7 @@ def test_model_loading(llm_model_artifact):
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
 
     artifact_config = WandbArtifactConfig(name=llm_model_artifact.name, project="project")
-    model_config = AutoModelConfig(load_from=artifact_config, torch_dtype=torch.bfloat16)
+    model_config = AutoModelConfig(path=artifact_config, torch_dtype=torch.bfloat16)
 
     hf_config = hf_loader.load_pretrained_config(model_config)
     hf_model = hf_loader.load_pretrained_model(model_config)

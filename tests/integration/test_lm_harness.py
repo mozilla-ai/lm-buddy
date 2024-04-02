@@ -10,7 +10,7 @@ from tests.test_utils import FakeArtifactLoader
 @pytest.fixture
 def job_config(llm_model_artifact):
     model_config = AutoModelConfig(
-        load_from=WandbArtifactConfig(name=llm_model_artifact.name, project="test")
+        path=WandbArtifactConfig(name=llm_model_artifact.name, project="test")
     )
 
     tracking_config = WandbRunConfig(name="test-lm-harness-job")
