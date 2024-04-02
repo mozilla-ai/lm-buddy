@@ -1,11 +1,12 @@
 from lm_buddy.integrations.wandb import ArtifactLoader, WandbArtifactLoader
-from lm_buddy.jobs._entrypoints import run_finetuning, run_lm_harness, run_prometheus
+from lm_buddy.jobs._entrypoints import run_finetuning, run_lm_harness, run_prometheus, run_ragas
 from lm_buddy.jobs.common import EvaluationResult, FinetuningResult
 from lm_buddy.jobs.configs import (
     EvaluationJobConfig,
     FinetuningJobConfig,
     LMHarnessJobConfig,
     PrometheusJobConfig,
+    RagasJobConfig,
 )
 
 
@@ -33,5 +34,7 @@ class LMBuddy:
                 return run_lm_harness(lm_harness_config, self._artifact_loader)
             case PrometheusJobConfig() as prometheus_config:
                 return run_prometheus(prometheus_config, self._artifact_loader)
+            case RagasJobConfig() as ragas_config:
+                return run_ragas(ragas_config, self._artifact_loader)
             case _:
                 raise ValueError(f"Invlid configuration for evaluation: {type(config)}")

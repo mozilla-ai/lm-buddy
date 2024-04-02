@@ -6,8 +6,10 @@ from lm_buddy.jobs.configs.lm_harness import (
     LocalChatCompletionsConfig,
 )
 from lm_buddy.jobs.configs.prometheus import PrometheusEvaluationConfig, PrometheusJobConfig
+from lm_buddy.jobs.configs.ragas import RagasEvaluationConfig, RagasJobConfig
 
-EvaluationJobConfig = LMHarnessJobConfig | PrometheusJobConfig
+EvaluationJobConfig = LMHarnessJobConfig | PrometheusJobConfig | RagasJobConfig
+
 
 __all__ = [
     "LMBuddyJobConfig",
@@ -18,5 +20,7 @@ __all__ = [
     "LocalChatCompletionsConfig",
     "PrometheusEvaluationConfig",
     "PrometheusJobConfig",
+    "RagasEvaluationConfig",
+    "RagasJobConfig",
     "EvaluationJobConfig",
 ]
