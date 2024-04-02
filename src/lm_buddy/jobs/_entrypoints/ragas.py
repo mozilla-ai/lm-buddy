@@ -8,7 +8,6 @@ from ragas.metrics import answer_relevancy, context_precision, context_recall, f
 
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import artifact_loader
-from lm_buddy.integrations.wandb.artifact_config import WandbArtifactConfig
 from lm_buddy.integrations.wandb.artifact_utils import (
     ArtifactType,
     build_directory_artifact,
@@ -18,6 +17,7 @@ from lm_buddy.integrations.wandb.run_utils import wandb_init_from_config
 from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import RagasJobConfig
+from lm_buddy.paths import FilePath, format_file_path, format_wandb_artifact_path
 
 RAGAS_METRICS_MAP = {
     "faithfulness": faithfulness,
@@ -27,7 +27,7 @@ RAGAS_METRICS_MAP = {
 }
 
 
-def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> Path:
+def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> FilePath:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     evaluation_dataset = hf_loader.load_dataset(config.dataset)
@@ -67,7 +67,7 @@ def run_eval(config: RagasJobConfig, artifact_loader: artifact_loader) -> Path:
     ds = load_dataset("json", data_files=str(output_fname), split="train")
     ds.save_to_disk(output_dataset_path)
 
-    return output_dataset_path
+    return format_file_path(output_dataset_path)
 
 
 def run_ragas(config: RagasJobConfig, artifact_loader: artifact_loader) -> EvaluationResult:
@@ -83,25 +83,21 @@ def run_ragas(config: RagasJobConfig, artifact_loader: artifact_loader) -> Evalu
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
             )
+            dataset_artifact_path = format_wandb_artifact_path(
+                dataset_artifact.name, run.project, run.entity
+            )
 
             print("Logging dataset artifact for Ragas evaluation ...")
             artifact_loader.log_artifact(dataset_artifact)
 
-            # Create a config referencing the new artifact
-            dataset_artifact_config = WandbArtifactConfig(
-                name=dataset_artifact.name,
-                project=run.project,
-                entity=run.entity,
-            )
-
     else:
         output_dataset_path = run_eval(config, artifact_loader)
-        dataset_artifact_config = None
+        dataset_artifact_path = None
 
     print(f"Evaluation dataset stored at {output_dataset_path}")
     return EvaluationResult(
         tables={},
-        table_artifact=None,
-        dataset_artifact=dataset_artifact_config,
+        table_artifact_path=None,
         dataset_path=output_dataset_path,
+        dataset_artifact_path=dataset_artifact_path,
     )

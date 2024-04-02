@@ -21,12 +21,14 @@ from lm_buddy.integrations.huggingface import (
 )
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
-    get_artifact_filesystem_path,
+    get_artifact_directory,
 )
-from lm_buddy.paths import AssetPath, PathPrefix, strip_path_prefix
+from lm_buddy.paths import AssetPath, FilePath, HuggingFacePath, PathPrefix, strip_path_prefix
 
 
-def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
+def resolve_peft_and_pretrained(
+    path: FilePath | HuggingFacePath,
+) -> tuple[str, str | None]:
     """Helper method for determining if a path corresponds to a PEFT model.
 
     A PEFT model contains an `adapter_config.json` in its directory.
@@ -42,6 +44,7 @@ def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
     try:
+        path = strip_path_prefix(path)
         peft_config = PeftConfig.from_pretrained(path)
         return peft_config.base_model_name_or_path, path
     except ValueError as e:
@@ -62,19 +65,17 @@ class HuggingFaceAssetLoader:
     def __init__(self, artifact_loader: ArtifactLoader):
         self._artifact_loader = artifact_loader
 
-    def resolve_asset_path(self, path: AssetPath) -> AssetPath:
+    def resolve_asset_path(self, path: AssetPath) -> FilePath | HuggingFacePath:
         """Resolve the loadable version of an `AssetPath`.
 
         W&B paths are resolved to file paths given the artifact manifest.
         The returned path contains the `PathPrefix`.
         """
-        raw_path = strip_path_prefix(path)
         if path.startswith((PathPrefix.FILE, PathPrefix.HUGGINGFACE)):
             return path
         elif path.startswith(PathPrefix.WANDB):
-            artifact = self._artifact_loader.use_artifact(raw_path)
-            artifact_path = get_artifact_filesystem_path(artifact)
-            return f"{PathPrefix.FILE}{artifact_path}"
+            artifact = self._artifact_loader.use_artifact(path)
+            return get_artifact_directory(artifact)
         else:
             raise ValueError(f"Unable to resolve asset path from {path}.")
 

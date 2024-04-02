@@ -14,7 +14,6 @@ from lm_buddy.integrations.huggingface import (
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    WandbArtifactConfig,
     WandbResumeMode,
     build_table_artifact,
     default_artifact_name,
@@ -22,7 +21,7 @@ from lm_buddy.integrations.wandb import (
 )
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.paths import AssetPath
+from lm_buddy.paths import format_wandb_artifact_path, strip_path_prefix
 
 
 def get_per_task_dataframes(
@@ -67,12 +66,10 @@ def load_harness_model(
             )
 
         case LocalChatCompletionsConfig() as local_config:
-            model = local_config.inference.engine
-            if isinstance(model, AssetPath):
-                model = hf_loader.resolve_asset_path(model)
-            # If tokenizer is not provided, it is set to the value of model internally
+            engine_path = hf_loader.resolve_asset_path(local_config.inference.engine)
+            engine_path = strip_path_prefix(engine_path)
             return OpenaiCompletionsLM(
-                model=model,
+                model=engine_path,
                 base_url=local_config.inference.base_url,
                 tokenizer_backend=local_config.tokenizer_backend,
                 truncate=local_config.truncate,
@@ -119,21 +116,19 @@ def run_lm_harness(
                 artifact_type=ArtifactType.EVALUATION,
                 tables=eval_tables,
             )
+            table_artifact_path = format_wandb_artifact_path(
+                table_artifact.name, run.project, run.entity
+            )
+
             print("Logging artifact for evaluation results...")
             artifact_loader.log_artifact(table_artifact)
-            # Create an artifact config to reference the new table artifact
-            table_artifact_config = WandbArtifactConfig(
-                name=table_artifact.name,
-                project=run.project,
-                entity=run.entity,
-            )
     else:
         eval_tables = run_eval(config, artifact_loader)
-        table_artifact_config = None
+        table_artifact_path = None
 
     return EvaluationResult(
         tables=eval_tables,
-        table_artifact=table_artifact_config,
+        table_artifact_path=table_artifact_path,
         dataset_path=None,
-        dataset_artifact=None,
+        dataset_artifact_path=None,
     )

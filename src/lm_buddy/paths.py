@@ -1,5 +1,6 @@
 import re
 from enum import Enum
+from pathlib import Path
 from typing import Annotated
 
 from huggingface_hub.utils import HFValidationError, validate_repo_id
@@ -8,8 +9,14 @@ from pydantic import AfterValidator
 
 class PathPrefix(str, Enum):
     FILE = "file://"
-    WANDB = "wandb://"
     HUGGINGFACE = "hf://"
+    WANDB = "wandb://"
+
+
+def strip_path_prefix(path: str) -> str:
+    """Strip '{prefix}://' from the start of a string."""
+    pattern = "^\w+\:\/\/"
+    return re.sub(pattern, "", path)
 
 
 def is_valid_huggingface_repo_id(s: str):
@@ -27,25 +34,56 @@ def is_valid_huggingface_repo_id(s: str):
         return False
 
 
-def validate_asset_path(path: str) -> str:
-    if path.startswith((PathPrefix.FILE, PathPrefix.WANDB)):
-        return path
-    elif path.startswith(PathPrefix.HUGGINGFACE):
+def validate_path_prefix(path: str, prefix: PathPrefix) -> str:
+    if not path.startswith(prefix):
+        raise ValueError(f"{path} does not start with the prefix {prefix}.")
+    # Extra check for HF validity
+    if prefix == PathPrefix.HUGGINGFACE:
         raw_path = strip_path_prefix(path)
         if not is_valid_huggingface_repo_id(raw_path):
             raise ValueError(f"{path} is not a valid HuggingFace repo ID.")
-    else:
-        allowed = {x.value for x in PathPrefix}
-        raise ValueError(f"{path} does not start with one of the allowed prefixes: {allowed}")
+    return path
 
 
-AssetPath = Annotated[str, AfterValidator(lambda x: validate_asset_path(x))]
+FilePath = Annotated[
+    str,
+    AfterValidator(lambda x: validate_path_prefix(x, PathPrefix.FILE)),
+]
+"""Path string that begins with 'file://'."""
+
+HuggingFacePath = Annotated[
+    str,
+    AfterValidator(lambda x: validate_path_prefix(x, PathPrefix.HUGGINGFACE)),
+]
+"""Path string that begins with 'hf://'."""
+
+WandbArtifactPath = Annotated[
+    str,
+    AfterValidator(lambda x: validate_path_prefix(x, PathPrefix.WANDB)),
+]
+"""Path string that begins with 'wandb://'."""
+
+
+AssetPath = FilePath | HuggingFacePath | WandbArtifactPath
 """String representing the name/path for loading a HuggingFace asset.
 
 The path begins with one of the allowed `PathPrefix`s that determine how to load the asset.
 """
 
 
-def strip_path_prefix(path: AssetPath) -> str:
-    pattern = "^\w+\:\/\/"  # Matches '{prefix}://' at start of string
-    return re.sub(pattern, "", path)
+def format_file_path(path: str | Path) -> FilePath:
+    return f"{PathPrefix.FILE}{path}"
+
+
+def format_huggingface_path(repo_name: str) -> HuggingFacePath:
+    return f"{PathPrefix.HUGGINGFACE}{repo_name}"
+
+
+def format_wandb_artifact_path(
+    name: str,
+    project: str,
+    entity: str | None,
+    version: str = "latest",
+) -> WandbArtifactPath:
+    npe = "/".join(x for x in [entity, project, name] if x is not None)
+    return f"{PathPrefix.WANDB}{npe}:{version}"

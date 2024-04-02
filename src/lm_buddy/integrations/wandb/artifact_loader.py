@@ -2,6 +2,8 @@ from typing import Protocol
 
 import wandb
 
+from lm_buddy.paths import WandbArtifactPath, strip_path_prefix
+
 
 class ArtifactLoader(Protocol):
     """Base interface for using/logging artifacts.
@@ -10,7 +12,7 @@ class ArtifactLoader(Protocol):
     this interface should be abstracted to handle the types for those respective services.
     """
 
-    def use_artifact(self, artifact_path: str) -> wandb.Artifact:
+    def use_artifact(self, artifact_path: WandbArtifactPath) -> wandb.Artifact:
         """Load an artifact from its W&B path.
 
         If a W&B run is active, the artifact is declared as an input to the run.
@@ -29,7 +31,8 @@ class WandbArtifactLoader:
     This class makes external calls to the W&B API and is not suitable for test environments.
     """
 
-    def use_artifact(self, artifact_path: str) -> wandb.Artifact:
+    def use_artifact(self, artifact_path: WandbArtifactPath) -> wandb.Artifact:
+        artifact_path = strip_path_prefix(artifact_path)
         if wandb.run is not None:
             # Retrieves the artifact and links it as an input to the run
             return wandb.use_artifact(artifact_path)

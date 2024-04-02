@@ -1,9 +1,10 @@
 from enum import Enum
 from pathlib import Path
-from urllib.parse import ParseResult, urlparse
 
 import pandas as pd
 import wandb
+
+from lm_buddy.paths import FilePath, PathPrefix, format_file_path
 
 
 class ArtifactType(str, Enum):
@@ -15,26 +16,14 @@ class ArtifactType(str, Enum):
     EVALUATION = "evaluation"
 
 
-class ArtifactURIScheme(str, Enum):
-    """Enumeration of URI schemes to use in a reference artifact."""
-
-    FILE = "file"
-    HTTP = "http"
-    HTTPS = "https"
-    S3 = "s3"
-    GCS = "gs"
-
-
 def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
     """A default name for an artifact based on the run name and type."""
     return f"{name}-{artifact_type}"
 
 
-def get_artifact_filesystem_path(
-    artifact: wandb.Artifact,
-    *,
-    download_root_path: str | None = None,
-) -> Path:
+def get_artifact_directory(
+    artifact: wandb.Artifact, *, download_root_path: str | None = None
+) -> FilePath:
     """Get the directory containing the artifact's data.
 
     If the artifact references data already on the filesystem, simply return that path.
@@ -42,18 +31,17 @@ def get_artifact_filesystem_path(
     and returns the newly created artifact directory path.
     """
     for entry in artifact.manifest.entries.values():
-        match urlparse(entry.ref):
-            case ParseResult(scheme="file", path=file_path):
-                return Path(file_path).parent
+        if entry.ref.startswith(PathPrefix.FILE):
+            return str(Path(entry.ref).parent)
     # No filesystem references found in the manifest -> download the artifact
     download_path = artifact.download(root=download_root_path)
-    return Path(download_path)
+    return format_file_path(download_path)
 
 
 def build_directory_artifact(
     artifact_name: str,
     artifact_type: ArtifactType,
-    dir_path: str | Path,
+    dir_path: FilePath,
     *,
     reference: bool = False,
     entry_name: str | None = None,
@@ -64,7 +52,7 @@ def build_directory_artifact(
     Args:
         artifact_name (str): Name of the artifact.
         artifact_type (ArtifactType): Type of artifact.
-        dir_path (str | Path): Directory path to include in the artifact.
+        dir_path (FileAssetPath): Directory path to include in the artifact.
 
     Keyword Args:
         reference (bool): Only reference the directory, do not copy contents. Defaults to False.
@@ -78,13 +66,9 @@ def build_directory_artifact(
     if reference:
         # Right now, we are assuming a fixed "file" URI scheme
         # We can pass the URI scheme if necessary later
-        artifact.add_reference(
-            uri=f"{ArtifactURIScheme.FILE}://{dir_path}",
-            max_objects=max_objects,
-            name=entry_name,
-        )
+        artifact.add_reference(uri=dir_path, max_objects=max_objects, name=entry_name)
     else:
-        artifact.add_dir(str(dir_path), name=entry_name)
+        artifact.add_dir(dir_path, name=entry_name)
     return artifact
 
 

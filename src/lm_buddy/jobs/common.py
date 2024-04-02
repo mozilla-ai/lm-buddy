@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from lm_buddy.integrations.wandb import WandbArtifactConfig
+from lm_buddy.paths import FilePath, WandbArtifactPath
 
 
 class LMBuddyJobType(str, Enum):
@@ -20,8 +19,8 @@ class LMBuddyJobType(str, Enum):
 class FinetuningResult:
     """Result from a finetuning task."""
 
-    checkpoint_path: Path | None
-    checkpoint_artifact: WandbArtifactConfig | None
+    checkpoint_path: FilePath | None
+    checkpoint_artifact_path: WandbArtifactPath | None
     metrics: dict[str, Any]
     is_adapter: bool
 
@@ -31,6 +30,6 @@ class EvaluationResult:
     """Result from an evaluation task, containing aggregate metrics and artifacts."""
 
     tables: dict[str, pd.DataFrame]
-    table_artifact: WandbArtifactConfig | None
-    dataset_artifact: WandbArtifactConfig | None
-    dataset_path: Path | None
+    table_artifact_path: WandbArtifactPath | None
+    dataset_path: FilePath | None
+    dataset_artifact_path: WandbArtifactPath | None
