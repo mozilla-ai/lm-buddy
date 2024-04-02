@@ -19,6 +19,7 @@ from lm_buddy.integrations.wandb import (
     default_artifact_name,
     wandb_init_from_config,
 )
+from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType
 from lm_buddy.jobs.configs import FinetuningJobConfig
 
@@ -35,7 +36,10 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     model = hf_loader.load_pretrained_model(config.model, config.quantization)
     tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
+
     datasets = hf_loader.load_and_split_dataset(config.dataset)
+    for split, dataset in datasets.items():
+        datasets[split] = preprocess_text_dataset(dataset, config.dataset)
 
     training_args = TrainingArguments(
         output_dir="out",  # Local checkpoint path on a worker
