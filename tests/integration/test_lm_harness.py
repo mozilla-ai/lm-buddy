@@ -1,18 +1,19 @@
-import pytest
+import wandb
 
 from lm_buddy import LMBuddy
 from lm_buddy.integrations.huggingface import AutoModelConfig
-from lm_buddy.integrations.wandb import WandbArtifactConfig, WandbRunConfig
+from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.jobs.configs import LMHarnessEvaluationConfig, LMHarnessJobConfig
-from tests.test_utils import FakeArtifactLoader
+from lm_buddy.paths import format_artifact_path
+from tests.utils import FakeArtifactLoader
 
 
-@pytest.fixture
-def job_config(llm_model_artifact):
-    model_config = AutoModelConfig(
-        load_from=WandbArtifactConfig(name=llm_model_artifact.name, project="test")
-    )
+def get_job_config(model_artifact: wandb.Artifact) -> LMHarnessJobConfig:
+    """Create a job config for evaluation.
 
+    The artifact should already be logged and contain a fully qualified W&B name.
+    """
+    model_config = AutoModelConfig(path=format_artifact_path(model_artifact))
     tracking_config = WandbRunConfig(name="test-lm-harness-job")
     evaluation_config = LMHarnessEvaluationConfig(tasks=["hellaswag"], limit=5)
     return LMHarnessJobConfig(
@@ -22,10 +23,13 @@ def job_config(llm_model_artifact):
     )
 
 
-def test_lm_harness_job_with_tracking(llm_model_artifact, job_config):
+def test_lm_harness_job_with_tracking(llm_model_artifact):
     # Preload input artifact in loader
     artifact_loader = FakeArtifactLoader()
-    artifact_loader.log_artifact(llm_model_artifact)
+    logged_model_artifact = artifact_loader.log_artifact(llm_model_artifact)
+
+    # Get a job config
+    job_config = get_job_config(logged_model_artifact)
 
     # Run test job
     buddy = LMBuddy(artifact_loader)
@@ -35,13 +39,14 @@ def test_lm_harness_job_with_tracking(llm_model_artifact, job_config):
     assert artifact_loader.num_artifacts() == 2
 
 
-def test_lm_harness_job_no_tracking(llm_model_artifact, job_config):
-    # Disable tracking on job config
-    job_config.tracking = None
-
+def test_lm_harness_job_no_tracking(llm_model_artifact):
     # Preload input artifact in loader
     artifact_loader = FakeArtifactLoader()
-    artifact_loader.log_artifact(llm_model_artifact)
+    llm_model_artifact = artifact_loader.log_artifact(llm_model_artifact)
+
+    # Get a job config
+    job_config = get_job_config(llm_model_artifact)
+    job_config.tracking = None  # Disable tracking on job config
 
     # Run test job
     buddy = LMBuddy(artifact_loader)

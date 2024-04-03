@@ -17,7 +17,6 @@ from lm_buddy.integrations.huggingface import AutoTokenizerConfig, HuggingFaceAs
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    WandbArtifactConfig,
     build_directory_artifact,
     default_artifact_name,
     wandb_init_from_config,
@@ -116,7 +115,7 @@ def run_eval(
     dataset = preprocess_text_dataset(dataset, config.dataset)
 
     # get the tokenizer
-    tokenizer_config = AutoTokenizerConfig(load_from=config.prometheus.inference.engine)
+    tokenizer_config = AutoTokenizerConfig(path=config.prometheus.inference.engine)
     tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
 
     # enable / disable tqdm
@@ -170,32 +169,23 @@ def run_prometheus(
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
             output_dataset_path = run_eval(config, artifact_loader, client)
-
             # Create a directory artifact for the HF dataset
             dataset_artifact = build_directory_artifact(
-                dir_path=output_dataset_path,
                 artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
                 artifact_type=ArtifactType.DATASET,
+                dir_path=output_dataset_path,
                 reference=False,
             )
-
             print("Logging artifact for evaluation dataset...")
-            artifact_loader.log_artifact(dataset_artifact)
-
-            # Create a config referencing the new artifact
-            dataset_artifact_config = WandbArtifactConfig(
-                name=dataset_artifact.name,
-                project=run.project,
-                entity=run.entity,
-            )
+            dataset_artifact = artifact_loader.log_artifact(dataset_artifact)
     else:
         output_dataset_path = run_eval(config, artifact_loader, client)
-        dataset_artifact_config = None
+        dataset_artifact = None
 
-    print(f"Evaluation dataset stored at {output_dataset_path}")
+    print(f"Prometheus evaluation dataset stored at {output_dataset_path}")
+    output_artifacts = [dataset_artifact] if dataset_artifact else []
     return EvaluationResult(
-        tables={},
-        table_artifact=None,
-        dataset_artifact=dataset_artifact_config,
+        artifacts=output_artifacts,
         dataset_path=output_dataset_path,
+        tables={},
     )

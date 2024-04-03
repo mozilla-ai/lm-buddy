@@ -14,7 +14,6 @@ from lm_buddy.integrations.huggingface import (
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    WandbArtifactConfig,
     WandbResumeMode,
     build_table_artifact,
     default_artifact_name,
@@ -22,7 +21,6 @@ from lm_buddy.integrations.wandb import (
 )
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.paths import AssetPath
 
 
 def get_per_task_dataframes(
@@ -50,7 +48,7 @@ def load_harness_model(
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path = hf_loader.resolve_asset_path(model_config.load_from)
+            model_path = hf_loader.resolve_asset_path(model_config.path)
             model_path, peft_path = resolve_peft_and_pretrained(model_path)
             quantization_kwargs: dict[str, Any] = (
                 config.quantization.model_dump() if config.quantization else {}
@@ -67,12 +65,9 @@ def load_harness_model(
             )
 
         case LocalChatCompletionsConfig() as local_config:
-            model = local_config.inference.engine
-            if isinstance(model, AssetPath):
-                model = hf_loader.resolve_asset_path(model)
-            # If tokenizer is not provided, it is set to the value of model internally
+            engine_path = hf_loader.resolve_asset_path(local_config.inference.engine)
             return OpenaiCompletionsLM(
-                model=model,
+                model=engine_path,
                 base_url=local_config.inference.base_url,
                 tokenizer_backend=local_config.tokenizer_backend,
                 truncate=local_config.truncate,
@@ -120,20 +115,14 @@ def run_lm_harness(
                 tables=eval_tables,
             )
             print("Logging artifact for evaluation results...")
-            artifact_loader.log_artifact(table_artifact)
-            # Create an artifact config to reference the new table artifact
-            table_artifact_config = WandbArtifactConfig(
-                name=table_artifact.name,
-                project=run.project,
-                entity=run.entity,
-            )
+            table_artifact = artifact_loader.log_artifact(table_artifact)
     else:
         eval_tables = run_eval(config, artifact_loader)
-        table_artifact_config = None
+        table_artifact = None
 
+    output_artifacts = [table_artifact] if table_artifact else []
     return EvaluationResult(
         tables=eval_tables,
-        table_artifact=table_artifact_config,
+        artifacts=output_artifacts,
         dataset_path=None,
-        dataset_artifact=None,
     )

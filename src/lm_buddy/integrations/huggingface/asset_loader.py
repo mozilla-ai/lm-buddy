@@ -19,12 +19,8 @@ from lm_buddy.integrations.huggingface import (
     DatasetConfig,
     QuantizationConfig,
 )
-from lm_buddy.integrations.wandb import (
-    ArtifactLoader,
-    WandbArtifactConfig,
-    get_artifact_filesystem_path,
-)
-from lm_buddy.paths import AssetPath, FilePath, HuggingFaceRepoID
+from lm_buddy.integrations.wandb import ArtifactLoader, get_artifact_directory
+from lm_buddy.paths import AssetPath, PathPrefix, strip_path_prefix
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -64,17 +60,19 @@ class HuggingFaceAssetLoader:
         self._artifact_loader = artifact_loader
 
     def resolve_asset_path(self, path: AssetPath) -> str:
-        """Resolve the actual HuggingFace name/path from a `LoadableAssetPath`."""
-        match path:
-            case FilePath(value):
-                return str(value)
-            case HuggingFaceRepoID(repo_id):
-                return repo_id
-            case WandbArtifactConfig() as artifact_config:
-                artifact = self._artifact_loader.use_artifact(artifact_config)
-                return str(get_artifact_filesystem_path(artifact))
-            case unknown_path:
-                raise ValueError(f"Unable to resolve asset path from {unknown_path}.")
+        """Resolve an `AssetPath` to a loadable string path.
+
+        W&B paths are resolved to file paths given the artifact manifest.
+        The returned string has its `PathPrefix` stripped away..
+        """
+        raw_path = strip_path_prefix(path)
+        if path.startswith((PathPrefix.FILE, PathPrefix.HUGGINGFACE)):
+            return raw_path
+        elif path.startswith(PathPrefix.WANDB):
+            artifact = self._artifact_loader.use_artifact(raw_path)
+            return str(get_artifact_directory(artifact))
+        else:
+            raise ValueError(f"Unable to resolve asset path from {path}.")
 
     def load_pretrained_config(
         self,
@@ -84,7 +82,7 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
-        config_path = self.resolve_asset_path(config.load_from)
+        config_path = self.resolve_asset_path(config.path)
         return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path)
 
     def load_pretrained_model(
@@ -112,7 +110,7 @@ class HuggingFaceAssetLoader:
 
         # TODO: HuggingFace has many AutoModel classes with different "language model heads"
         #   Can we abstract this to load with any type of AutoModel class?
-        model_path = self.resolve_asset_path(config.load_from)
+        model_path = self.resolve_asset_path(config.path)
         return AutoModelForCausalLM.from_pretrained(
             pretrained_model_name_or_path=model_path,
             trust_remote_code=config.trust_remote_code,
@@ -126,7 +124,7 @@ class HuggingFaceAssetLoader:
 
         An exception is raised if the HuggingFace repo does not contain a `tokenizer.json` file.
         """
-        tokenizer_path = self.resolve_asset_path(config.load_from)
+        tokenizer_path = self.resolve_asset_path(config.path)
         tokenizer = AutoTokenizer.from_pretrained(
             pretrained_model_name_or_path=tokenizer_path,
             trust_remote_code=config.trust_remote_code,
@@ -144,9 +142,9 @@ class HuggingFaceAssetLoader:
         When loading from HuggingFace directly, the `Dataset` is for the provided split.
         When loading from disk, the saved files must be for a dataset else an exception is raised.
         """
-        dataset_path = self.resolve_asset_path(config.load_from)
+        dataset_path = self.resolve_asset_path(config.path)
         # Dataset loading requires a different method if from a HF vs. disk
-        if isinstance(config.load_from, HuggingFaceRepoID):
+        if config.path.startswith(PathPrefix.HUGGINGFACE):
             return load_dataset(dataset_path, split=config.split)
         else:
             match load_from_disk(dataset_path):

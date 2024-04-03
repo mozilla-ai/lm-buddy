@@ -1,30 +1,33 @@
-from pathlib import Path
-
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from lm_buddy.integrations.wandb import WandbArtifactConfig
-from lm_buddy.paths import AssetPath, FilePath, HuggingFaceRepoID
+from lm_buddy.paths import AssetPath, strip_path_prefix
 
 
 def test_asset_path_validation():
     # Imbues the LoadableAssetPath type with Pydantic validation methods
-    adapter_cls = TypeAdapter(AssetPath)
+    validator = TypeAdapter(AssetPath)
 
-    repo_string = adapter_cls.validate_python("repo_id")
-    assert isinstance(repo_string, HuggingFaceRepoID)
+    valid_paths = [
+        "hf://repo-name",
+        "file:///path/to/file",
+        "wandb://entity/project/name:version",
+    ]
+    for path in valid_paths:
+        validator.validate_python(path)
 
-    path_string = adapter_cls.validate_python("/absolute/path")
-    assert isinstance(path_string, FilePath)
+    invalid_paths = ["file://not/absolute", "hf://bad..name", "random://scheme", 12345]
+    for path in invalid_paths:
+        with pytest.raises(ValidationError):
+            validator.validate_python(path)
 
-    path_object = adapter_cls.validate_python(Path("/absolute/path"))
-    assert isinstance(path_object, FilePath)
 
-    artifact_config = WandbArtifactConfig(name="artifact", project="project")
-    artifact_config = adapter_cls.validate_python(artifact_config)
-    assert isinstance(artifact_config, WandbArtifactConfig)
+def test_strip_prefix():
+    file_path = "file:///path/to/file"
+    assert strip_path_prefix(file_path) == "/path/to/file"
 
-    with pytest.raises(ValidationError):
-        adapter_cls.validate_python("bad...repo_id")
-    with pytest.raises(ValidationError):
-        adapter_cls.validate_python(120850120)
+    hf_path = "hf://distilgpt2"
+    assert strip_path_prefix(hf_path) == "distilgpt2"
+
+    wandb_path = "wandb://entity/project/name:version"
+    assert strip_path_prefix(wandb_path) == "entity/project/name:version"

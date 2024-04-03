@@ -2,10 +2,10 @@ import pytest
 from pydantic import ValidationError
 
 from lm_buddy.integrations.huggingface import DatasetConfig
-from lm_buddy.paths import HuggingFaceRepoID
+from lm_buddy.paths import format_huggingface_path
 
 
 def test_split_is_required():
     with pytest.raises(ValidationError):
-        repo = HuggingFaceRepoID(repo_id="dataset/xyz")
-        DatasetConfig(load_from=repo, split=None)
+        dataset_path = format_huggingface_path("imdb")
+        DatasetConfig(path=dataset_path, split=None)

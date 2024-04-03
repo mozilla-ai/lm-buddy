@@ -3,13 +3,9 @@ model:
   inference:
     base_url: "http://1.2.3.4:8000/v1"
     # HuggingFace repo for the engine model being hosted
-    engine:
-      repo_id: "distilgpt2"
+    engine: "hf://distilgpt2"
     # # W&B artifact can also be specified as the engine model to generate a lineage
-    # engine:
-    #   name: "wandb-artifact-name"
-    #   project: "lm-buddy-examples"
-    #   entity: "mozilla-ai"
+    # engine: "wandb://sample-entity/lm-buddy-examples/name:latest"
   # 'huggingface' or 'tiktoken' depending on model type
   tokenizer_backend: "huggingface"
 

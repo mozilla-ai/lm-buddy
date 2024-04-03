@@ -5,6 +5,8 @@ from urllib.parse import ParseResult, urlparse
 import pandas as pd
 import wandb
 
+from lm_buddy.paths import PathPrefix
+
 
 class ArtifactType(str, Enum):
     """Enumeration of artifact types used by the LM Buddy."""
@@ -15,25 +17,13 @@ class ArtifactType(str, Enum):
     EVALUATION = "evaluation"
 
 
-class ArtifactURIScheme(str, Enum):
-    """Enumeration of URI schemes to use in a reference artifact."""
-
-    FILE = "file"
-    HTTP = "http"
-    HTTPS = "https"
-    S3 = "s3"
-    GCS = "gs"
-
-
 def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
     """A default name for an artifact based on the run name and type."""
     return f"{name}-{artifact_type}"
 
 
-def get_artifact_filesystem_path(
-    artifact: wandb.Artifact,
-    *,
-    download_root_path: str | None = None,
+def get_artifact_directory(
+    artifact: wandb.Artifact, *, download_root_path: str | None = None
 ) -> Path:
     """Get the directory containing the artifact's data.
 
@@ -79,7 +69,7 @@ def build_directory_artifact(
         # Right now, we are assuming a fixed "file" URI scheme
         # We can pass the URI scheme if necessary later
         artifact.add_reference(
-            uri=f"{ArtifactURIScheme.FILE}://{dir_path}",
+            uri=f"{PathPrefix.FILE}{dir_path}",
             max_objects=max_objects,
             name=entry_name,
         )

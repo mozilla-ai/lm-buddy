@@ -1,9 +1,5 @@
 dataset:
-  load_from:
-    name: "wandb_file_artifact_name.json"
-    version: "latest"
-    project: "lm-buddy-prometheus"
-    entity: "mozilla-ai"
+  path: "wandb://sample-entity/lm-buddy-examples/wandb-file-artifact:latest"
   # field containing scoring instructions in the json file
   text_field: "instruction"
 
@@ -18,12 +14,8 @@ judge:
 
 evaluation:
   #choose which metrics to report from https://docs.ragas.io/en/latest/concepts/metrics/index.html
-  metrics: [
-        "faithfulness",
-        "answer_relevancy",
-        "context_recall",
-        "context_precision",
-    ]
+  metrics:
+    ["faithfulness", "answer_relevancy", "context_recall", "context_precision"]
 
   # any embedding model in huggingface, will be loaded in-memory (typically <1gb)
   embedding_model: "sentence-transformers/all-mpnet-base-v2"
@@ -32,6 +24,3 @@ tracking:
   name: "lm-buddy-ragas"
   project: "lm-buddy-examples"
   entity: "sample"
-  
-
-  

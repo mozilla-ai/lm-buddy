@@ -13,7 +13,6 @@ from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
     ArtifactLoader,
     ArtifactType,
-    WandbArtifactConfig,
     WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
@@ -110,31 +109,26 @@ def run_finetuning(
     print(f"Training result: {result}")
 
     # Register a model artifact if tracking is enabled and Ray saved a checkpoint
-    ckpt_path, artifact_config = None, None
+    checkpoint_path, checkpoint_artifact = None, None
     if result.checkpoint:
-        ckpt_path = Path(f"{result.checkpoint.path}/{RayTrainReportCallback.CHECKPOINT_NAME}")
+        checkpoint_path = Path(result.checkpoint.path) / RayTrainReportCallback.CHECKPOINT_NAME
         if config.tracking:
             # Must resume from the just-completed training run
             with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
-                model_artifact = build_directory_artifact(
+                checkpoint_artifact = build_directory_artifact(
                     artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
                     artifact_type=ArtifactType.MODEL,
-                    dir_path=ckpt_path,
+                    dir_path=checkpoint_path,
                     reference=True,
                 )
-                print("Logging artifact for model checkpoint...")
-                artifact_loader.log_artifact(model_artifact)
-                # Create an artifact config referencing the new artifact
-                artifact_config = WandbArtifactConfig(
-                    name=model_artifact.name,
-                    project=run.project,
-                    entity=run.entity,
-                )
+                print("Logging artifact for finetuning checkpoint...")
+                checkpoint_artifact = artifact_loader.log_artifact(checkpoint_artifact)
 
     # Return finetuning result object
+    output_artifacts = [checkpoint_artifact] if checkpoint_artifact else []
     return FinetuningResult(
-        checkpoint_path=ckpt_path,
-        checkpoint_artifact=artifact_config,
+        artifacts=output_artifacts,
+        checkpoint_path=checkpoint_path,
         metrics=result.metrics or {},
         is_adapter=config.adapter is not None,
     )

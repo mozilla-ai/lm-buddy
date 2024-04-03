@@ -7,7 +7,7 @@ from lm_buddy.jobs.configs import (
     LMHarnessJobConfig,
     LocalChatCompletionsConfig,
 )
-from tests.test_utils import copy_pydantic_json
+from tests.utils import copy_pydantic_json
 
 
 @pytest.fixture
