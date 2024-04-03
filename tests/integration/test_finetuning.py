@@ -1,3 +1,5 @@
+import wandb
+
 from lm_buddy import LMBuddy
 from lm_buddy.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
 from lm_buddy.integrations.wandb import ArtifactType, WandbRunConfig
@@ -6,10 +8,17 @@ from lm_buddy.paths import format_artifact_path
 from tests.utils import FakeArtifactLoader
 
 
-def get_job_config(llm_model_artifact, text_dataset_artifact):
-    model_config = AutoModelConfig(path=format_artifact_path(llm_model_artifact))
+def get_job_config(
+    model_artifact: wandb.Artifact,
+    dataset_artifact: wandb.Artifact,
+) -> FinetuningJobConfig:
+    """Create a job config for finetuning.
+
+    The artifacts should already be logged and contain a fully qualified W&B name.
+    """
+    model_config = AutoModelConfig(path=format_artifact_path(model_artifact))
     dataset_config = TextDatasetConfig(
-        path=format_artifact_path(text_dataset_artifact),
+        path=format_artifact_path(dataset_artifact),
         text_field="text",
         split="train",
     )
@@ -33,11 +42,11 @@ def get_job_config(llm_model_artifact, text_dataset_artifact):
 def test_finetuning_job(llm_model_artifact, text_dataset_artifact):
     # Preload input artifact in loader
     artifact_loader = FakeArtifactLoader()
-    llm_model_artifact = artifact_loader.log_artifact(llm_model_artifact)
-    text_dataset_artifact = artifact_loader.log_artifact(text_dataset_artifact)
+    logged_model_artifact = artifact_loader.log_artifact(llm_model_artifact)
+    logged_dataset_artifact = artifact_loader.log_artifact(text_dataset_artifact)
 
     # Build a job config
-    job_config = get_job_config(llm_model_artifact, text_dataset_artifact)
+    job_config = get_job_config(logged_model_artifact, logged_dataset_artifact)
 
     # Run test job
     buddy = LMBuddy(artifact_loader)
