@@ -67,7 +67,7 @@ def load_harness_model(
         case LocalChatCompletionsConfig() as local_config:
             engine_path = hf_loader.resolve_asset_path(local_config.inference.engine)
             return OpenaiCompletionsLM(
-                model=engine_path.strip_prefix(),
+                model=engine_path,
                 base_url=local_config.inference.base_url,
                 tokenizer_backend=local_config.tokenizer_backend,
                 truncate=local_config.truncate,
