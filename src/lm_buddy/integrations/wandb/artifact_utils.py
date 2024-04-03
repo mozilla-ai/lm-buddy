@@ -1,17 +1,18 @@
 from enum import Enum
 from pathlib import Path
+from urllib.parse import ParseResult, urlparse
 
 import pandas as pd
 import wandb
 
-from lm_buddy.paths import PathPrefix, strip_path_prefix
+from lm_buddy.paths import PathPrefix
 
 
 class ArtifactType(str, Enum):
     """Enumeration of artifact types used by the LM Buddy."""
 
     DATASET = "dataset"
-    MODEL = "model"
+    MODEL = "model"p
     TOKENIZER = "tokenizer"
     EVALUATION = "evaluation"
 
@@ -31,9 +32,9 @@ def get_artifact_directory(
     and returns the newly created artifact directory path.
     """
     for entry in artifact.manifest.entries.values():
-        if entry.ref.startswith(PathPrefix.FILE):
-            raw_path = strip_path_prefix(entry.ref)
-            return Path(raw_path).parent
+        match urlparse(entry.ref):
+            case ParseResult(scheme="file", path=file_path):
+                return Path(file_path).parent
     # No filesystem references found in the manifest -> download the artifact
     download_path = artifact.download(root=download_root_path)
     return Path(download_path)
