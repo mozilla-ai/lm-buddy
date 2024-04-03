@@ -89,8 +89,9 @@ def run_ragas(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> Evalua
         dataset_artifact = None
 
     print(f"Evaluation dataset stored at {output_file_path}")
+    output_artifacts = [dataset_artifact] if dataset_artifact else []
     return EvaluationResult(
-        tables={},
+        artifacts=output_artifacts,
         dataset_path=output_file_path,
-        artifacts=[dataset_artifact] if dataset_artifact else [],
+        tables={},
     )

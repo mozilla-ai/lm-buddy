@@ -115,13 +115,14 @@ def run_lm_harness(
                 tables=eval_tables,
             )
             print("Logging artifact for evaluation results...")
-            artifact_loader.log_artifact(table_artifact)
+            table_artifact = artifact_loader.log_artifact(table_artifact)
     else:
         eval_tables = run_eval(config, artifact_loader)
         table_artifact = None
 
+    output_artifacts = [table_artifact] if table_artifact else []
     return EvaluationResult(
         tables=eval_tables,
+        artifacts=output_artifacts,
         dataset_path=None,
-        artifacts=[table_artifact] if table_artifact else [],
     )

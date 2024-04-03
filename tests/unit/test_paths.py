@@ -29,7 +29,7 @@ def test_scheme_identifcation():
     hf_path = AssetPath.from_huggingface_repo("distilgpt2")
     assert hf_path.scheme == PathScheme.HUGGINGFACE
 
-    wandb_path = AssetPath.from_wandb("artifact", "project")
+    wandb_path = AssetPath.from_wandb_identifiers("artifact", "project")
     assert wandb_path.scheme == PathScheme.WANDB
 
 
@@ -40,5 +40,5 @@ def test_strip_prefix():
     hf_path = AssetPath.from_huggingface_repo("distilgpt2")
     assert hf_path.strip_prefix() == "distilgpt2"
 
-    wandb_path = AssetPath.from_wandb("name", "project", version="v0")
+    wandb_path = AssetPath.from_wandb_identifiers("name", "project", version="v0")
     assert wandb_path.strip_prefix() == "project/name:v0"

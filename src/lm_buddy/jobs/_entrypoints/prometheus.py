@@ -178,14 +178,15 @@ def run_prometheus(
                 reference=False,
             )
             print("Logging artifact for evaluation dataset...")
-            artifact_loader.log_artifact(dataset_artifact)
+            dataset_artifact = artifact_loader.log_artifact(dataset_artifact)
     else:
         output_file_path = run_eval(config, artifact_loader, client)
         dataset_artifact = None
 
     print(f"Evaluation dataset stored at {output_file_path}")
+    output_artifacts = [dataset_artifact] if dataset_artifact else []
     return EvaluationResult(
-        tables={},
+        artifacts=output_artifacts,
         dataset_path=output_file_path,
-        artifacts=[dataset_artifact] if dataset_artifact else [],
+        tables={},
     )

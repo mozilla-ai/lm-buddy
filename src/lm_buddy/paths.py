@@ -3,9 +3,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import ParseResult, urlparse
 
+import wandb
 from huggingface_hub.utils import HFValidationError, validate_repo_id
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
+from wandb.sdk.artifacts.exceptions import ArtifactNotLoggedError
 
 
 class PathScheme(str, Enum):
@@ -41,8 +43,8 @@ def validate_asset_path(path: str) -> "AssetPath":
             # TODO: Validate the W&B path structure?
             pass
         case _:
-            allowed = {x.value for x in PathScheme}
-            raise ValueError(f"{path} does not begin with an allowed prefix: {allowed}")
+            allowed_prefixes = {x.value for x in PathScheme}
+            raise ValueError(f"{path} does not begin with an allowed prefix: {allowed_prefixes}")
     return AssetPath(path)
 
 
@@ -62,7 +64,7 @@ class AssetPath(str):
         return cls(f"{PathScheme.HUGGINGFACE}://{repo_id}")
 
     @classmethod
-    def from_wandb(
+    def from_wandb_identifiers(
         cls,
         name: str,
         project: str,
@@ -71,6 +73,14 @@ class AssetPath(str):
     ) -> "AssetPath":
         base_path = "/".join(x for x in [entity, project, name] if x is not None)
         return cls(f"{PathScheme.WANDB}://{base_path}:{version}")
+
+    @classmethod
+    def from_wandb_artifact(cls, artifact: wandb.Artifact) -> "AssetPath":
+        try:
+            return cls(f"{PathScheme.WANDB}://{artifact.qualified_name}")
+        except ArtifactNotLoggedError as e:
+            msg = "Unable to construct `AssetPath` from artifact missing project/entity fields."
+            raise ValueError(msg) from e
 
     @property
     def scheme(self) -> PathScheme:

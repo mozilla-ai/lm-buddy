@@ -122,12 +122,13 @@ def run_finetuning(
                     reference=True,
                 )
                 print("Logging artifact for finetuning checkpoint...")
-                artifact_loader.log_artifact(checkpoint_artifact)
+                checkpoint_artifact = artifact_loader.log_artifact(checkpoint_artifact)
 
     # Return finetuning result object
+    output_artifacts = [checkpoint_artifact] if checkpoint_artifact else []
     return FinetuningResult(
+        artifacts=output_artifacts,
         checkpoint_path=checkpoint_path,
         metrics=result.metrics or {},
-        artifacts=[checkpoint_artifact] if checkpoint_artifact else [],
         is_adapter=config.adapter is not None,
     )
