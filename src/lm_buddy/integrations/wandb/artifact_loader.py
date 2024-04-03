@@ -2,8 +2,6 @@ from typing import Protocol
 
 import wandb
 
-from lm_buddy.paths import AssetPath
-
 
 class ArtifactLoader(Protocol):
     """Base interface for using/logging artifacts.
@@ -12,15 +10,15 @@ class ArtifactLoader(Protocol):
     this interface should be abstracted to handle the types for those respective services.
     """
 
-    def use_artifact(self, artifact_path: AssetPath) -> wandb.Artifact:
-        """Load an artifact from its W&B path.
+    def use_artifact(self, artifact_path: str) -> wandb.Artifact:
+        """Load an artifact from its full W&B path.
 
         If a W&B run is active, the artifact is declared as an input to the run.
         If not, the artifact is retrieved outside of the run.
         """
         pass
 
-    def log_artifact(self, artifact: wandb.Artifact) -> None:
+    def log_artifact(self, artifact: wandb.Artifact) -> wandb.Artifact:
         """Log an artifact, declaring it as an output of the currently active W&B run."""
         pass
 
@@ -31,14 +29,14 @@ class WandbArtifactLoader:
     This class makes external calls to the W&B API and is not suitable for test environments.
     """
 
-    def use_artifact(self, artifact_path: AssetPath) -> wandb.Artifact:
+    def use_artifact(self, artifact_path: str) -> wandb.Artifact:
         if wandb.run is not None:
             # Retrieves the artifact and links it as an input to the run
-            return wandb.use_artifact(artifact_path.strip_prefix())
+            return wandb.use_artifact(artifact_path)
         else:
             # Retrieves the artifact outside of the run
             api = wandb.Api()
-            return api.artifact(artifact_path.strip_prefix())
+            return api.artifact(artifact_path)
 
-    def log_artifact(self, artifact: wandb.Artifact) -> None:
+    def log_artifact(self, artifact: wandb.Artifact) -> wandb.Artifact:
         return wandb.log_artifact(artifact)

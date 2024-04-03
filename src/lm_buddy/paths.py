@@ -53,7 +53,7 @@ class AssetPath(str):
     """
 
     @classmethod
-    def from_file(cls, path: str | Path) -> "AssetPath":
+    def from_file_path(cls, path: str | Path) -> "AssetPath":
         path = Path(path).absolute()
         return cls(f"{PathScheme.FILE}://{path}")
 

@@ -12,12 +12,11 @@ from lm_buddy.integrations.wandb import (
     ArtifactType,
     build_directory_artifact,
     default_artifact_name,
+    wandb_init_from_config,
 )
-from lm_buddy.integrations.wandb.run_utils import wandb_init_from_config
 from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
 from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
 from lm_buddy.jobs.configs import RagasJobConfig
-from lm_buddy.paths import AssetPath
 
 RAGAS_METRICS_MAP = {
     "faithfulness": faithfulness,
@@ -27,7 +26,7 @@ RAGAS_METRICS_MAP = {
 }
 
 
-def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> AssetPath:
+def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> Path:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
     evaluation_dataset = hf_loader.load_dataset(config.dataset)
@@ -38,12 +37,12 @@ def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> AssetPa
 
     # load embedding model
     embedding_model = hf_loader.resolve_asset_path(config.evaluation.embedding_model.path)
-    ragas_args["embeddings"] = HuggingFaceEmbeddings(model_name=embedding_model.strip_prefix())
+    ragas_args["embeddings"] = HuggingFaceEmbeddings(model_name=embedding_model)
 
     # configure ragas to point to vllm instance for generation
     inference_engine = hf_loader.resolve_asset_path(config.judge.inference.engine)
     ragas_args["llm"] = ChatOpenAI(
-        model=inference_engine.strip_prefix(),
+        model=inference_engine,
         openai_api_key="EMPTY",  # needed to hit custom openai endpoint
         openai_api_base=config.judge.inference.base_url,
         max_tokens=config.judge.max_tokens,
@@ -68,7 +67,7 @@ def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> AssetPa
     ds = load_dataset("json", data_files=str(output_fname), split="train")
     ds.save_to_disk(output_dataset_path)
 
-    return AssetPath.from_file(output_dataset_path)
+    return output_dataset_path
 
 
 def run_ragas(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> EvaluationResult:
@@ -76,29 +75,22 @@ def run_ragas(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> Evalua
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
             output_file_path = run_eval(config, artifact_loader)
-
             # Create a directory artifact for the HF dataset
             dataset_artifact = build_directory_artifact(
-                dir_path=output_file_path,
                 artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
                 artifact_type=ArtifactType.DATASET,
+                dir_path=output_file_path,
                 reference=False,
             )
-            dataset_artifact_path = AssetPath.from_wandb(
-                dataset_artifact.name, run.project, run.entity
-            )
-
             print("Logging dataset artifact for Ragas evaluation ...")
-            artifact_loader.log_artifact(dataset_artifact)
-
+            dataset_artifact = artifact_loader.log_artifact(dataset_artifact)
     else:
         output_file_path = run_eval(config, artifact_loader)
-        dataset_artifact_path = None
+        dataset_artifact = None
 
     print(f"Evaluation dataset stored at {output_file_path}")
     return EvaluationResult(
         tables={},
-        table_artifact_path=None,
         dataset_path=output_file_path,
-        dataset_artifact_path=dataset_artifact_path,
+        artifacts=[dataset_artifact] if dataset_artifact else [],
     )

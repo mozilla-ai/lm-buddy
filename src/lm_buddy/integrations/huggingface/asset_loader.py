@@ -23,7 +23,7 @@ from lm_buddy.integrations.wandb import ArtifactLoader, get_artifact_directory
 from lm_buddy.paths import AssetPath, PathScheme
 
 
-def resolve_peft_and_pretrained(path: AssetPath) -> tuple[str, str | None]:
+def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
     """Helper method for determining if a path corresponds to a PEFT model.
 
     A PEFT model contains an `adapter_config.json` in its directory.
@@ -39,7 +39,6 @@ def resolve_peft_and_pretrained(path: AssetPath) -> tuple[str, str | None]:
     # We don't know if the checkpoint is adapter weights or merged model weights
     # Try to load as an adapter and fall back to the checkpoint containing the full model
     try:
-        path = path.strip_prefix()
         peft_config = PeftConfig.from_pretrained(path)
         return peft_config.base_model_name_or_path, path
     except ValueError as e:
@@ -60,17 +59,17 @@ class HuggingFaceAssetLoader:
     def __init__(self, artifact_loader: ArtifactLoader):
         self._artifact_loader = artifact_loader
 
-    def resolve_asset_path(self, path: AssetPath) -> AssetPath:
-        """Resolve an `AssetPath` to a `FilePath` or `HuggingFacePath` that can be loaded.
+    def resolve_asset_path(self, path: AssetPath) -> str:
+        """Resolve an `AssetPath` to a loadable string path.
 
         W&B paths are resolved to file paths given the artifact manifest.
-        The returned path still contains the `PathScheme` and prefix.
+        The returned string has its `PathScheme` prefix stripped.
         """
         if path.scheme in [PathScheme.FILE, PathScheme.HUGGINGFACE]:
-            return path
+            return path.strip_prefix()
         elif path.scheme == PathScheme.WANDB:
-            artifact = self._artifact_loader.use_artifact(path)
-            return get_artifact_directory(artifact)
+            artifact = self._artifact_loader.use_artifact(path.strip_prefix())
+            return str(get_artifact_directory(artifact))
         else:
             raise ValueError(f"Unable to resolve asset path from {path}.")
 
@@ -83,7 +82,7 @@ class HuggingFaceAssetLoader:
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
         config_path = self.resolve_asset_path(config.path)
-        return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path.strip_prefix())
+        return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path)
 
     def load_pretrained_model(
         self,
@@ -112,7 +111,7 @@ class HuggingFaceAssetLoader:
         #   Can we abstract this to load with any type of AutoModel class?
         model_path = self.resolve_asset_path(config.path)
         return AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path=model_path.strip_prefix(),
+            pretrained_model_name_or_path=model_path,
             trust_remote_code=config.trust_remote_code,
             torch_dtype=config.torch_dtype,
             quantization_config=bnb_config,
@@ -126,7 +125,7 @@ class HuggingFaceAssetLoader:
         """
         tokenizer_path = self.resolve_asset_path(config.path)
         tokenizer = AutoTokenizer.from_pretrained(
-            pretrained_model_name_or_path=tokenizer_path.strip_prefix(),
+            pretrained_model_name_or_path=tokenizer_path,
             trust_remote_code=config.trust_remote_code,
             use_fast=config.use_fast,
         )
@@ -144,10 +143,10 @@ class HuggingFaceAssetLoader:
         """
         dataset_path = self.resolve_asset_path(config.path)
         # Dataset loading requires a different method if from a HF vs. disk
-        if dataset_path.scheme == PathScheme.HUGGINGFACE:
-            return load_dataset(dataset_path.strip_prefix(), split=config.split)
+        if config.path.scheme == PathScheme.HUGGINGFACE:
+            return load_dataset(dataset_path, split=config.split)
         else:
-            match load_from_disk(dataset_path.strip_prefix()):
+            match load_from_disk(dataset_path):
                 case Dataset() as dataset:
                     return dataset
                 case other:

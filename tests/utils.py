@@ -1,8 +1,6 @@
 import wandb
 from pydantic import BaseModel
 
-from lm_buddy.paths import AssetPath
-
 
 def copy_pydantic_json(model: BaseModel) -> BaseModel:
     """Copy a Pydantic model through round-trip JSON serialization."""
@@ -28,9 +26,8 @@ class FakeArtifactLoader:
     def get_artifacts(self) -> list[wandb.Artifact]:
         return list(self._storage.values())
 
-    def use_artifact(self, artifact_path: AssetPath) -> wandb.Artifact:
+    def use_artifact(self, artifact_path: str) -> wandb.Artifact:
         # TODO(SGF): This is ugly atm, but plans to get rid of this artifact loader interface
-        artifact_path = artifact_path.strip_prefix()
         artifact_name = artifact_path.split(":")[0].split("/")[-1]
         return self._storage[artifact_name]
 

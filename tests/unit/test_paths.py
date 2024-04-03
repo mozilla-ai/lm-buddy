@@ -23,7 +23,7 @@ def test_asset_path_validation():
 
 
 def test_scheme_identifcation():
-    file_path = AssetPath.from_file("/path/to/file")
+    file_path = AssetPath.from_file_path("/path/to/file")
     assert file_path.scheme == PathScheme.FILE
 
     hf_path = AssetPath.from_huggingface_repo("distilgpt2")
@@ -34,7 +34,7 @@ def test_scheme_identifcation():
 
 
 def test_strip_prefix():
-    file_path = AssetPath.from_file("/path/to/file")
+    file_path = AssetPath.from_file_path("/path/to/file")
     assert file_path.strip_prefix() == "/path/to/file"
 
     hf_path = AssetPath.from_huggingface_repo("distilgpt2")

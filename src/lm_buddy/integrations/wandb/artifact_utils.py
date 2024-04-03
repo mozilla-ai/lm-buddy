@@ -24,7 +24,7 @@ def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
 
 def get_artifact_directory(
     artifact: wandb.Artifact, *, download_root_path: str | None = None
-) -> AssetPath:
+) -> Path:
     """Get the directory containing the artifact's data.
 
     If the artifact references data already on the filesystem, simply return that path.
@@ -34,17 +34,16 @@ def get_artifact_directory(
     for entry in artifact.manifest.entries.values():
         match urlparse(entry.ref):
             case ParseResult(scheme=PathScheme.FILE, path=file_path):
-                dir_path = Path(file_path).parent
-                return AssetPath.from_file(dir_path)
+                return Path(file_path).parent
     # No filesystem references found in the manifest -> download the artifact
     download_path = artifact.download(root=download_root_path)
-    return AssetPath.from_file(download_path)
+    return Path(download_path)
 
 
 def build_directory_artifact(
     artifact_name: str,
     artifact_type: ArtifactType,
-    dir_path: AssetPath,
+    dir_path: str | Path,
     *,
     reference: bool = False,
     entry_name: str | None = None,
@@ -55,7 +54,7 @@ def build_directory_artifact(
     Args:
         artifact_name (str): Name of the artifact.
         artifact_type (ArtifactType): Type of artifact.
-        dir_path (FileAssetPath): Directory path to include in the artifact.
+        dir_path (str | Path): Directory path to include in the artifact.
 
     Keyword Args:
         reference (bool): Only reference the directory, do not copy contents. Defaults to False.
@@ -69,9 +68,13 @@ def build_directory_artifact(
     if reference:
         # Right now, we are assuming a fixed "file" URI scheme
         # We can pass the URI scheme if necessary later
-        artifact.add_reference(uri=dir_path, max_objects=max_objects, name=entry_name)
+        artifact.add_reference(
+            uri=str(AssetPath.from_file_path(dir_path)),
+            max_objects=max_objects,
+            name=entry_name,
+        )
     else:
-        artifact.add_dir(dir_path.strip_prefix(), name=entry_name)
+        artifact.add_dir(str(dir_path), name=entry_name)
     return artifact
 
 

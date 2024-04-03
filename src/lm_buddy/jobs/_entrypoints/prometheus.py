@@ -156,7 +156,7 @@ def run_eval(
     ds = load_dataset("json", data_files=str(output_fname), split="train")
     ds.save_to_disk(output_dataset_path)
 
-    return AssetPath.from_file(output_dataset_path)
+    return AssetPath.from_file_path(output_dataset_path)
 
 
 def run_prometheus(
@@ -170,7 +170,6 @@ def run_prometheus(
     if config.tracking:
         with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
             output_file_path = run_eval(config, artifact_loader, client)
-
             # Create a directory artifact for the HF dataset
             dataset_artifact = build_directory_artifact(
                 dir_path=output_file_path,
@@ -178,20 +177,15 @@ def run_prometheus(
                 artifact_type=ArtifactType.DATASET,
                 reference=False,
             )
-            dataset_artifact_path = AssetPath.from_wandb(
-                dataset_artifact.name, run.project, run.entity
-            )
-
             print("Logging artifact for evaluation dataset...")
             artifact_loader.log_artifact(dataset_artifact)
     else:
         output_file_path = run_eval(config, artifact_loader, client)
-        dataset_artifact_path = None
+        dataset_artifact = None
 
     print(f"Evaluation dataset stored at {output_file_path}")
     return EvaluationResult(
         tables={},
-        table_artifact_path=None,
         dataset_path=output_file_path,
-        dataset_artifact_path=dataset_artifact_path,
+        artifacts=[dataset_artifact] if dataset_artifact else [],
     )
