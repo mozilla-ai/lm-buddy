@@ -12,7 +12,7 @@ class ArtifactType(str, Enum):
     """Enumeration of artifact types used by the LM Buddy."""
 
     DATASET = "dataset"
-    MODEL = "model"p
+    MODEL = "model"
     TOKENIZER = "tokenizer"
     EVALUATION = "evaluation"
 
