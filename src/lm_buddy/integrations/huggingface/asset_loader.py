@@ -19,34 +19,8 @@ from lm_buddy.integrations.huggingface import (
     DatasetConfig,
     QuantizationConfig,
 )
-from lm_buddy.integrations.wandb import ArtifactLoader, get_artifact_directory
+from lm_buddy.integrations.wandb import get_artifact_directory, get_artifact_from_api
 from lm_buddy.paths import AssetPath, PathPrefix, strip_path_prefix
-
-
-def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
-    """Helper method for determining if a path corresponds to a PEFT model.
-
-    A PEFT model contains an `adapter_config.json` in its directory.
-    If this file can be loaded, we know the path is a for a PEFT model.
-    If not, we assume the provided path corresponds to a base HF model.
-
-    Args:
-        path (str): Name/path to a HuggingFace directory
-
-    Returns:
-        Tuple of (base model path, optional PEFT path)
-    """
-    # We don't know if the checkpoint is adapter weights or merged model weights
-    # Try to load as an adapter and fall back to the checkpoint containing the full model
-    try:
-        peft_config = PeftConfig.from_pretrained(path)
-        return peft_config.base_model_name_or_path, path
-    except ValueError as e:
-        warnings.warn(
-            f"Unable to load model as adapter: {e}. "
-            "This is expected if the checkpoint does not contain adapter weights."
-        )
-        return path, None
 
 
 class HuggingFaceAssetLoader:
@@ -54,10 +28,10 @@ class HuggingFaceAssetLoader:
 
     This class depends on an `ArtifactLoader` in order to resolve actual paths from
     artifact references.
-    """
 
-    def __init__(self, artifact_loader: ArtifactLoader):
-        self._artifact_loader = artifact_loader
+    TODO: Do we still need this class now that ArtifactLoader dep is gone?
+          What if we add other deps (e.g, S3 client in the future?)
+    """
 
     def resolve_asset_path(self, path: AssetPath) -> str:
         """Resolve an `AssetPath` to a loadable string path.
@@ -69,10 +43,35 @@ class HuggingFaceAssetLoader:
         if path.startswith((PathPrefix.FILE, PathPrefix.HUGGINGFACE)):
             return raw_path
         elif path.startswith(PathPrefix.WANDB):
-            artifact = self._artifact_loader.use_artifact(raw_path)
+            artifact = get_artifact_from_api(raw_path)
             return str(get_artifact_directory(artifact))
         else:
             raise ValueError(f"Unable to resolve asset path from {path}.")
+
+    def resolve_peft_and_pretrained(self, path: str) -> tuple[str, str | None]:
+        """Helper method for determining if a path corresponds to a PEFT model.
+
+        A PEFT model contains an `adapter_config.json` in its directory.
+        If this file can be loaded, we know the path is a for a PEFT model.
+        If not, we assume the provided path corresponds to a base HF model.
+
+        Args:
+            path (str): Name/path to a HuggingFace directory
+
+        Returns:
+            Tuple of (base model path, optional PEFT path)
+        """
+        # We don't know if the checkpoint is adapter weights or merged model weights
+        # Try to load as an adapter and fall back to the checkpoint containing the full model
+        try:
+            peft_config = PeftConfig.from_pretrained(path)
+            return peft_config.base_model_name_or_path, path
+        except ValueError as e:
+            warnings.warn(
+                f"Unable to load model as adapter: {e}. "
+                "This is expected if the checkpoint does not contain adapter weights."
+            )
+            return path, None
 
     def load_pretrained_config(
         self,

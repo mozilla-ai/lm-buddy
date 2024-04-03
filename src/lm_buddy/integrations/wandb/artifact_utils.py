@@ -17,9 +17,19 @@ class ArtifactType(str, Enum):
     EVALUATION = "evaluation"
 
 
-def default_artifact_name(name: str, artifact_type: ArtifactType) -> str:
-    """A default name for an artifact based on the run name and type."""
-    return f"{name}-{artifact_type}"
+def default_artifact_name(job_name: str, artifact_type: ArtifactType) -> str:
+    """A default name for an artifact based on the job name and type."""
+    return f"{job_name}-{artifact_type}"
+
+
+def get_artifact_from_api(full_artifact_name: str) -> wandb.Artifact:
+    """Retrieve an artifact by fully qualified name from the W&B API.
+
+    This does not handle linking the artifact to an active run.
+    For that, use `run.use_artifact(full_artifact_name)`.
+    """
+    api = wandb.Api()
+    return api.artifact(full_artifact_name)
 
 
 def get_artifact_directory(

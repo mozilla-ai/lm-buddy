@@ -6,20 +6,9 @@ import torch
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
 
-from lm_buddy.integrations.huggingface import (
-    AutoModelConfig,
-    HuggingFaceAssetLoader,
-    resolve_peft_and_pretrained,
-)
-from lm_buddy.integrations.wandb import (
-    ArtifactLoader,
-    ArtifactType,
-    WandbResumeMode,
-    build_table_artifact,
-    default_artifact_name,
-    wandb_init_from_config,
-)
-from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
+from lm_buddy.integrations.huggingface import AutoModelConfig, HuggingFaceAssetLoader
+from lm_buddy.integrations.wandb import ArtifactType, build_table_artifact, default_artifact_name
+from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
 
 
@@ -40,16 +29,13 @@ def get_per_task_dataframes(
     return task_dataframes
 
 
-def load_harness_model(
-    config: LMHarnessJobConfig,
-    artifact_loader: ArtifactLoader,
-) -> HFLM | OpenaiCompletionsLM:
+def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
     # Instantiate the lm-harness LM class based on the provided model config type
-    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+    hf_loader = HuggingFaceAssetLoader()
     match config.model:
         case AutoModelConfig() as model_config:
             model_path = hf_loader.resolve_asset_path(model_config.path)
-            model_path, peft_path = resolve_peft_and_pretrained(model_path)
+            model_path, peft_path = hf_loader.resolve_peft_and_pretrained(model_path)
             quantization_kwargs: dict[str, Any] = (
                 config.quantization.model_dump() if config.quantization else {}
             )
@@ -78,11 +64,8 @@ def load_harness_model(
             raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
-def run_eval(
-    config: LMHarnessJobConfig,
-    artifact_loader: ArtifactLoader,
-) -> dict[str, list[tuple[str, float]]]:
-    llm = load_harness_model(config, artifact_loader)
+def run_eval(config: LMHarnessJobConfig) -> dict[str, list[tuple[str, float]]]:
+    llm = load_harness_model(config)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
         tasks=config.evaluation.tasks,
@@ -95,34 +78,23 @@ def run_eval(
     return get_per_task_dataframes(eval_results["results"])
 
 
-def run_lm_harness(
-    config: LMHarnessJobConfig,
-    artifact_loader: ArtifactLoader,
-) -> EvaluationResult:
+def run_lm_harness(config: LMHarnessJobConfig) -> EvaluationResult:
     print(f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}")
 
+    base_name = "lm-harness"
     if config.tracking is not None:
-        with wandb_init_from_config(
-            config.tracking,
-            parameters=config.evaluation,  # Log eval settings in W&B run
-            resume=WandbResumeMode.ALLOW,
-            job_type=LMBuddyJobType.EVALUATION,
-        ) as run:
-            eval_tables = run_eval(config, artifact_loader)
-            table_artifact = build_table_artifact(
-                artifact_name=default_artifact_name(run.name, ArtifactType.EVALUATION),
-                artifact_type=ArtifactType.EVALUATION,
-                tables=eval_tables,
-            )
-            print("Logging artifact for evaluation results...")
-            table_artifact = artifact_loader.log_artifact(table_artifact)
-    else:
-        eval_tables = run_eval(config, artifact_loader)
-        table_artifact = None
+        base_name = config.tracking.name
+    artifact_name = default_artifact_name(base_name, ArtifactType.EVALUATION)
 
-    output_artifacts = [table_artifact] if table_artifact else []
+    eval_tables = run_eval(config)
+    table_artifact = build_table_artifact(
+        artifact_name=artifact_name,
+        artifact_type=ArtifactType.EVALUATION,
+        tables=eval_tables,
+    )
+
     return EvaluationResult(
         tables=eval_tables,
-        artifacts=output_artifacts,
+        artifacts=[table_artifact],
         dataset_path=None,
     )

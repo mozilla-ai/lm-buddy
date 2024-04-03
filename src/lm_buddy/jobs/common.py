@@ -25,7 +25,7 @@ class FinetuningResult(JobResult):
     """Result from a finetuning task."""
 
     checkpoint_path: Path | None
-    metrics: dict[str, Any]
+    metrics: dict[str, Any] | None
     is_adapter: bool
 
 

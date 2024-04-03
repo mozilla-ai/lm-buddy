@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Any
 
-import ray
 from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
@@ -11,7 +10,6 @@ from trl import SFTTrainer
 
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
-    ArtifactLoader,
     ArtifactType,
     WandbResumeMode,
     build_directory_artifact,
@@ -29,10 +27,9 @@ def is_tracking_enabled(config: FinetuningJobConfig):
     return config.tracking is not None and train.get_context().get_world_rank() == 0
 
 
-def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader):
+def load_and_train(config: FinetuningJobConfig):
     # Load the HF assets from configurations
-    # Internally, artifact lineages are declared for the active training run
-    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+    hf_loader = HuggingFaceAssetLoader()
     model = hf_loader.load_pretrained_model(config.model, config.quantization)
     tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
 
@@ -67,35 +64,27 @@ def load_and_train(config: FinetuningJobConfig, artifact_loader: ArtifactLoader)
     trainer.train()
 
 
-def run_finetuning(
-    config: FinetuningJobConfig,
-    artifact_loader: ArtifactLoader,
-) -> FinetuningResult:
-    # Place the artifact loader in Ray object store
-    artifact_loader_ref = ray.put(artifact_loader)
+def training_function(config_data: dict[str, Any]):
+    config = FinetuningJobConfig(**config_data)
+    if is_tracking_enabled(config):
+        with wandb_init_from_config(
+            config.tracking,
+            resume=WandbResumeMode.NEVER,
+            job_type=LMBuddyJobType.FINETUNING,
+        ):
+            load_and_train(config)
+    else:
+        load_and_train(config)
 
-    # Define training function internally to capture the artifact loader ref as a closure
-    # Reference: https://docs.ray.io/en/latest/ray-core/objects.html#closure-capture-of-objects
-    def training_function(config_data: dict[str, Any]):
-        artifact_loader = ray.get(artifact_loader_ref)
-        config = FinetuningJobConfig(**config_data)
-        if is_tracking_enabled(config):
-            with wandb_init_from_config(
-                config.tracking,
-                resume=WandbResumeMode.NEVER,
-                job_type=LMBuddyJobType.FINETUNING,
-            ):
-                load_and_train(config, artifact_loader)
-        else:
-            load_and_train(config, artifact_loader)
 
+def run_finetuning(config: FinetuningJobConfig) -> FinetuningResult:
     # Construct Ray train configurations from input config
     scaling_config = ScalingConfig(
         use_gpu=config.ray.use_gpu,
         num_workers=config.ray.num_workers,
     )
     run_config = RunConfig(
-        name=config.tracking.name if config.tracking else None,
+        name=config.name,
         storage_path=config.ray.storage_path,
         checkpoint_config=CheckpointConfig(num_to_keep=1),
     )
@@ -108,27 +97,22 @@ def run_finetuning(
     result = trainer.fit()
     print(f"Training result: {result}")
 
-    # Register a model artifact if tracking is enabled and Ray saved a checkpoint
-    checkpoint_path, checkpoint_artifact = None, None
+    # Create a checkpoint artifact if tracking is enabled and Ray saved a checkpoint
     if result.checkpoint:
         checkpoint_path = Path(result.checkpoint.path) / RayTrainReportCallback.CHECKPOINT_NAME
-        if config.tracking:
-            # Must resume from the just-completed training run
-            with wandb_init_from_config(config.tracking, resume=WandbResumeMode.MUST) as run:
-                checkpoint_artifact = build_directory_artifact(
-                    artifact_name=default_artifact_name(run.name, ArtifactType.MODEL),
-                    artifact_type=ArtifactType.MODEL,
-                    dir_path=checkpoint_path,
-                    reference=True,
-                )
-                print("Logging artifact for finetuning checkpoint...")
-                checkpoint_artifact = artifact_loader.log_artifact(checkpoint_artifact)
+        checkpoint_artifact = build_directory_artifact(
+            artifact_name=default_artifact_name(config.name, ArtifactType.MODEL),
+            artifact_type=ArtifactType.MODEL,
+            dir_path=checkpoint_path,
+            reference=True,
+        )
+    else:
+        checkpoint_path, checkpoint_artifact = None, None
 
     # Return finetuning result object
-    output_artifacts = [checkpoint_artifact] if checkpoint_artifact else []
     return FinetuningResult(
-        artifacts=output_artifacts,
+        artifacts=[checkpoint_artifact] if checkpoint_artifact else [],
         checkpoint_path=checkpoint_path,
-        metrics=result.metrics or {},
+        metrics=result.metrics,
         is_adapter=config.adapter is not None,
     )
