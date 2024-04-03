@@ -1,6 +1,6 @@
 from pydantic import model_validator
 
-from lm_buddy.paths import AssetPath, PathScheme
+from lm_buddy.paths import AssetPath, PathPrefix
 from lm_buddy.types import BaseLMBuddyConfig
 
 DEFAULT_TEXT_FIELD: str = "text"
@@ -21,7 +21,7 @@ class DatasetConfig(BaseLMBuddyConfig):
         This makes it such that the `load_dataset` function returns the type `Dataset`
         instead of `DatasetDict`, which makes some of the downstream logic easier.
         """
-        if config.split is None and config.path.startswith(PathScheme.HUGGINGFACE):
+        if config.split is None and config.path.startswith(PathPrefix.HUGGINGFACE):
             raise ValueError(
                 "A `split` must be specified when loading a dataset directly from HuggingFace."
             )

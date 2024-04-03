@@ -2,7 +2,7 @@ import torch
 from datasets import Dataset, DatasetDict
 
 from lm_buddy.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
-from lm_buddy.paths import AssetPath
+from lm_buddy.paths import format_artifact_path
 from tests.utils import FakeArtifactLoader
 
 
@@ -12,7 +12,7 @@ def test_dataset_loading(xyz_dataset_artifact):
     artifact_loader.log_artifact(xyz_dataset_artifact)
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
 
-    artifact_path = AssetPath.from_wandb_identifiers(xyz_dataset_artifact.name, "test-project")
+    artifact_path = format_artifact_path(xyz_dataset_artifact)
     dataset_config = DatasetConfig(path=artifact_path, test_size=0.2, seed=0)
 
     dataset = hf_loader.load_dataset(dataset_config)
@@ -29,7 +29,7 @@ def test_model_loading(llm_model_artifact):
     artifact_loader.log_artifact(llm_model_artifact)
     hf_loader = HuggingFaceAssetLoader(artifact_loader)
 
-    artifact_path = AssetPath.from_wandb_identifiers(llm_model_artifact.name, "test-project")
+    artifact_path = format_artifact_path(llm_model_artifact)
     model_config = AutoModelConfig(path=artifact_path, torch_dtype=torch.bfloat16)
 
     hf_config = hf_loader.load_pretrained_config(model_config)

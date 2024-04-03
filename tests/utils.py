@@ -1,5 +1,6 @@
 import wandb
 from pydantic import BaseModel
+from wandb.sdk.artifacts.artifact_state import ArtifactState
 
 
 def copy_pydantic_json(model: BaseModel) -> BaseModel:
@@ -17,8 +18,29 @@ class FakeArtifactLoader:
     not the full W&B path, since the project/entity cannot be inferred when W&B is disabled.
     """
 
-    def __init__(self):
+    def __init__(self, project: str = "test-project", entity: str = "test-entity"):
+        self.project = project
+        self.entity = entity
         self._storage: dict[str, wandb.Artifact] = dict()
+
+    @staticmethod
+    def set_artifact_attributes(
+        artifact: wandb.Artifact,
+        project: str = "test-project",
+        entity: str = "test-entity",
+        version: str = "latest",
+    ) -> wandb.Artifact:
+        artifact._project = project
+        artifact._entity = entity
+        artifact._version = version
+        artifact._state = ArtifactState.COMMITTED
+
+        # W&B does this after logging an artifact
+        name_contains_version = len(artifact.name.split(":")) > 1
+        if not name_contains_version:
+            artifact._name = f"{artifact._name}:{artifact._version}"
+
+        return artifact
 
     def num_artifacts(self) -> int:
         return len(self._storage)
@@ -27,9 +49,10 @@ class FakeArtifactLoader:
         return list(self._storage.values())
 
     def use_artifact(self, artifact_path: str) -> wandb.Artifact:
-        # TODO(SGF): This is ugly atm, but plans to get rid of this artifact loader interface
-        artifact_name = artifact_path.split(":")[0].split("/")[-1]
-        return self._storage[artifact_name]
+        return self._storage[artifact_path]
 
-    def log_artifact(self, artifact: wandb.Artifact) -> None:
-        self._storage[artifact.name] = artifact
+    def log_artifact(self, artifact: wandb.Artifact) -> wandb.Artifact:
+        """Store the artifact in-memory and update its attributes to mimic the W&B platform."""
+        artifact = self.set_artifact_attributes(artifact)
+        self._storage[artifact.qualified_name] = artifact
+        return artifact

@@ -1,11 +1,10 @@
 from enum import Enum
 from pathlib import Path
-from urllib.parse import ParseResult, urlparse
 
 import pandas as pd
 import wandb
 
-from lm_buddy.paths import AssetPath, PathScheme
+from lm_buddy.paths import PathPrefix, strip_path_prefix
 
 
 class ArtifactType(str, Enum):
@@ -32,9 +31,9 @@ def get_artifact_directory(
     and returns the newly created artifact directory path.
     """
     for entry in artifact.manifest.entries.values():
-        match urlparse(entry.ref):
-            case ParseResult(scheme=PathScheme.FILE, path=file_path):
-                return Path(file_path).parent
+        if entry.ref.startswith(PathPrefix.FILE):
+            raw_path = strip_path_prefix(entry.ref)
+            return Path(raw_path).parent
     # No filesystem references found in the manifest -> download the artifact
     download_path = artifact.download(root=download_root_path)
     return Path(download_path)
@@ -69,7 +68,7 @@ def build_directory_artifact(
         # Right now, we are assuming a fixed "file" URI scheme
         # We can pass the URI scheme if necessary later
         artifact.add_reference(
-            uri=str(AssetPath.from_file_path(dir_path)),
+            uri=f"{PathPrefix.FILE}{dir_path}",
             max_objects=max_objects,
             name=entry_name,
         )

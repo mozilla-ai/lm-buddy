@@ -1,19 +1,24 @@
+import re
 from enum import Enum
 from pathlib import Path
-from typing import Any
-from urllib.parse import ParseResult, urlparse
+from typing import Annotated
 
 import wandb
 from huggingface_hub.utils import HFValidationError, validate_repo_id
-from pydantic import GetCoreSchemaHandler
-from pydantic_core import CoreSchema, core_schema
+from pydantic import AfterValidator
 from wandb.sdk.artifacts.exceptions import ArtifactNotLoggedError
 
 
-class PathScheme(str, Enum):
-    FILE = "file"
-    HUGGINGFACE = "hf"
-    WANDB = "wandb"
+class PathPrefix(str, Enum):
+    FILE = "file://"
+    HUGGINGFACE = "hf://"
+    WANDB = "wandb://"
+
+
+def strip_path_prefix(path: str) -> str:
+    """Strip the 'scheme://' prefix from the start of a string."""
+    pattern = "^\w+\:\/\/"
+    return re.sub(pattern, "", path)
 
 
 def is_valid_huggingface_repo_id(s: str):
@@ -32,72 +37,40 @@ def is_valid_huggingface_repo_id(s: str):
 
 
 def validate_asset_path(path: str) -> "AssetPath":
-    match urlparse(path):
-        case ParseResult(scheme=PathScheme.FILE, path=file_path):
-            if not Path(file_path).is_absolute():
-                raise ValueError(f"{file_path} is not an absolute file path.")
-        case ParseResult(scheme=PathScheme.HUGGINGFACE, netloc=repo_id):
-            if not is_valid_huggingface_repo_id(repo_id):
-                raise ValueError(f"{repo_id} is not a valid HuggingFace repo ID.")
-        case ParseResult(scheme=PathScheme.WANDB):
-            # TODO: Validate the W&B path structure?
-            pass
-        case _:
-            allowed_prefixes = {x.value for x in PathScheme}
-            raise ValueError(f"{path} does not begin with an allowed prefix: {allowed_prefixes}")
-    return AssetPath(path)
+    raw_path = strip_path_prefix(path)
+    if path.startswith(PathPrefix.FILE):
+        if not Path(raw_path).is_absolute():
+            raise ValueError(f"'{raw_path}' is not an absolute file path.")
+    elif path.startswith(PathPrefix.HUGGINGFACE):
+        if not is_valid_huggingface_repo_id(raw_path):
+            raise ValueError(f"'{raw_path}' is not a valid HuggingFace repo ID.")
+    elif path.startswith(PathPrefix.WANDB):
+        # TODO: Validate the W&B path structure?
+        pass
+    else:
+        allowed_prefixes = {x.value for x in PathPrefix}
+        raise ValueError(f"'{path}' does not begin with an allowed prefix: {allowed_prefixes}")
+    return path
 
 
-class AssetPath(str):
-    """String representing the name/path for loading an asset.
+AssetPath = Annotated[str, AfterValidator(lambda x: validate_asset_path(x))]
 
-    The path begins with one of the allowed `PathScheme`s that determine how to load the asset.
-    """
 
-    @classmethod
-    def from_file_path(cls, path: str | Path) -> "AssetPath":
-        path = Path(path).absolute()
-        return cls(f"{PathScheme.FILE}://{path}")
+def format_file_path(path: str | Path) -> AssetPath:
+    path = Path(path).absolute()
+    return f"{PathPrefix.FILE}{path}"
 
-    @classmethod
-    def from_huggingface_repo(cls, repo_id: str) -> "AssetPath":
-        return cls(f"{PathScheme.HUGGINGFACE}://{repo_id}")
 
-    @classmethod
-    def from_wandb_identifiers(
-        cls,
-        name: str,
-        project: str,
-        entity: str | None = None,
-        version: str = "latest",
-    ) -> "AssetPath":
-        base_path = "/".join(x for x in [entity, project, name] if x is not None)
-        return cls(f"{PathScheme.WANDB}://{base_path}:{version}")
+def format_huggingface_path(repo_id: str) -> AssetPath:
+    return f"{PathPrefix.HUGGINGFACE}{repo_id}"
 
-    @classmethod
-    def from_wandb_artifact(cls, artifact: wandb.Artifact) -> "AssetPath":
-        try:
-            return cls(f"{PathScheme.WANDB}://{artifact.qualified_name}")
-        except ArtifactNotLoggedError as e:
-            msg = "Unable to construct `AssetPath` from artifact missing project/entity fields."
-            raise ValueError(msg) from e
 
-    @property
-    def scheme(self) -> PathScheme:
-        scheme = urlparse(self).scheme
-        return PathScheme(scheme)
-
-    def strip_prefix(self) -> str:
-        """Strip 'scheme://' from the start of a path string."""
-        scheme = self.scheme
-        return self.replace(f"{scheme}://", "")
-
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        """Defining Pydantic validation logic on a custom class.
-
-        Reference: https://docs.pydantic.dev/latest/concepts/types/
-        """
-        return core_schema.no_info_after_validator_function(validate_asset_path, handler(str))
+def format_artifact_path(artifact: wandb.Artifact) -> AssetPath:
+    try:
+        return f"{PathPrefix.WANDB}{artifact.qualified_name}"
+    except ArtifactNotLoggedError as e:
+        msg = (
+            "Unable to construct an `AssetPath` from artifact missing project/entity fields. "
+            "Make sure to log the artifact before calling this method."
+        )
+        raise ValueError(msg) from e

@@ -1,12 +1,12 @@
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from lm_buddy.paths import AssetPath, PathScheme
+from lm_buddy.paths import AssetPath, strip_path_prefix
 
 
 def test_asset_path_validation():
     # Imbues the LoadableAssetPath type with Pydantic validation methods
-    adapter_cls = TypeAdapter(AssetPath)
+    validator = TypeAdapter(AssetPath)
 
     valid_paths = [
         "hf://repo-name",
@@ -14,31 +14,20 @@ def test_asset_path_validation():
         "wandb://entity/project/name:version",
     ]
     for path in valid_paths:
-        adapter_cls.validate_python(path)
+        validator.validate_python(path)
 
-    invalid_paths = ["hf://bad..name", "random://scheme", 12345]
+    invalid_paths = ["file://not/absolute", "hf://bad..name", "random://scheme", 12345]
     for path in invalid_paths:
         with pytest.raises(ValidationError):
-            adapter_cls.validate_python(path)
-
-
-def test_scheme_identifcation():
-    file_path = AssetPath.from_file_path("/path/to/file")
-    assert file_path.scheme == PathScheme.FILE
-
-    hf_path = AssetPath.from_huggingface_repo("distilgpt2")
-    assert hf_path.scheme == PathScheme.HUGGINGFACE
-
-    wandb_path = AssetPath.from_wandb_identifiers("artifact", "project")
-    assert wandb_path.scheme == PathScheme.WANDB
+            validator.validate_python(path)
 
 
 def test_strip_prefix():
-    file_path = AssetPath.from_file_path("/path/to/file")
-    assert file_path.strip_prefix() == "/path/to/file"
+    file_path = "file:///path/to/file"
+    assert strip_path_prefix(file_path) == "/path/to/file"
 
-    hf_path = AssetPath.from_huggingface_repo("distilgpt2")
-    assert hf_path.strip_prefix() == "distilgpt2"
+    hf_path = "hf://distilgpt2"
+    assert strip_path_prefix(hf_path) == "distilgpt2"
 
-    wandb_path = AssetPath.from_wandb_identifiers("name", "project", version="v0")
-    assert wandb_path.strip_prefix() == "project/name:v0"
+    wandb_path = "wandb://entity/project/name:version"
+    assert strip_path_prefix(wandb_path) == "entity/project/name:version"

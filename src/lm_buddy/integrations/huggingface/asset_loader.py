@@ -20,7 +20,7 @@ from lm_buddy.integrations.huggingface import (
     QuantizationConfig,
 )
 from lm_buddy.integrations.wandb import ArtifactLoader, get_artifact_directory
-from lm_buddy.paths import AssetPath, PathScheme
+from lm_buddy.paths import AssetPath, PathPrefix, strip_path_prefix
 
 
 def resolve_peft_and_pretrained(path: str) -> tuple[str, str | None]:
@@ -63,12 +63,13 @@ class HuggingFaceAssetLoader:
         """Resolve an `AssetPath` to a loadable string path.
 
         W&B paths are resolved to file paths given the artifact manifest.
-        The returned string has its `PathScheme` prefix stripped.
+        The returned string has its `PathPrefix` stripped away..
         """
-        if path.scheme in [PathScheme.FILE, PathScheme.HUGGINGFACE]:
-            return path.strip_prefix()
-        elif path.scheme == PathScheme.WANDB:
-            artifact = self._artifact_loader.use_artifact(path.strip_prefix())
+        raw_path = strip_path_prefix(path)
+        if path.startswith((PathPrefix.FILE, PathPrefix.HUGGINGFACE)):
+            return raw_path
+        elif path.startswith(PathPrefix.WANDB):
+            artifact = self._artifact_loader.use_artifact(raw_path)
             return str(get_artifact_directory(artifact))
         else:
             raise ValueError(f"Unable to resolve asset path from {path}.")
@@ -143,7 +144,7 @@ class HuggingFaceAssetLoader:
         """
         dataset_path = self.resolve_asset_path(config.path)
         # Dataset loading requires a different method if from a HF vs. disk
-        if config.path.scheme == PathScheme.HUGGINGFACE:
+        if config.path.startswith(PathPrefix.HUGGINGFACE):
             return load_dataset(dataset_path, split=config.split)
         else:
             match load_from_disk(dataset_path):
