@@ -21,7 +21,7 @@ def job_config(llm_model_path, text_dataset_path) -> FinetuningJobConfig:
         save_steps=1,
         save_strategy="epoch",
     )
-    tracking_config = WandbRunConfig(name="test-finetuning-job")
+    tracking_config = WandbRunConfig(project="test-project")
     ray_config = FinetuningRayConfig(num_workers=1, use_gpu=False)
     return FinetuningJobConfig(
         name="test-job",
