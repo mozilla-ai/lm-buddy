@@ -63,16 +63,16 @@ class HuggingFaceAssetLoader:
         """
         # We don't know if the checkpoint is adapter weights or merged model weights
         # Try to load as an adapter and fall back to the checkpoint containing the full model
+        resolved_path = self.resolve_asset_path(path)
         try:
-            peft_path = self.resolve_asset_path(path)
-            peft_config = PeftConfig.from_pretrained(peft_path)
-            return peft_config.base_model_name_or_path, peft_path
+            peft_config = PeftConfig.from_pretrained(resolved_path)
+            return peft_config.base_model_name_or_path, resolved_path
         except ValueError as e:
             warnings.warn(
                 f"Unable to load model as adapter: {e}. "
                 "This is expected if the checkpoint does not contain adapter weights."
             )
-            return path, None
+            return resolved_path, None
 
     def load_pretrained_config(
         self,
