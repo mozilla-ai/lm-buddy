@@ -46,6 +46,7 @@ class LMBuddy:
                     run.use_artifact(artifact_name)
                 for artifact in results:
                     run.log_artifact(artifact)
+                    artifact.wait()
 
     def finetune(self, config: FinetuningJobConfig) -> FinetuningResult:
         """Run a supervised finetuning job with the provided configuration."""
