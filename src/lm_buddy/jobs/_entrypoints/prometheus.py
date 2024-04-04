@@ -19,8 +19,7 @@ from lm_buddy.integrations.wandb import (
     build_directory_artifact,
     default_artifact_name,
 )
-from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
-from lm_buddy.jobs.common import EvaluationResult
+from lm_buddy.jobs.common import EvaluationResult, preprocess_text_dataset
 from lm_buddy.jobs.configs import PrometheusJobConfig
 
 
@@ -161,8 +160,9 @@ def run_prometheus(config: PrometheusJobConfig) -> EvaluationResult:
     print(f"Prometheus evaluation dataset stored at {output_dataset_path}")
 
     # Create a directory artifact for the HF dataset
+    artifact_name = default_artifact_name(config.name, artifact_type=ArtifactType.DATASET)
     dataset_artifact = build_directory_artifact(
-        artifact_name=default_artifact_name(config.name, artifact_type=ArtifactType.DATASET),
+        artifact_name=artifact_name,
         artifact_type=ArtifactType.DATASET,
         dir_path=output_dataset_path,
         reference=False,

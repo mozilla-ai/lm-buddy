@@ -1,3 +1,5 @@
+name: "lm-buddy-finetuning"
+
 # Base model to load for finetuning
 model:
   path: "hf://distilgpt2"
@@ -36,7 +38,6 @@ adapter:
 
 # Tracking info for where to log the run results
 tracking:
-  name: "lm-buddy-finetuning"
   project: "lm-buddy-examples"
   entity: "mozilla-ai"
 

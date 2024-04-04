@@ -64,7 +64,9 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
             raise ValueError(f"Unexpected model config type: {type(config.model)}")
 
 
-def run_eval(config: LMHarnessJobConfig) -> dict[str, list[tuple[str, float]]]:
+def run_lm_harness(config: LMHarnessJobConfig) -> EvaluationResult:
+    print(f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}")
+
     llm = load_harness_model(config)
     eval_results = lm_eval.simple_evaluate(
         model=llm,
@@ -75,26 +77,18 @@ def run_eval(config: LMHarnessJobConfig) -> dict[str, list[tuple[str, float]]]:
         log_samples=False,
     )
     print(f"Obtained evaluation results: {eval_results}")
-    return get_per_task_dataframes(eval_results["results"])
 
+    result_tables = get_per_task_dataframes(eval_results["results"])
 
-def run_lm_harness(config: LMHarnessJobConfig) -> EvaluationResult:
-    print(f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}")
-
-    base_name = "lm-harness"
-    if config.tracking is not None:
-        base_name = config.tracking.name
-    artifact_name = default_artifact_name(base_name, ArtifactType.EVALUATION)
-
-    eval_tables = run_eval(config)
+    artifact_name = default_artifact_name(config.name, ArtifactType.EVALUATION)
     table_artifact = build_table_artifact(
         artifact_name=artifact_name,
         artifact_type=ArtifactType.EVALUATION,
-        tables=eval_tables,
+        tables=result_tables,
     )
 
     return EvaluationResult(
-        tables=eval_tables,
+        tables=result_tables,
         artifacts=[table_artifact],
         dataset_path=None,
     )

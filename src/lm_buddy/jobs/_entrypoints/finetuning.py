@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 
+import wandb
 from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
@@ -14,10 +15,8 @@ from lm_buddy.integrations.wandb import (
     WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
-    wandb_init_from_config,
 )
-from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
-from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType
+from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType, preprocess_text_dataset
 from lm_buddy.jobs.configs import FinetuningJobConfig
 
 
@@ -67,10 +66,11 @@ def load_and_train(config: FinetuningJobConfig):
 def training_function(config_data: dict[str, Any]):
     config = FinetuningJobConfig(**config_data)
     if is_tracking_enabled(config):
-        with wandb_init_from_config(
-            config.tracking,
+        with wandb.init(
+            name=config.name,
             resume=WandbResumeMode.NEVER,
             job_type=LMBuddyJobType.FINETUNING,
+            **config.tracking.model_dump(),
         ):
             load_and_train(config)
     else:

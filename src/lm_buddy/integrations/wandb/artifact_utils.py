@@ -22,14 +22,14 @@ def default_artifact_name(job_name: str, artifact_type: ArtifactType) -> str:
     return f"{job_name}-{artifact_type}"
 
 
-def get_artifact_from_api(full_artifact_name: str) -> wandb.Artifact:
+def get_artifact_from_api(artifact_name: str) -> wandb.Artifact:
     """Retrieve an artifact by fully qualified name from the W&B API.
 
     This does not handle linking the artifact to an active run.
-    For that, use `run.use_artifact(full_artifact_name)`.
+    For that, use `run.use_artifact(artifact_name)`.
     """
     api = wandb.Api()
-    return api.artifact(full_artifact_name)
+    return api.artifact(artifact_name)
 
 
 def get_artifact_directory(

@@ -7,7 +7,7 @@ from pydantic import Field
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
 from lm_buddy.integrations.wandb import WandbRunConfig
-from lm_buddy.paths import AssetPath, PathPrefix, strip_path_prefix
+from lm_buddy.paths import AssetPath, PathPrefix
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -21,9 +21,9 @@ class LMBuddyJobConfig(BaseLMBuddyConfig):
     """
 
     # TODO: Unify this name with the config.tracking.name field in a follow-up
-    name: str = Field(..., description="Name of the job.")
+    name: str = Field(description="Name of the job.")
+
     tracking: WandbRunConfig | None = Field(
-        ...,
         default=None,
         description=(
             "Tracking information to associate with the job. "
@@ -59,6 +59,6 @@ class LMBuddyJobConfig(BaseLMBuddyConfig):
         """Return a set of all `AssetPath` fields on this config."""
         pass
 
-    def artifact_names(self) -> set[str]:
-        """Return a set of all W&B artifact names on this config."""
-        return {strip_path_prefix(x) for x in self.asset_paths() if x.startswith(PathPrefix.WANDB)}
+    def artifact_paths(self) -> set[AssetPath]:
+        """Return a set of all W&B artifact paths on this config."""
+        return {x for x in self.asset_paths() if x.startswith(PathPrefix.WANDB)}

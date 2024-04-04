@@ -5,6 +5,7 @@ from pydantic import Field, field_validator
 from lm_buddy.integrations.huggingface import AutoModelConfig
 from lm_buddy.integrations.huggingface.dataset_config import TextDatasetConfig
 from lm_buddy.integrations.vllm import VLLMCompletionsConfig
+from lm_buddy.jobs.configs.base import LMBuddyJobConfig
 from lm_buddy.paths import AssetPath
 from lm_buddy.types import BaseLMBuddyConfig
 
@@ -42,7 +43,7 @@ class RagasEvaluationConfig(BaseLMBuddyConfig):
         return x
 
 
-class RagasJobConfig(BaseLMBuddyConfig):
+class RagasJobConfig(LMBuddyJobConfig):
     """Configuration to run a Ragas evaluation job.
 
     This job loads a dataset from an existing path on our cluster.
@@ -60,7 +61,5 @@ class RagasJobConfig(BaseLMBuddyConfig):
     )
 
     def asset_paths(self) -> set[AssetPath]:
-        paths = {self.dataset.path}
-        if self.judge.inference.engine is not None:
-            paths.add(self.judge.inference.engine)
-        return paths
+        paths = {self.dataset.path, self.judge.inference.engine}
+        return {x for x in paths if x is not None}

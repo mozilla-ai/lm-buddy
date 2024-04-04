@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from lm_buddy.integrations.huggingface import TextDatasetConfig
 from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
-from tests.utils import copy_pydantic_json
+from tests.test_utils import copy_pydantic_json
 
 
 @pytest.fixture
@@ -25,6 +25,7 @@ def finetuning_job_config(
     finetuning_ray_config,
 ):
     return FinetuningJobConfig(
+        name="finetuning-job-config",
         model=model_config_with_artifact,
         dataset=dataset_config_with_artifact,
         tokenizer=tokenizer_config_with_artifact,

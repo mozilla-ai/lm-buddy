@@ -1,3 +1,5 @@
+name: "lm-buddy-lm-harness-inference"
+
 # Model to evaluate specified as a local-chat-completions inference server
 model:
   inference:
@@ -16,6 +18,5 @@ evaluation:
   limit: 10
 
 tracking:
-  name: "lm-buddy-lm-harness-inference"
   project: "lm-buddy-examples"
   entity: "sample"

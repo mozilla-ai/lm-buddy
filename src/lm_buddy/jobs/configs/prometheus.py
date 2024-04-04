@@ -36,7 +36,5 @@ class PrometheusJobConfig(LMBuddyJobConfig):
     )
 
     def asset_paths(self) -> set[AssetPath]:
-        paths = {self.dataset.path}
-        if self.prometheus.inference.engine is not None:
-            paths.add(self.prometheus.inference.engine)
-        return paths
+        paths = {self.dataset.path, self.prometheus.inference.engine}
+        return {x for x in paths if x is not None}

@@ -1,24 +1,17 @@
-import wandb
+import pytest
 
 from lm_buddy import LMBuddy
 from lm_buddy.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
 from lm_buddy.integrations.wandb import ArtifactType, WandbRunConfig
 from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
-from lm_buddy.paths import format_artifact_path
-from tests.utils import FakeArtifactLoader
+from lm_buddy.paths import format_file_path
 
 
-def get_job_config(
-    model_artifact: wandb.Artifact,
-    dataset_artifact: wandb.Artifact,
-) -> FinetuningJobConfig:
-    """Create a job config for finetuning.
-
-    The artifacts should already be logged and contain a fully qualified W&B name.
-    """
-    model_config = AutoModelConfig(path=format_artifact_path(model_artifact))
+@pytest.fixture
+def job_config(llm_model_path, text_dataset_path) -> FinetuningJobConfig:
+    model_config = AutoModelConfig(path=format_file_path(llm_model_path))
     dataset_config = TextDatasetConfig(
-        path=format_artifact_path(dataset_artifact),
+        path=format_file_path(text_dataset_path),
         text_field="text",
         split="train",
     )
@@ -39,22 +32,12 @@ def get_job_config(
     )
 
 
-def test_finetuning_job(llm_model_artifact, text_dataset_artifact):
-    # Preload input artifact in loader
-    artifact_loader = FakeArtifactLoader()
-    logged_model_artifact = artifact_loader.log_artifact(llm_model_artifact)
-    logged_dataset_artifact = artifact_loader.log_artifact(text_dataset_artifact)
-
-    # Build a job config
-    job_config = get_job_config(logged_model_artifact, logged_dataset_artifact)
-
+def test_finetuning_job(job_config):
     # Run test job
-    buddy = LMBuddy(artifact_loader)
-    buddy.finetune(job_config)
+    buddy = LMBuddy()
+    result = buddy.finetune(job_config)
 
-    # Two input artifacts, and one output model artifact produced
-    artifacts = artifact_loader.get_artifacts()
-    num_dataset_artifacts = len([a for a in artifacts if a.type == ArtifactType.DATASET])
-    num_model_artifacts = len([a for a in artifacts if a.type == ArtifactType.MODEL])
-    assert num_dataset_artifacts == 1
-    assert num_model_artifacts == 2
+    # One model artifact should be generated as a result
+    artifacts = result.artifacts
+    assert len(artifacts) == 1
+    assert artifacts[0].type == ArtifactType.MODEL

@@ -29,7 +29,7 @@ class HuggingFaceAssetLoader:
     This class depends on an `ArtifactLoader` in order to resolve actual paths from
     artifact references.
 
-    TODO: Do we still need this class now that ArtifactLoader dep is gone?
+    TODO: We can probably move these to standalone functions now that ArtifactLoader is gone.
           What if we add other deps (e.g, S3 client in the future?)
     """
 
