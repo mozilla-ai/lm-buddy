@@ -45,7 +45,7 @@ class LMBuddy:
                     artifact_name = strip_path_prefix(path)
                     run.use_artifact(artifact_name)
                 for artifact in results:
-                    run.log_artifact(artifact)
+                    artifact = run.log_artifact(artifact)
                     artifact.wait()
 
     def finetune(self, config: FinetuningJobConfig) -> FinetuningResult:
