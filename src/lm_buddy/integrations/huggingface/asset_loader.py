@@ -48,7 +48,7 @@ class HuggingFaceAssetLoader:
         else:
             raise ValueError(f"Unable to resolve asset path from {path}.")
 
-    def resolve_peft_and_pretrained(self, path: str) -> tuple[str, str | None]:
+    def resolve_peft_and_pretrained(self, path: AssetPath) -> tuple[str, str | None]:
         """Helper method for determining if a path corresponds to a PEFT model.
 
         A PEFT model contains an `adapter_config.json` in its directory.
@@ -56,7 +56,7 @@ class HuggingFaceAssetLoader:
         If not, we assume the provided path corresponds to a base HF model.
 
         Args:
-            path (str): Name/path to a HuggingFace directory
+            path (AssetPath): Path for the asset with its `PathPrefix` present
 
         Returns:
             Tuple of (base model path, optional PEFT path)
@@ -64,8 +64,9 @@ class HuggingFaceAssetLoader:
         # We don't know if the checkpoint is adapter weights or merged model weights
         # Try to load as an adapter and fall back to the checkpoint containing the full model
         try:
-            peft_config = PeftConfig.from_pretrained(path)
-            return peft_config.base_model_name_or_path, path
+            peft_path = self.resolve_asset_path(path)
+            peft_config = PeftConfig.from_pretrained(peft_path)
+            return peft_config.base_model_name_or_path, peft_path
         except ValueError as e:
             warnings.warn(
                 f"Unable to load model as adapter: {e}. "

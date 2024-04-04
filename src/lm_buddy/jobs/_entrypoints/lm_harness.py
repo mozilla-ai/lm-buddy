@@ -34,8 +34,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
     hf_loader = HuggingFaceAssetLoader()
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path = hf_loader.resolve_asset_path(model_config.path)
-            model_path, peft_path = hf_loader.resolve_peft_and_pretrained(model_path)
+            model_path, peft_path = hf_loader.resolve_peft_and_pretrained(model_config.path)
             quantization_kwargs: dict[str, Any] = (
                 config.quantization.model_dump() if config.quantization else {}
             )
