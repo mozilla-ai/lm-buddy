@@ -59,7 +59,7 @@ class WandbRunConfig(BaseLMBuddyConfig):
 
     def wandb_path(self) -> str:
         """String identifier for the asset on the W&B platform."""
-        path = "/".join(x for x in [self.entity, self.project, self.run_id] if x is not None)
+        path = "/".join(x for x in [self.entity, self.project, self.id] if x is not None)
         return path
 
     def env_vars(self) -> dict[str, str]:

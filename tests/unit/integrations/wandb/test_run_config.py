@@ -18,7 +18,7 @@ def mock_environment_without_keys():
 @pytest.fixture
 def wandb_run_config():
     return WandbRunConfig(
-        run_id="run-id",
+        id="run-id",
         project="research",
         entity="team",
     )

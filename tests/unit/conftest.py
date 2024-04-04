@@ -63,7 +63,7 @@ def adapter_config():
 
 @pytest.fixture
 def wandb_run_config():
-    return WandbRunConfig(name="run", run_id="12345", project="research", entity="mzai")
+    return WandbRunConfig(id="12345", project="research", entity="mzai")
 
 
 @pytest.fixture
