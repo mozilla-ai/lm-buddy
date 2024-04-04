@@ -1,8 +1,8 @@
-from lm_buddy.configs.base import BaseLMBuddyConfig
+from lm_buddy.configs.base import LMBuddyConfig
 from lm_buddy.paths import AssetPath
 
 
-class InferenceServerConfig(BaseLMBuddyConfig):
+class InferenceServerConfig(LMBuddyConfig):
     """Generic configuration for an externally hosted inference endpoint.
 
     The inference server is defined by an endpoint with the provided `base_url`.
@@ -19,7 +19,7 @@ class InferenceServerConfig(BaseLMBuddyConfig):
     engine: AssetPath | None = None
 
 
-class VLLMCompletionsConfig(BaseLMBuddyConfig):
+class VLLMCompletionsConfig(LMBuddyConfig):
     """Configuration for a vLLM-based completions service
 
     The "local-chat-completions" model is powered by a self-hosted inference server,
@@ -33,7 +33,6 @@ class VLLMCompletionsConfig(BaseLMBuddyConfig):
     """
 
     inference: InferenceServerConfig
-
     # vLLM-specific params
     best_of: int | None = None
     max_tokens: int | None = None

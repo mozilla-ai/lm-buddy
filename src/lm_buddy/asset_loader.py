@@ -13,7 +13,12 @@ from transformers import (
     PreTrainedTokenizer,
 )
 
-from lm_buddy.configs.huggingface.model import AutoModelConfig
+from lm_buddy.configs.huggingface import (
+    AutoModelConfig,
+    AutoTokenizerConfig,
+    DatasetConfig,
+    QuantizationConfig,
+)
 from lm_buddy.paths import AssetPath, PathPrefix, strip_path_prefix
 from lm_buddy.tracking.artifact_utils import get_artifact_directory, get_artifact_from_api
 

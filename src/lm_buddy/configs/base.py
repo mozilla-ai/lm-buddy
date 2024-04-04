@@ -32,7 +32,7 @@ Ref: https://docs.pydantic.dev/latest/concepts/types/#custom-types
 """
 
 
-class BaseLMBuddyConfig(
+class LMBuddyConfig(
     BaseModel,
     extra="forbid",
     arbitrary_types_allowed=True,

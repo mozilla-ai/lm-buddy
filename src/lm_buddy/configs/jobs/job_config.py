@@ -6,12 +6,12 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
-from lm_buddy.configs.base import BaseLMBuddyConfig
+from lm_buddy.configs.base import LMBuddyConfig
 from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.paths import AssetPath, PathPrefix
 
 
-class JobConfig(BaseLMBuddyConfig):
+class JobConfig(LMBuddyConfig):
     """Configuration that comprises the entire input to an LM Buddy job.
 
     This class implements helper methods for de/serializing the configuration from file.

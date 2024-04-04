@@ -5,10 +5,10 @@ from pydantic import model_validator
 from wandb.apis.public import Run
 from wandb.util import random_string
 
-from lm_buddy.configs.base import BaseLMBuddyConfig
+from lm_buddy.configs.base import LMBuddyConfig
 
 
-class WandbRunConfig(BaseLMBuddyConfig):
+class WandbRunConfig(LMBuddyConfig):
     """Configuration required to log to a W&B run.
 
     A W&B Run is uniquely identified by the combination of `<entity>/<project>/<id>`.
