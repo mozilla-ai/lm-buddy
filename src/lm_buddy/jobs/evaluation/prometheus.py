@@ -13,14 +13,16 @@ from fastchat.conversation import get_conv_template
 from openai import Completion, OpenAI, OpenAIError
 from tqdm import tqdm
 
-from lm_buddy.integrations.huggingface import AutoTokenizerConfig, HuggingFaceAssetLoader
-from lm_buddy.integrations.wandb import (
+from lm_buddy.configs.huggingface import AutoTokenizerConfig
+from lm_buddy.configs.jobs.prometheus import PrometheusJobConfig
+from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
+from lm_buddy.jobs.common import EvaluationResult
+from lm_buddy.preprocessing import format_dataset_with_prompt
+from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
     build_directory_artifact,
     default_artifact_name,
 )
-from lm_buddy.jobs.common import EvaluationResult, preprocess_text_dataset
-from lm_buddy.jobs.configs import PrometheusJobConfig
 
 
 @dataclass
@@ -108,7 +110,10 @@ def run_eval(config: PrometheusJobConfig) -> Path:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader()
     dataset = hf_loader.load_dataset(config.dataset)
-    dataset = preprocess_text_dataset(dataset, config.dataset)
+    if config.dataset.prompt_template is not None:
+        dataset = format_dataset_with_prompt(
+            dataset, config.dataset.prompt_template, config.dataset.text_field
+        )
 
     # get the tokenizer
     tokenizer_config = AutoTokenizerConfig(path=config.prometheus.inference.engine)

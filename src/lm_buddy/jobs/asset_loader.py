@@ -26,9 +26,6 @@ from lm_buddy.tracking.artifact_utils import get_artifact_directory, get_artifac
 class HuggingFaceAssetLoader:
     """Helper class for loading HuggingFace assets from LM Buddy configurations.
 
-    This class depends on an `ArtifactLoader` in order to resolve actual paths from
-    artifact references.
-
     TODO: We can probably move these to standalone functions now that ArtifactLoader is gone.
           What if we add other deps (e.g, S3 client in the future?)
     """

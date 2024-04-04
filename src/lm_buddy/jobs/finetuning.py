@@ -9,15 +9,16 @@ from ray.train.torch import TorchTrainer
 from transformers import TrainingArguments
 from trl import SFTTrainer
 
-from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
-from lm_buddy.integrations.wandb import (
+from lm_buddy.configs.huggingface import HuggingFaceAssetLoader
+from lm_buddy.configs.jobs.finetuning import FinetuningJobConfig
+from lm_buddy.jobs.common import FinetuningResult, JobType
+from lm_buddy.preprocessing import format_dataset_with_prompt
+from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
-    WandbResumeMode,
     build_directory_artifact,
     default_artifact_name,
 )
-from lm_buddy.jobs.common import FinetuningResult, LMBuddyJobType, preprocess_text_dataset
-from lm_buddy.jobs.configs import FinetuningJobConfig
+from lm_buddy.tracking.run_utils import WandbResumeMode
 
 
 def is_tracking_enabled(config: FinetuningJobConfig):
@@ -33,8 +34,13 @@ def load_and_train(config: FinetuningJobConfig):
     tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
 
     datasets = hf_loader.load_and_split_dataset(config.dataset)
-    for split, dataset in datasets.items():
-        datasets[split] = preprocess_text_dataset(dataset, config.dataset)
+    if config.dataset.prompt_template is not None:
+        for split, dataset in datasets.items():
+            datasets[split] = format_dataset_with_prompt(
+                dataset=dataset,
+                prompt_template=config.dataset.prompt_template,
+                output_field=config.dataset.text_field,
+            )
 
     training_args = TrainingArguments(
         output_dir="out",  # Local checkpoint path on a worker
@@ -69,7 +75,7 @@ def training_function(config_data: dict[str, Any]):
         with wandb.init(
             name=config.name,
             resume=WandbResumeMode.NEVER,
-            job_type=LMBuddyJobType.FINETUNING,
+            job_type=JobType.FINETUNING,
             **config.tracking.model_dump(),
         ):
             load_and_train(config)

@@ -1,6 +1,6 @@
 from pydantic import Field, field_validator, model_validator
 
-from lm_buddy.configs.base import LMBuddyConfig
+from lm_buddy.configs.common import LMBuddyConfig
 from lm_buddy.configs.huggingface import (
     AdapterConfig,
     AutoModelConfig,
@@ -9,7 +9,7 @@ from lm_buddy.configs.huggingface import (
     QuantizationConfig,
     TrainerConfig,
 )
-from lm_buddy.configs.jobs.job_config import JobConfig
+from lm_buddy.configs.jobs.common import JobConfig
 from lm_buddy.paths import AssetPath
 
 

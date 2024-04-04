@@ -6,14 +6,15 @@ from langchain_openai import ChatOpenAI
 from ragas import evaluate as ragas_evaluate
 from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
-from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
-from lm_buddy.integrations.wandb import (
+from lm_buddy.configs.jobs.ragas import RagasJobConfig
+from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
+from lm_buddy.jobs.common import EvaluationResult
+from lm_buddy.preprocessing import format_dataset_with_prompt
+from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
     build_directory_artifact,
     default_artifact_name,
 )
-from lm_buddy.jobs.common import EvaluationResult, preprocess_text_dataset
-from lm_buddy.jobs.configs import RagasJobConfig
 
 RAGAS_METRICS_MAP = {
     "faithfulness": faithfulness,
@@ -27,7 +28,10 @@ def run_eval(config: RagasJobConfig) -> Path:
     # load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader()
     evaluation_dataset = hf_loader.load_dataset(config.dataset)
-    evaluation_dataset = preprocess_text_dataset(evaluation_dataset, config.dataset)
+    if config.dataset.prompt_template is not None:
+        evaluation_dataset = format_dataset_with_prompt(
+            evaluation_dataset, config.dataset.prompt_template, config.dataset.text_field
+        )
 
     # ragas custom model args
     ragas_args = {}

@@ -1,4 +1,4 @@
-from lm_buddy.configs.base import LMBuddyConfig
+from lm_buddy.configs.common import LMBuddyConfig
 from lm_buddy.paths import AssetPath
 
 
@@ -16,7 +16,7 @@ class InferenceServerConfig(LMBuddyConfig):
     """
 
     base_url: str
-    engine: AssetPath | None = None
+    engine: AssetPath
 
 
 class VLLMCompletionsConfig(LMBuddyConfig):

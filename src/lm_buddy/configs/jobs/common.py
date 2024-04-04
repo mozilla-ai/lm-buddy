@@ -6,8 +6,8 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
-from lm_buddy.configs.base import LMBuddyConfig
-from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.configs.common import LMBuddyConfig
+from lm_buddy.configs.wandb import WandbRunConfig
 from lm_buddy.paths import AssetPath, PathPrefix
 
 

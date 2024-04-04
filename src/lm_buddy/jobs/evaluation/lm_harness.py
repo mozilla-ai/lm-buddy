@@ -6,10 +6,15 @@ import torch
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
 
-from lm_buddy.integrations.huggingface import AutoModelConfig, HuggingFaceAssetLoader
-from lm_buddy.integrations.wandb import ArtifactType, build_table_artifact, default_artifact_name
+from lm_buddy.configs.huggingface import AutoModelConfig
+from lm_buddy.configs.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsConfig
+from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
 from lm_buddy.jobs.common import EvaluationResult
-from lm_buddy.jobs.configs import LMHarnessJobConfig, LocalChatCompletionsConfig
+from lm_buddy.tracking.artifact_utils import (
+    ArtifactType,
+    build_table_artifact,
+    default_artifact_name,
+)
 
 
 def get_per_task_dataframes(

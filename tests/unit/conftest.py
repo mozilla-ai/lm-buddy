@@ -1,15 +1,15 @@
 import pytest
 from peft import PeftType, TaskType
 
-from lm_buddy.integrations.huggingface import (
+from lm_buddy.configs.huggingface import (
     AdapterConfig,
     AutoModelConfig,
     AutoTokenizerConfig,
+    DatasetConfig,
     QuantizationConfig,
-    TextDatasetConfig,
 )
-from lm_buddy.integrations.vllm import InferenceServerConfig
-from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.configs.vllm import InferenceServerConfig
+from lm_buddy.configs.wandb import WandbRunConfig
 
 
 @pytest.fixture
@@ -36,13 +36,13 @@ def tokenizer_config_with_artifact():
 
 @pytest.fixture
 def dataset_config_with_repo_id():
-    return TextDatasetConfig(path="hf://databricks/dolly15k", text_field="text", split="train")
+    return DatasetConfig(path="hf://databricks/dolly15k", text_field="text", split="train")
 
 
 @pytest.fixture
 def dataset_config_with_artifact():
     artifact_path = "wandb://project/dataset-artifact:latest"
-    return TextDatasetConfig(path=artifact_path)
+    return DatasetConfig(path=artifact_path)
 
 
 @pytest.fixture
