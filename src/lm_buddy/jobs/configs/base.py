@@ -20,9 +20,7 @@ class LMBuddyJobConfig(BaseLMBuddyConfig):
     but this is not rigidly constrained by the interface. This may change in the future.
     """
 
-    # TODO: Unify this name with the config.tracking.name field in a follow-up
     name: str = Field(description="Name of the job.")
-
     tracking: WandbRunConfig | None = Field(
         default=None,
         description=(

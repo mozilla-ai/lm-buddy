@@ -13,6 +13,7 @@ def job_config(llm_model_path) -> LMHarnessJobConfig:
     tracking_config = WandbRunConfig(name="test-lm-harness-job")
     evaluation_config = LMHarnessEvaluationConfig(tasks=["hellaswag"], limit=5)
     return LMHarnessJobConfig(
+        name="test-job",
         model=model_config,
         evaluation=evaluation_config,
         tracking=tracking_config,

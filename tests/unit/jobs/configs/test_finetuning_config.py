@@ -69,9 +69,7 @@ def test_argument_validation():
 
     # Check passing invalid arguments is validated for each asset type
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(
-            name="test", model=12345, tokenizer=tokenizer_path, dataset=dataset_config
-        )
+        FinetuningJobConfig(name="test", model=12345, dataset=dataset_config)
     with pytest.raises(ValidationError):
         FinetuningJobConfig(name="test", model=model_path, tokenizer=12345, dataset=dataset_config)
     with pytest.raises(ValidationError):
