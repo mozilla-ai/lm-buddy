@@ -1,3 +1,5 @@
+name: "lm-buddy-ragas"
+
 dataset:
   path: "wandb://sample-entity/lm-buddy-examples/wandb-file-artifact:latest"
   # field containing scoring instructions in the json file
@@ -21,6 +23,5 @@ evaluation:
   embedding_model: "sentence-transformers/all-mpnet-base-v2"
 
 tracking:
-  name: "lm-buddy-ragas"
   project: "lm-buddy-examples"
   entity: "sample"

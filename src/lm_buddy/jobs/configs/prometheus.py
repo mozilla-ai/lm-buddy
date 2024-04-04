@@ -2,8 +2,8 @@ from pydantic import Field
 
 from lm_buddy.integrations.huggingface import TextDatasetConfig
 from lm_buddy.integrations.vllm import VLLMCompletionsConfig
-from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.jobs.configs import LMBuddyJobConfig
+from lm_buddy.paths import AssetPath
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -34,4 +34,7 @@ class PrometheusJobConfig(LMBuddyJobConfig):
         default_factory=PrometheusEvaluationConfig,
         description="Settings for the Prometheus evaluation.",
     )
-    tracking: WandbRunConfig | None = None
+
+    def asset_paths(self) -> set[AssetPath]:
+        paths = {self.dataset.path, self.prometheus.inference.engine}
+        return {x for x in paths if x is not None}

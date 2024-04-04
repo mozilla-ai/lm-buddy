@@ -11,7 +11,7 @@ from lm_buddy.types import BaseLMBuddyConfig
 class WandbRunConfig(BaseLMBuddyConfig):
     """Configuration required to log to a W&B run.
 
-    A W&B Run is uniquely identified by the combination of `entity/project/run_id`.
+    A W&B Run is uniquely identified by the combination of `<entity>/<project>/<id>`.
     The W&B platform will auto-generate values for these variables if they are not provided
     when you initialize a run.
 
@@ -21,12 +21,11 @@ class WandbRunConfig(BaseLMBuddyConfig):
     if it is not provided.
     """
 
-    __match_args__ = ("run_id", "name", "project", "run_group", "entity")
+    __match_args__ = ("id", "project", "group", "entity")
 
-    run_id: str
-    name: str | None = None
+    id: str
     project: str | None = None
-    run_group: str | None = None
+    group: str | None = None
     entity: str | None = None
 
     @model_validator(mode="before")
@@ -40,9 +39,9 @@ class WandbRunConfig(BaseLMBuddyConfig):
 
     @model_validator(mode="before")
     def ensure_run_id(cls, values):
-        if values.get("run_id", None) is None:
+        if values.get("id", None) is None:
             # Generate an random 8-digit alphanumeric string, analogous to W&B platform
-            values["run_id"] = random_string(length=8)
+            values["id"] = random_string(length=8)
         return values
 
     @classmethod
@@ -53,23 +52,21 @@ class WandbRunConfig(BaseLMBuddyConfig):
         """
         # TODO: Can we get the run group from this when it exists?
         return cls(
-            name=run.name,
             project=run.project,
             entity=run.entity,
-            run_id=run.id,
+            id=run.id,
         )
 
     def wandb_path(self) -> str:
         """String identifier for the asset on the W&B platform."""
-        path = "/".join(x for x in [self.entity, self.project, self.run_id] if x is not None)
+        path = "/".join(x for x in [self.entity, self.project, self.id] if x is not None)
         return path
 
     def env_vars(self) -> dict[str, str]:
         env_vars = {
-            "WANDB_RUN_ID": self.run_id,
-            "WANDB_NAME": self.name,
+            "WANDB_RUN_ID": self.id,
             "WANDB_PROJECT": self.project,
-            "WANDB_RUN_GROUP": self.run_group,
+            "WANDB_RUN_GROUP": self.group,
             "WANDB_ENTITY": self.entity,
             "WANDB_API_KEY": os.environ.get("WANDB_API_KEY", None),
         }

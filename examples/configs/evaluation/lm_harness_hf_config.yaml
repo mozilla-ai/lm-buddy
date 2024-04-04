@@ -1,3 +1,5 @@
+name: "lm-buddy-lm-harness"
+
 # Model to evaluate
 model:
   path: "hf://distilgpt2"
@@ -15,6 +17,5 @@ quantization:
 
 # Tracking info for where to log the run results
 tracking:
-  name: "lm-buddy-lm-harness"
   project: "lm-buddy-examples"
   entity: "sample"

@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from lm_buddy.integrations.huggingface import TextDatasetConfig
 from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
-from tests.utils import copy_pydantic_json
+from tests.test_utils import copy_pydantic_json
 
 
 @pytest.fixture
@@ -25,6 +25,7 @@ def finetuning_job_config(
     finetuning_ray_config,
 ):
     return FinetuningJobConfig(
+        name="finetuning-job-config",
         model=model_config_with_artifact,
         dataset=dataset_config_with_artifact,
         tokenizer=tokenizer_config_with_artifact,
@@ -58,6 +59,7 @@ def test_argument_validation():
 
     # Strings should be upcast to configs as the path argument
     allowed_config = FinetuningJobConfig(
+        name="test",
         model=model_path,
         tokenizer=tokenizer_path,
         dataset=dataset_config,
@@ -67,12 +69,14 @@ def test_argument_validation():
 
     # Check passing invalid arguments is validated for each asset type
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model=12345, tokenizer=tokenizer_path, dataset=dataset_config)
+        FinetuningJobConfig(name="test", model=12345, dataset=dataset_config)
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model=model_path, tokenizer=12345, dataset=dataset_config)
+        FinetuningJobConfig(name="test", model=model_path, tokenizer=12345, dataset=dataset_config)
     with pytest.raises(ValidationError):
-        FinetuningJobConfig(model=model_path, tokenizer=tokenizer_path, dataset=12345)
+        FinetuningJobConfig(name="test", model=model_path, tokenizer=tokenizer_path, dataset=12345)
 
     # Check that tokenizer is set to model path when absent
-    missing_tokenizer_config = FinetuningJobConfig(model=model_path, dataset=dataset_config)
+    missing_tokenizer_config = FinetuningJobConfig(
+        name="test", model=model_path, dataset=dataset_config
+    )
     assert missing_tokenizer_config.tokenizer.path == model_path

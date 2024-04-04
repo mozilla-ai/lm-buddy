@@ -8,14 +8,11 @@ from ragas.metrics import answer_relevancy, context_precision, context_recall, f
 
 from lm_buddy.integrations.huggingface import HuggingFaceAssetLoader
 from lm_buddy.integrations.wandb import (
-    ArtifactLoader,
     ArtifactType,
     build_directory_artifact,
     default_artifact_name,
-    wandb_init_from_config,
 )
-from lm_buddy.jobs._entrypoints.utils import preprocess_text_dataset
-from lm_buddy.jobs.common import EvaluationResult, LMBuddyJobType
+from lm_buddy.jobs.common import EvaluationResult, preprocess_text_dataset
 from lm_buddy.jobs.configs import RagasJobConfig
 
 RAGAS_METRICS_MAP = {
@@ -26,9 +23,9 @@ RAGAS_METRICS_MAP = {
 }
 
 
-def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> Path:
+def run_eval(config: RagasJobConfig) -> Path:
     # load dataset from W&B artifact
-    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+    hf_loader = HuggingFaceAssetLoader()
     evaluation_dataset = hf_loader.load_dataset(config.dataset)
     evaluation_dataset = preprocess_text_dataset(evaluation_dataset, config.dataset)
 
@@ -70,28 +67,21 @@ def run_eval(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> Path:
     return output_dataset_path
 
 
-def run_ragas(config: RagasJobConfig, artifact_loader: ArtifactLoader) -> EvaluationResult:
-    # Run ragas eval and store output in local filename
-    if config.tracking:
-        with wandb_init_from_config(config.tracking, job_type=LMBuddyJobType.EVALUATION) as run:
-            output_dataset_path = run_eval(config, artifact_loader)
-            # Create a directory artifact for the HF dataset
-            dataset_artifact = build_directory_artifact(
-                artifact_name=default_artifact_name(run.name, artifact_type=ArtifactType.DATASET),
-                artifact_type=ArtifactType.DATASET,
-                dir_path=output_dataset_path,
-                reference=False,
-            )
-            print("Logging dataset artifact for Ragas evaluation ...")
-            dataset_artifact = artifact_loader.log_artifact(dataset_artifact)
-    else:
-        output_dataset_path = run_eval(config, artifact_loader)
-        dataset_artifact = None
-
+def run_ragas(config: RagasJobConfig) -> EvaluationResult:
+    output_dataset_path = run_eval(config)
     print(f"Ragas evaluation dataset stored at {output_dataset_path}")
-    output_artifacts = [dataset_artifact] if dataset_artifact else []
+
+    # Create a directory artifact for the HF dataset
+    artifact_name = default_artifact_name(config.name, artifact_type=ArtifactType.DATASET)
+    dataset_artifact = build_directory_artifact(
+        artifact_name=artifact_name,
+        artifact_type=ArtifactType.DATASET,
+        dir_path=output_dataset_path,
+        reference=False,
+    )
+
     return EvaluationResult(
-        artifacts=output_artifacts,
+        artifacts=[dataset_artifact],
         dataset_path=output_dataset_path,
         tables={},
     )

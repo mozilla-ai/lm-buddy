@@ -5,7 +5,8 @@ from pydantic import Field, field_validator
 from lm_buddy.integrations.huggingface import AutoModelConfig
 from lm_buddy.integrations.huggingface.dataset_config import TextDatasetConfig
 from lm_buddy.integrations.vllm import VLLMCompletionsConfig
-from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.jobs.configs.base import LMBuddyJobConfig
+from lm_buddy.paths import AssetPath
 from lm_buddy.types import BaseLMBuddyConfig
 
 RagasEvaluationMetric = Literal[
@@ -42,7 +43,7 @@ class RagasEvaluationConfig(BaseLMBuddyConfig):
         return x
 
 
-class RagasJobConfig(BaseLMBuddyConfig):
+class RagasJobConfig(LMBuddyJobConfig):
     """Configuration to run a Ragas evaluation job.
 
     This job loads a dataset from an existing path on our cluster.
@@ -50,19 +51,15 @@ class RagasJobConfig(BaseLMBuddyConfig):
     the contexts (retrieved), and optionally a ground truth field.
     """
 
-    # vllm inference server for generation
     judge: VLLMCompletionsConfig = Field(description="Externally hosted Ragas judge model.")
-
-    # dataset containing the relevant fields required for ragas evaluation
     dataset: TextDatasetConfig = Field(
         description="Dataset of text completions to evaluate using the Ragas judge model."
     )
-
-    # evaluation settings for ragas
     evaluation: RagasEvaluationConfig = Field(
         default_factory=RagasEvaluationConfig,
         description="Settings for the Ragas evaluation.",
     )
 
-    # wandb model run to associate to the ragas evaluator
-    tracking: WandbRunConfig | None = None
+    def asset_paths(self) -> set[AssetPath]:
+        paths = {self.dataset.path, self.judge.inference.engine}
+        return {x for x in paths if x is not None}

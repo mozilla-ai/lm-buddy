@@ -1,3 +1,5 @@
+name: "lm-buddy-prometheus-job"
+
 dataset:
   path: "wandb://sample-entity/lm-buddy-examples/wandb-file-artifact:latest"
   # field containing scoring instructions in the json file
@@ -26,6 +28,5 @@ evaluation:
   enable_tqdm: True
 
 tracking:
-  name: "lm-buddy-prometheus"
   project: "lm-buddy-examples"
   entity: "sample"

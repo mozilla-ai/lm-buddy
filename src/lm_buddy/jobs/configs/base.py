@@ -1,9 +1,13 @@
 import contextlib
 import tempfile
+from abc import abstractmethod
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_yaml import parse_yaml_file_as, to_yaml_file
 
+from lm_buddy.integrations.wandb import WandbRunConfig
+from lm_buddy.paths import AssetPath, PathPrefix
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -15,6 +19,15 @@ class LMBuddyJobConfig(BaseLMBuddyConfig):
     Currently, there is a 1:1 mapping between job entrypoints and job config implementations,
     but this is not rigidly constrained by the interface. This may change in the future.
     """
+
+    name: str = Field(description="Name of the job.")
+    tracking: WandbRunConfig | None = Field(
+        default=None,
+        description=(
+            "Tracking information to associate with the job. "
+            "A new run is created with these details."
+        ),
+    )
 
     @classmethod
     def from_yaml_file(cls, path: Path | str):
@@ -38,3 +51,12 @@ class LMBuddyJobConfig(BaseLMBuddyConfig):
             config_path = Path(tmpdir) / name
             self.to_yaml_file(config_path)
             yield config_path
+
+    @abstractmethod
+    def asset_paths(self) -> set[AssetPath]:
+        """Return a set of all `AssetPath` fields on this config."""
+        pass
+
+    def artifact_paths(self) -> set[AssetPath]:
+        """Return a set of all W&B artifact paths on this config."""
+        return {x for x in self.asset_paths() if x.startswith(PathPrefix.WANDB)}

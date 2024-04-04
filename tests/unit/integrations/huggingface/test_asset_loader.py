@@ -2,18 +2,14 @@ import torch
 from datasets import Dataset, DatasetDict
 
 from lm_buddy.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
-from lm_buddy.paths import format_artifact_path
-from tests.utils import FakeArtifactLoader
+from lm_buddy.paths import format_file_path
 
 
-def test_dataset_loading(xyz_dataset_artifact):
-    # Preload fake artifact for testing
-    artifact_loader = FakeArtifactLoader()
-    artifact_loader.log_artifact(xyz_dataset_artifact)
-    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+def test_dataset_loading(xyz_dataset_path):
+    hf_loader = HuggingFaceAssetLoader()
 
-    artifact_path = format_artifact_path(xyz_dataset_artifact)
-    dataset_config = DatasetConfig(path=artifact_path, test_size=0.2, seed=0)
+    asset_path = format_file_path(xyz_dataset_path)
+    dataset_config = DatasetConfig(path=asset_path, test_size=0.2, seed=0)
 
     dataset = hf_loader.load_dataset(dataset_config)
     assert type(dataset) is Dataset
@@ -23,14 +19,11 @@ def test_dataset_loading(xyz_dataset_artifact):
     assert "train" in datasets and "test" in datasets
 
 
-def test_model_loading(llm_model_artifact):
-    # Preload fake artifact for testing
-    artifact_loader = FakeArtifactLoader()
-    artifact_loader.log_artifact(llm_model_artifact)
-    hf_loader = HuggingFaceAssetLoader(artifact_loader)
+def test_model_loading(llm_model_path):
+    hf_loader = HuggingFaceAssetLoader()
 
-    artifact_path = format_artifact_path(llm_model_artifact)
-    model_config = AutoModelConfig(path=artifact_path, torch_dtype=torch.bfloat16)
+    asset_path = format_file_path(llm_model_path)
+    model_config = AutoModelConfig(path=asset_path, torch_dtype=torch.bfloat16)
 
     hf_config = hf_loader.load_pretrained_config(model_config)
     hf_model = hf_loader.load_pretrained_model(model_config)

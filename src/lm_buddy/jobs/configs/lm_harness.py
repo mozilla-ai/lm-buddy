@@ -7,8 +7,8 @@ from lm_buddy.integrations.huggingface import (
     QuantizationConfig,
 )
 from lm_buddy.integrations.vllm import InferenceServerConfig
-from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.jobs.configs import LMBuddyJobConfig
+from lm_buddy.paths import AssetPath
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -50,4 +50,12 @@ class LMHarnessJobConfig(LMBuddyJobConfig):
     model: AutoModelConfig | LocalChatCompletionsConfig
     evaluation: LMHarnessEvaluationConfig
     quantization: QuantizationConfig | None = None
-    tracking: WandbRunConfig | None = None
+
+    def asset_paths(self) -> list[AssetPath]:
+        match self.model:
+            case AutoModelConfig() as config:
+                return {config.path}
+            case LocalChatCompletionsConfig() as config if config.inference.engine is not None:
+                return {config.inference.engine}
+            case _:
+                return {}

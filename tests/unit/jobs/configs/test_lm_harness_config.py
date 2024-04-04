@@ -7,7 +7,7 @@ from lm_buddy.jobs.configs import (
     LMHarnessJobConfig,
     LocalChatCompletionsConfig,
 )
-from tests.utils import copy_pydantic_json
+from tests.test_utils import copy_pydantic_json
 
 
 @pytest.fixture
@@ -39,6 +39,7 @@ def lm_harness_job_config(
 ):
     if request.param == "model_config_with_artifact":
         return LMHarnessJobConfig(
+            name="lm-harness-job-config",
             model=model_config_with_artifact,
             evaluation=lm_harness_evaluation_config,
             tracking=wandb_run_config,
@@ -46,6 +47,7 @@ def lm_harness_job_config(
         )
     elif request.param == "local_completions_config":
         return LMHarnessJobConfig(
+            name="lm-harness-job-config",
             model=local_completions_config,
             evaluation=lm_harness_evaluation_config,
             tracking=wandb_run_config,

@@ -8,8 +8,8 @@ from lm_buddy.integrations.huggingface import (
     TextDatasetConfig,
     TrainerConfig,
 )
-from lm_buddy.integrations.wandb import WandbRunConfig
 from lm_buddy.jobs.configs import LMBuddyJobConfig
+from lm_buddy.paths import AssetPath
 from lm_buddy.types import BaseLMBuddyConfig
 
 
@@ -32,7 +32,6 @@ class FinetuningJobConfig(LMBuddyJobConfig):
     tokenizer: AutoTokenizerConfig
     quantization: QuantizationConfig | None = None
     adapter: AdapterConfig | None = None
-    tracking: WandbRunConfig | None = None
     trainer: TrainerConfig = Field(default_factory=TrainerConfig)
     ray: FinetuningRayConfig = Field(default_factory=FinetuningRayConfig)
 
@@ -64,3 +63,6 @@ class FinetuningJobConfig(LMBuddyJobConfig):
         if isinstance(x, str):
             return AutoTokenizerConfig(path=x)
         return x
+
+    def asset_paths(self) -> list[AssetPath]:
+        return {self.model.path, self.dataset.path, self.tokenizer.path}
