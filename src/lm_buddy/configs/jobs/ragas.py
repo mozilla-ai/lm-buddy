@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, get_args
 
 from pydantic import Field, field_validator
 
@@ -20,19 +20,20 @@ class RagasEvaluationConfig(LMBuddyConfig):
     """Parameters specifically required for RAGAs Evaluation"""
 
     metrics: list[RagasEvaluationMetric] = Field(
-        default=[
-            "faithfulness",
-            "answer_relevancy",
-            "context_recall",
-            "context_precision",
-        ]
+        default_factory=lambda: list(get_args(RagasEvaluationMetric)),
+        description="List of metric names for Ragas evaluation.",
     )
-
-    # language model and embedding models used as evaluation judges
-    embedding_model: AutoModelConfig | None = "sentence-transformers/all-mpnet-base-v2"
-
-    # path to store the generated ratings/evaluations of each dataset sample
-    output_folder: str = "/tmp"
+    embedding_model: AssetPath = Field(
+        default="hf://sentence-transformers/all-mpnet-base-v2",
+        description="Path to embedding model used with the evaluation judge.",
+    )
+    storage_path: str | None = Field(
+        default=None,
+        description=(
+            "Path to store the evaluation outputs. "
+            "Defaults to the environment value for `RAY_STORAGE`."
+        ),
+    )
 
     @field_validator("embedding_model", mode="before")
     def validate_embedding_model_arg(cls, x):

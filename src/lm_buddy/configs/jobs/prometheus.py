@@ -16,9 +16,9 @@ class PrometheusEvaluationConfig(LMBuddyConfig):
     min_score: int = 0
     max_score: int = 5
     enable_tqdm: bool = False
-    output_folder: str = "/tmp"
     conversation_template: str = "llama-2"
     conversation_system_message: str = "You are a fair evaluator language model."
+    storage_path: str | None = None
 
 
 class PrometheusJobConfig(JobConfig):

@@ -4,19 +4,19 @@ see https://github.com/kaistAI/prometheus/blob/main/evaluation/benchmark/run_abs
 """
 
 import copy
-import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from datasets import load_dataset
+from datasets import Dataset
 from fastchat.conversation import get_conv_template
+from loguru import logger
 from openai import Completion, OpenAI, OpenAIError
 from tqdm import tqdm
 
 from lm_buddy.configs.huggingface import AutoTokenizerConfig
 from lm_buddy.configs.jobs.prometheus import PrometheusJobConfig
 from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
-from lm_buddy.jobs.common import EvaluationResult
+from lm_buddy.jobs.common import EvaluationResult, resolve_storage_path
 from lm_buddy.preprocessing import format_dataset_with_prompt
 from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
@@ -50,8 +50,7 @@ def openai_completion(config: PrometheusJobConfig, client: OpenAI, prompt: str) 
 
 def parse_response(config: PrometheusJobConfig, response: Completion) -> tuple[str, str]:
     """Given a Prometheus eval response as returned by the OpenAI API
-    endpoint (i.e. in Completion format), extract feedback
-    and score.
+    endpoint (i.e. in Completion format), extract feedback and score.
     """
 
     if response is None:
@@ -93,9 +92,9 @@ def get_response_with_retries(
             feedback, score = parse_response(config, response)
             break
         except (OpenAIError, BadResponseError) as e:
-            print(
-                f"[w] {e.message}, "
-                f"retrying ({current_retry_attempt}/{config.evaluation.max_retries})"
+            logger.warn(
+                f"{e.message}: "
+                f"Retrying ({current_retry_attempt}/{config.evaluation.max_retries})"
             )
             current_retry_attempt += 1
             if current_retry_attempt > config.evaluation.max_retries:
@@ -107,7 +106,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
     # Instantiate OpenAI client to speak with the vLLM endpoint
     client = OpenAI(base_url=config.prometheus.inference.base_url)
 
-    # load dataset from W&B artifact
+    # Load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader()
     dataset = hf_loader.load_dataset(config.dataset)
     if config.dataset.prompt_template is not None:
@@ -115,17 +114,14 @@ def run_eval(config: PrometheusJobConfig) -> Path:
             dataset, config.dataset.prompt_template, config.dataset.text_field
         )
 
-    # get the tokenizer
+    # Get the tokenizer
     tokenizer_config = AutoTokenizerConfig(path=config.prometheus.inference.engine)
     tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
 
-    # enable / disable tqdm
+    # Enable / disable tqdm
     dataset_iterable = tqdm(dataset) if config.evaluation.enable_tqdm else dataset
 
-    # open the output file for writing and iterate on samples
-    tracking_name = config.tracking.name if config.tracking is not None else "output.json"
-    output_fname = Path(config.evaluation.output_folder) / tracking_name
-    with output_fname.open("w") as file:
+    def data_generator():
         for sample in dataset_iterable:
             # convert instructions from the dataset (`text_field` in a dict) to
             # prompts that prometheus accepts
@@ -134,6 +130,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
             # skip those examples which are too long
             tokenized_prompt = tokenizer(prompt, truncation=False)
             if len(tokenized_prompt["input_ids"]) > 3072:
+                logger.warn(f"Skipping row due to prompt exceeding token limit: {prompt=}")
                 continue
 
             # prepare output
@@ -148,33 +145,34 @@ def run_eval(config: PrometheusJobConfig) -> Path:
                 result["prometheus_output"].append(feedback)
                 result["prometheus_score"].append(score)
 
-            # dump sample results incrementally
-            file.write(json.dumps(result) + "\n")
+            yield result
 
-    # convert plain json dataset in HF format
-    output_dataset_path = Path(config.evaluation.output_folder) / "hf" / tracking_name
-    ds = load_dataset("json", data_files=str(output_fname), split="train")
-    ds.save_to_disk(output_dataset_path)
+    result_dataset = Dataset.from_generator(data_generator)
 
-    return output_dataset_path
+    # Save dataset to disk
+    storage_path = resolve_storage_path(config.evaluation.storage_path)
+    result_dataset_path = Path(storage_path) / config.name / "prometheus_evaluation"
+    result_dataset.save_to_disk(result_dataset_path)
+
+    return result_dataset_path
 
 
 def run_prometheus(config: PrometheusJobConfig) -> EvaluationResult:
     # Run eval and store output in local filename
-    output_dataset_path = run_eval(config)
-    print(f"Prometheus evaluation dataset stored at {output_dataset_path}")
+    result_dataset_path = run_eval(config)
+    logger.info(f"Prometheus evaluation dataset stored at {result_dataset_path}")
 
     # Create a directory artifact for the HF dataset
     artifact_name = default_artifact_name(config.name, artifact_type=ArtifactType.DATASET)
     dataset_artifact = build_directory_artifact(
         artifact_name=artifact_name,
         artifact_type=ArtifactType.DATASET,
-        dir_path=output_dataset_path,
+        dir_path=result_dataset_path,
         reference=False,
     )
 
     return EvaluationResult(
         artifacts=[dataset_artifact],
-        dataset_path=output_dataset_path,
+        dataset_path=result_dataset_path,
         tables={},
     )

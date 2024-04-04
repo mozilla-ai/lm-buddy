@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -35,3 +36,10 @@ class EvaluationResult(JobResult):
 
     tables: dict[str, pd.DataFrame]
     dataset_path: Path | None
+
+
+def resolve_storage_path(storage_path: str | None) -> str:
+    if storage_path is not None:
+        return storage_path
+    else:
+        return os.getenv("RAY_STORAGE", "/tmp")

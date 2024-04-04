@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 import wandb
+from loguru import logger
 from ray import train
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.huggingface.transformers import RayTrainReportCallback, prepare_trainer
@@ -101,7 +102,7 @@ def run_finetuning(config: FinetuningJobConfig) -> FinetuningResult:
         run_config=run_config,
     )
     result = trainer.fit()
-    print(f"Training result: {result}")
+    logger.info(f"Training result: {result}")
 
     # Create a checkpoint artifact if tracking is enabled and Ray saved a checkpoint
     if result.checkpoint:
