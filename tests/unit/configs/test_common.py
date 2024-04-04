@@ -2,11 +2,11 @@ import pytest
 import torch
 from pydantic import ValidationError
 
-from lm_buddy.types import BaseLMBuddyConfig, SerializableTorchDtype
+from lm_buddy.configs.common import LMBuddyConfig, SerializableTorchDtype
 
 
-def test_base_config_settings():
-    class TestConfig(BaseLMBuddyConfig):
+def test_config_settings():
+    class TestConfig(LMBuddyConfig):
         value: int
 
     # Validate assignment
@@ -19,8 +19,19 @@ def test_base_config_settings():
         TestConfig(value=42, foo="bar")
 
 
+def test_config_as_tempfile():
+    class TestConfig(LMBuddyConfig):
+        name: str
+
+    config = TestConfig(name="test-config")
+    config_name = "my-job-config.yaml"
+    with config.to_tempfile(name=config_name) as path:
+        assert path.name == config_name
+        assert TestConfig.from_yaml_file(path) == config
+
+
 def test_serializable_torch_dtype():
-    class TestConfig(BaseLMBuddyConfig):
+    class TestConfig(LMBuddyConfig):
         torch_dtype: SerializableTorchDtype
 
     config = TestConfig(torch_dtype="bfloat16")

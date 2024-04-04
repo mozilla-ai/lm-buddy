@@ -1,7 +1,8 @@
 import torch
 from datasets import Dataset, DatasetDict
 
-from lm_buddy.integrations.huggingface import AutoModelConfig, DatasetConfig, HuggingFaceAssetLoader
+from lm_buddy.configs.huggingface import AutoModelConfig, DatasetConfig
+from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
 from lm_buddy.paths import format_file_path
 
 

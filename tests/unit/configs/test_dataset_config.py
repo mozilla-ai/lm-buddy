@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from lm_buddy.integrations.huggingface import DatasetConfig
+from lm_buddy.configs.huggingface import DatasetConfig
 from lm_buddy.paths import format_huggingface_path
 
 

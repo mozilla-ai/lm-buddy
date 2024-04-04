@@ -1,9 +1,9 @@
 import pytest
 
 from lm_buddy import LMBuddy
-from lm_buddy.integrations.huggingface import AutoModelConfig
-from lm_buddy.integrations.wandb import WandbRunConfig
-from lm_buddy.jobs.configs import LMHarnessEvaluationConfig, LMHarnessJobConfig
+from lm_buddy.configs.huggingface import AutoModelConfig
+from lm_buddy.configs.jobs.lm_harness import LMHarnessEvaluationConfig, LMHarnessJobConfig
+from lm_buddy.configs.wandb import WandbRunConfig
 from lm_buddy.paths import format_file_path
 
 

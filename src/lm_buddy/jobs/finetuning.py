@@ -9,8 +9,8 @@ from ray.train.torch import TorchTrainer
 from transformers import TrainingArguments
 from trl import SFTTrainer
 
-from lm_buddy.configs.huggingface import HuggingFaceAssetLoader
 from lm_buddy.configs.jobs.finetuning import FinetuningJobConfig
+from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
 from lm_buddy.jobs.common import FinetuningResult, JobType
 from lm_buddy.preprocessing import format_dataset_with_prompt
 from lm_buddy.tracking.artifact_utils import (

@@ -2,8 +2,7 @@ import pytest
 from peft import PeftType, TaskType
 from pydantic import ValidationError
 
-from lm_buddy.integrations.huggingface import AdapterConfig
-from lm_buddy.integrations.huggingface.adapter_config import _get_peft_config_class
+from lm_buddy.configs.huggingface import AdapterConfig
 
 
 def test_enum_sanitzation():
@@ -27,5 +26,5 @@ def test_huggingface_conversion():
         config = AdapterConfig(peft_type=peft_type)
 
         hf_config = config.as_huggingface()
-        expected_cls = _get_peft_config_class(peft_type)
+        expected_cls = AdapterConfig._get_peft_config_class(peft_type)
         assert type(hf_config) is expected_cls

@@ -1,16 +1,17 @@
 import pytest
 
 from lm_buddy import LMBuddy
-from lm_buddy.integrations.huggingface import AutoModelConfig, TextDatasetConfig, TrainerConfig
-from lm_buddy.integrations.wandb import ArtifactType, WandbRunConfig
-from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
+from lm_buddy.configs.huggingface import AutoModelConfig, DatasetConfig, TrainerConfig
+from lm_buddy.configs.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
+from lm_buddy.configs.wandb import WandbRunConfig
 from lm_buddy.paths import format_file_path
+from lm_buddy.tracking.artifact_utils import ArtifactType
 
 
 @pytest.fixture
 def job_config(llm_model_path, text_dataset_path) -> FinetuningJobConfig:
     model_config = AutoModelConfig(path=format_file_path(llm_model_path))
-    dataset_config = TextDatasetConfig(
+    dataset_config = DatasetConfig(
         path=format_file_path(text_dataset_path),
         text_field="text",
         split="train",

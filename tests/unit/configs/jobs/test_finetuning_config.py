@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from lm_buddy.integrations.huggingface import TextDatasetConfig
-from lm_buddy.jobs.configs import FinetuningJobConfig, FinetuningRayConfig
+from lm_buddy.configs.huggingface import DatasetConfig
+from lm_buddy.configs.jobs.finetuning import FinetuningJobConfig, FinetuningRayConfig
 from tests.test_utils import copy_pydantic_json
 
 
@@ -55,7 +55,7 @@ def test_load_example_config(examples_dir):
 def test_argument_validation():
     model_path = "hf://model-repo-id"
     tokenizer_path = "hf://tokenizer-repo-id"
-    dataset_config = TextDatasetConfig(path="hf://dataset-repo-id", split="train")
+    dataset_config = DatasetConfig(path="hf://dataset-repo-id", split="train")
 
     # Strings should be upcast to configs as the path argument
     allowed_config = FinetuningJobConfig(

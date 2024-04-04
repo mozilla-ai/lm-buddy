@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import TypeVar
 
-from lm_buddy.jobs.configs.base import LMBuddyJobConfig
+from lm_buddy.configs.jobs.common import JobConfig
 
-ConfigType = TypeVar("ConfigType", bound=LMBuddyJobConfig)
+ConfigType = TypeVar("ConfigType", bound=JobConfig)
 
 
 def parse_config_option(config_cls: type[ConfigType], config: str) -> ConfigType:
