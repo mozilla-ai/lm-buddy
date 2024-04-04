@@ -1,17 +1,20 @@
 import wandb
 
-from lm_buddy.integrations.wandb import WandbResumeMode
-from lm_buddy.jobs._entrypoints import run_finetuning, run_lm_harness, run_prometheus, run_ragas
-from lm_buddy.jobs.common import EvaluationResult, FinetuningResult, LMBuddyJobType
-from lm_buddy.jobs.configs import (
+from lm_buddy.configs.jobs import (
     EvaluationJobConfig,
     FinetuningJobConfig,
-    LMBuddyJobConfig,
+    JobConfig,
     LMHarnessJobConfig,
     PrometheusJobConfig,
     RagasJobConfig,
 )
+from lm_buddy.jobs.common import EvaluationResult, FinetuningResult, JobType
+from lm_buddy.jobs.evaluation.lm_harness import run_lm_harness
+from lm_buddy.jobs.evaluation.prometheus import run_prometheus
+from lm_buddy.jobs.evaluation.ragas import run_ragas
+from lm_buddy.jobs.finetuning import run_finetuning
 from lm_buddy.paths import strip_path_prefix
+from lm_buddy.tracking.run_utils import WandbResumeMode
 
 
 class LMBuddy:
@@ -25,10 +28,7 @@ class LMBuddy:
         pass
 
     def _generate_artifact_lineage(
-        self,
-        config: LMBuddyJobConfig,
-        results: list[wandb.Artifact],
-        job_type: LMBuddyJobType,
+        self, config: JobConfig, results: list[wandb.Artifact], job_type: JobType
     ) -> None:
         """Link input artifacts and log output artifacts to a run.
 
@@ -51,7 +51,7 @@ class LMBuddy:
     def finetune(self, config: FinetuningJobConfig) -> FinetuningResult:
         """Run a supervised finetuning job with the provided configuration."""
         result = run_finetuning(config)
-        self._generate_artifact_lineage(config, result.artifacts, LMBuddyJobType.FINETUNING)
+        self._generate_artifact_lineage(config, result.artifacts, JobType.FINETUNING)
         return result
 
     def evaluate(self, config: EvaluationJobConfig) -> EvaluationResult:
@@ -68,5 +68,5 @@ class LMBuddy:
                 result = run_ragas(ragas_config)
             case _:
                 raise ValueError(f"Invlid configuration for evaluation: {type(config)}")
-        self._generate_artifact_lineage(config, result.artifacts, LMBuddyJobType.EVALUATION)
+        self._generate_artifact_lineage(config, result.artifacts, JobType.EVALUATION)
         return result

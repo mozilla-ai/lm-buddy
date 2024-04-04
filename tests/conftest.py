@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from lm_buddy.integrations.wandb import ArtifactType, build_directory_artifact
+from lm_buddy.tracking.artifact_utils import ArtifactType, build_directory_artifact
 
 
 @pytest.fixture(scope="session")
