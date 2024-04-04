@@ -11,7 +11,8 @@ from typing import Any
 from datasets import Dataset
 from fastchat.conversation import get_conv_template
 from loguru import logger
-from openai import Completion, OpenAI, OpenAIError
+from openai import OpenAI, OpenAIError
+from openai.types import Completion
 from tqdm import tqdm
 
 from lm_buddy.configs.huggingface import AutoTokenizerConfig
@@ -34,13 +35,15 @@ class BadResponseError(Exception):
         self.error = error
 
 
-def openai_completion(config: PrometheusJobConfig, client: OpenAI, prompt: str) -> Completion:
+def openai_completion(
+    config: PrometheusJobConfig, client: OpenAI, engine: str, prompt: str
+) -> Completion:
     """Connects to a remote OpenAI-API-compatible Prometheus endpoint
     and returns a Completion holding the model's response.
     """
 
     return client.completions.create(
-        model=config.prometheus.inference.engine,
+        model=engine,
         prompt=prompt,
         best_of=config.prometheus.best_of,
         max_tokens=config.prometheus.max_tokens,
@@ -85,12 +88,15 @@ def instruction_to_prompt(config: PrometheusJobConfig, instruction: str) -> str:
 
 
 def get_response_with_retries(
-    config: PrometheusJobConfig, client: OpenAI, prompt: str, max_retries: int
+    config: PrometheusJobConfig,
+    client: OpenAI,
+    engine: str,
+    prompt: str,
 ) -> tuple[str, str]:
     current_retry_attempt = 1
     while current_retry_attempt <= config.evaluation.max_retries:
         try:
-            response = openai_completion(config, client, prompt)
+            response = openai_completion(config, client, engine, prompt)
             feedback, score = parse_response(config, response)
             break
         except (OpenAIError, BadResponseError) as e:
@@ -108,8 +114,12 @@ def run_eval(config: PrometheusJobConfig) -> Path:
     # Instantiate OpenAI client to speak with the vLLM endpoint
     client = OpenAI(base_url=config.prometheus.inference.base_url)
 
-    # Load dataset from W&B artifact
     hf_loader = HuggingFaceAssetLoader()
+
+    # Resolve the engine model
+    engine_path = hf_loader.resolve_asset_path(config.prometheus.inference.engine)
+
+    # Load dataset from W&B artifact
     dataset = hf_loader.load_dataset(config.dataset)
     if config.dataset.prompt_template is not None:
         dataset = format_dataset_with_prompt(
@@ -142,9 +152,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
             result["prometheus_score"] = []
 
             for _ in range(config.evaluation.num_answers):
-                (feedback, score) = get_response_with_retries(
-                    config, client, prompt, config.evaluation.max_retries
-                )
+                (feedback, score) = get_response_with_retries(config, client, engine_path, prompt)
                 result["prometheus_output"].append(feedback)
                 result["prometheus_score"].append(score)
 
