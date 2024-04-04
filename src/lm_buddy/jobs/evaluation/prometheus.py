@@ -6,6 +6,7 @@ see https://github.com/kaistAI/prometheus/blob/main/evaluation/benchmark/run_abs
 import copy
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from datasets import Dataset
 from fastchat.conversation import get_conv_template
@@ -15,8 +16,9 @@ from tqdm import tqdm
 
 from lm_buddy.configs.huggingface import AutoTokenizerConfig
 from lm_buddy.configs.jobs.prometheus import PrometheusJobConfig
+from lm_buddy.constants import DEFAULT_STORAGE_PATH
 from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
-from lm_buddy.jobs.common import EvaluationResult, resolve_storage_path
+from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.preprocessing import format_dataset_with_prompt
 from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
@@ -121,6 +123,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
     # Enable / disable tqdm
     dataset_iterable = tqdm(dataset) if config.evaluation.enable_tqdm else dataset
 
+    # Generator that iterates over samples and yields new rows with the prometheus outputs
     def data_generator():
         for sample in dataset_iterable:
             # convert instructions from the dataset (`text_field` in a dict) to
@@ -134,7 +137,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
                 continue
 
             # prepare output
-            result = copy.deepcopy(sample)
+            result: dict[str, Any] = copy.deepcopy(sample)
             result["prometheus_output"] = []
             result["prometheus_score"] = []
 
@@ -150,8 +153,8 @@ def run_eval(config: PrometheusJobConfig) -> Path:
     result_dataset = Dataset.from_generator(data_generator)
 
     # Save dataset to disk
-    storage_path = resolve_storage_path(config.evaluation.storage_path)
-    result_dataset_path = Path(storage_path) / config.name / "prometheus_evaluation"
+    storage_path = config.evaluation.storage_path or DEFAULT_STORAGE_PATH
+    result_dataset_path = Path(storage_path) / config.name / "evaluation" / "prometheus"
     result_dataset.save_to_disk(result_dataset_path)
 
     return result_dataset_path

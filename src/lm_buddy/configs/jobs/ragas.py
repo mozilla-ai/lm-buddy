@@ -29,10 +29,7 @@ class RagasEvaluationConfig(LMBuddyConfig):
     )
     storage_path: str | None = Field(
         default=None,
-        description=(
-            "Path to store the evaluation outputs. "
-            "Defaults to the environment value for `RAY_STORAGE`."
-        ),
+        description="Path to store evaluation outputs. Defaults to the `LM_BUDDY_STORAGE` path.",
     )
 
     @field_validator("embedding_model", mode="before")

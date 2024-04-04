@@ -3,6 +3,7 @@ import warnings
 import torch
 from accelerate import Accelerator
 from datasets import Dataset, DatasetDict, load_dataset, load_from_disk
+from loguru import logger
 from peft import PeftConfig
 from transformers import (
     AutoConfig,
@@ -103,7 +104,7 @@ class HuggingFaceAssetLoader:
                 Accelerator().local_process_index if torch.cuda.is_available() else "cpu"
             )
             device_map = {"": current_device}
-            print(f"Setting model device_map = {device_map} to enable quantization")
+            logger.info(f"Setting model device_map = {device_map} to enable quantization")
 
         # TODO: HuggingFace has many AutoModel classes with different "language model heads"
         #   Can we abstract this to load with any type of AutoModel class?
