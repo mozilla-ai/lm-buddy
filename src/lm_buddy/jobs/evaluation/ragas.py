@@ -8,10 +8,10 @@ from ragas import evaluate as ragas_evaluate
 from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
 from lm_buddy.configs.jobs.ragas import RagasJobConfig
-from lm_buddy.constants import DEFAULT_STORAGE_PATH
 from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.preprocessing import format_dataset_with_prompt
+from lm_buddy.storage import DEFAULT_STORAGE_PATH
 from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
     build_directory_artifact,

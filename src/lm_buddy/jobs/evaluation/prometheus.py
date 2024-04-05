@@ -17,10 +17,10 @@ from tqdm import tqdm
 
 from lm_buddy.configs.huggingface import AutoTokenizerConfig
 from lm_buddy.configs.jobs.prometheus import PrometheusJobConfig
-from lm_buddy.constants import DEFAULT_STORAGE_PATH
 from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.preprocessing import format_dataset_with_prompt
+from lm_buddy.storage import DEFAULT_STORAGE_PATH
 from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
     build_directory_artifact,
