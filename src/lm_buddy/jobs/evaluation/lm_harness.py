@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 from lm_eval.models.huggingface import HFLM
 from lm_eval.models.openai_completions import OpenaiCompletionsLM
+from loguru import logger
 
 from lm_buddy.configs.huggingface import AutoModelConfig
 from lm_buddy.configs.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsConfig
@@ -69,7 +70,9 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
 
 
 def run_lm_harness(config: LMHarnessJobConfig) -> EvaluationResult:
-    print(f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}")
+    logger.info(
+        f"Running lm-harness evaluation with configuration:\n {config.model_dump_json(indent=2)}"
+    )
 
     llm = load_harness_model(config)
     eval_results = lm_eval.simple_evaluate(
@@ -80,10 +83,10 @@ def run_lm_harness(config: LMHarnessJobConfig) -> EvaluationResult:
         limit=config.evaluation.limit,
         log_samples=False,
     )
-    print(f"Obtained evaluation results: {eval_results}")
+    logger.info(f"Obtained evaluation results: {eval_results}")
 
+    # Create an artifact containing eval tables
     result_tables = get_per_task_dataframes(eval_results["results"])
-
     artifact_name = default_artifact_name(config.name, ArtifactType.EVALUATION)
     table_artifact = build_table_artifact(
         artifact_name=artifact_name,
