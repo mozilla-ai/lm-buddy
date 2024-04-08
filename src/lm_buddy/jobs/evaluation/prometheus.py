@@ -17,10 +17,10 @@ from tqdm import tqdm
 
 from lm_buddy.configs.huggingface import AutoTokenizerConfig
 from lm_buddy.configs.jobs.prometheus import PrometheusJobConfig
+from lm_buddy.constants import LM_BUDDY_HOME_PATH
 from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.preprocessing import format_dataset_with_prompt
-from lm_buddy.storage import DEFAULT_STORAGE_PATH
 from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
     build_directory_artifact,
@@ -161,8 +161,8 @@ def run_eval(config: PrometheusJobConfig) -> Path:
     result_dataset = Dataset.from_generator(data_generator)
 
     # Save dataset to disk
-    storage_path = config.evaluation.storage_path or DEFAULT_STORAGE_PATH
-    result_dataset_path = Path(storage_path) / config.name / "evaluation" / "prometheus"
+    storage_path = config.evaluation.storage_path or LM_BUDDY_HOME_PATH
+    result_dataset_path = Path(storage_path) / "datasets" / config.name / "prometheus"
     result_dataset.save_to_disk(result_dataset_path)
 
     return result_dataset_path
