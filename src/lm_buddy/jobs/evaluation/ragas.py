@@ -8,7 +8,7 @@ from ragas import evaluate as ragas_evaluate
 from ragas.metrics import answer_relevancy, context_precision, context_recall, faithfulness
 
 from lm_buddy.configs.jobs.ragas import RagasJobConfig
-from lm_buddy.constants import LM_BUDDY_HOME_PATH
+from lm_buddy.constants import LM_BUDDY_RESULTS_PATH
 from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.preprocessing import format_dataset_with_prompt
@@ -60,8 +60,8 @@ def run_eval(config: RagasJobConfig) -> Path:
     result_dataset = Dataset.from_pandas(result.to_pandas())
 
     # Save dataset to disk
-    storage_path = config.evaluation.storage_path or LM_BUDDY_HOME_PATH
-    result_dataset_path = Path(storage_path) / "datasets" / config.name / "ragas"
+    storage_path = config.evaluation.storage_path or LM_BUDDY_RESULTS_PATH
+    result_dataset_path = Path(storage_path) / config.name / "ragas"
     result_dataset.save_to_disk(result_dataset_path)
 
     return result_dataset_path
