@@ -100,7 +100,7 @@ def get_response_with_retries(
             feedback, score = parse_response(config, response)
             break
         except (OpenAIError, BadResponseError) as e:
-            logger.warn(
+            logger.warning(
                 f"{e.message}: "
                 f"Retrying ({current_retry_attempt}/{config.evaluation.max_retries})"
             )
@@ -144,7 +144,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
             # skip those examples which are too long
             tokenized_prompt = tokenizer(prompt, truncation=False)
             if len(tokenized_prompt["input_ids"]) > 3072:
-                logger.warn(f"Skipping row due to prompt exceeding token limit: {prompt=}")
+                logger.warning(f"Skipping row due to prompt exceeding token limit: {prompt=}")
                 continue
 
             # prepare output
