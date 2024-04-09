@@ -100,7 +100,7 @@ def get_response_with_retries(
             feedback, score = parse_response(config, response)
             break
         except (OpenAIError, BadResponseError) as e:
-            logger.warn(
+            logger.warning(
                 f"{e.message}: "
                 f"Retrying ({current_retry_attempt}/{config.evaluation.max_retries})"
             )
@@ -111,12 +111,8 @@ def get_response_with_retries(
 
 
 def run_eval(config: PrometheusJobConfig) -> Path:
-    # Instantiate OpenAI client to speak with the vLLM endpoint
-    client = OpenAI(base_url=config.prometheus.inference.base_url)
-
-    hf_loader = HuggingFaceAssetLoader()
-
     # Resolve the engine model
+    hf_loader = HuggingFaceAssetLoader()
     engine_path = hf_loader.resolve_asset_path(config.prometheus.inference.engine)
 
     # Load dataset from W&B artifact
@@ -135,6 +131,11 @@ def run_eval(config: PrometheusJobConfig) -> Path:
 
     # Generator that iterates over samples and yields new rows with the prometheus outputs
     def data_generator():
+        # Instantiate OpenAI client to speak with the vLLM endpoint
+        # Client is non-serializable so must be instantiated internal to this method
+        # Reference: https://huggingface.co/docs/datasets/en/troubleshoot#pickling-issues
+        client = OpenAI(base_url=config.prometheus.inference.base_url)
+
         for sample in dataset_iterable:
             # convert instructions from the dataset (`text_field` in a dict) to
             # prompts that prometheus accepts
@@ -143,7 +144,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
             # skip those examples which are too long
             tokenized_prompt = tokenizer(prompt, truncation=False)
             if len(tokenized_prompt["input_ids"]) > 3072:
-                logger.warn(f"Skipping row due to prompt exceeding token limit: {prompt=}")
+                logger.warning(f"Skipping row due to prompt exceeding token limit: {prompt=}")
                 continue
 
             # prepare output
