@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from ray import serve
 
-# from lm_buddy.serving.value import VALUE
+from lm_buddy.serving.value import VALUE
 
 app = FastAPI()
 
@@ -10,8 +10,8 @@ app = FastAPI()
 @serve.ingress(app)
 class SimpleDeployment:
     @app.get("/value")
-    def value(self, request):
-        return {"value": 42}
+    def value(self):
+        return {"value": VALUE}
 
 
 deployment = SimpleDeployment.bind()
