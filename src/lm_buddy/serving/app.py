@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from ray import serve
 
+from lm_buddy.serving.value import VALUE
+
 app = FastAPI()
 
 
@@ -9,7 +11,7 @@ app = FastAPI()
 class SimpleDeployment:
     @app.get("/value")
     def value(self, request):
-        return {"value": 42}
+        return {"value": VALUE}
 
 
 deployment = SimpleDeployment.bind()
