@@ -50,5 +50,5 @@ the `tracking` options to save the evaluation output on wandb.
 You can then run the evaluation as:
 
 ```
-python -m lm_buddy evaluate prometheus --config /path/to/prometheus_config.yaml
+lm_buddy evaluate prometheus --config /path/to/prometheus_config.yaml
 ```
