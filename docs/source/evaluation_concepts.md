@@ -3,7 +3,7 @@ Evaluation
 
 ## lm-evaluation-harness
 
-Evaluation is currently done via [EleutherAI's lm-evaluation-harness package](https://github.com/EleutherAI/lm-evaluation-harness) run as a process. Evaluation can either happen on HuggingFace models hosted on the Hub, or on local models in shared storage on a Linux filesystem that resolve to [Weights and Biases Artifacts](https://docs.wandb.ai/ref/python/artifact) objects
+[EleutherAI's lm-evaluation-harness package](https://github.com/EleutherAI/lm-evaluation-harness) is used internally to access a variety of benchmark datasets. The model to evaluate can be loaded directly from the HuggingFace Hub, from a local model checkpoint saved on the filesystem, or from a [Weights and Biases artifact](https://docs.wandb.ai/ref/python/artifact) object based on the `path` parameter specified in the evaluation config. 
 
 In the `evaluation` directory, there are sample files for running evaluation on a model in HuggingFace (`lm_harness_hf_config.yaml`), or using a local inference server hosted on vLLM, (`lm_harness_inference_server_config.yaml`).
 
