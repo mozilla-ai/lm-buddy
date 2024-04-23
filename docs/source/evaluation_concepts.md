@@ -11,7 +11,7 @@ In the `evaluation` directory, there are sample files for running evaluation on 
 
 Evaluation relies on [Prometheus](https://github.com/kaistAI/Prometheus) as LLM judge. We internally serve it via [vLLM](https://github.com/vllm-project/vllm) but any other OpenAI API compatible service should work (e.g. llamafile via their `api_like_OAI.py` script).
 
-Input datasets _must_ be in HuggingFace format. The code below shows how to convert Prometheus benchmark datasets and optionally save them as wandb artifacts:
+Input datasets _must_ be saved as HuggingFace [datasets.Dataset](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/main_classes#datasets.Dataset). The code below shows how to convert Prometheus benchmark datasets and optionally save them as wandb artifacts:
 
 ```
 import wandb
