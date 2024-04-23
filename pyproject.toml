@@ -45,6 +45,7 @@ dependencies = [
     "ragas==0.1.5",
     "langchain-community==0.0.29",
     "langchain_openai==0.1.1",
+    "sentencepiece==0.2.0",
 ]
 
 [project.optional-dependencies]
