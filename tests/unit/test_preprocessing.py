@@ -5,7 +5,7 @@ from lm_buddy.preprocessing import format_dataset_with_prompt
 
 
 def test_prompt_formatting(resources_dir):
-    dataset = load_from_disk(resources_dir / "datasets" / "tiny_shakespeare")
+    dataset = load_from_disk(str(resources_dir / "datasets" / "tiny_shakespeare"))
 
     template = "Let's put some {text} in here"
     formatted_dataset = format_dataset_with_prompt(dataset, template, output_field="prompt")

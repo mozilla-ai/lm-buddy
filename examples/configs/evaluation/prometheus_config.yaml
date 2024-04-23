@@ -1,13 +1,19 @@
 name: "lm-buddy-prometheus-job"
 
 dataset:
+  # dataset stored as wandb artifact
   path: "wandb://sample-entity/lm-buddy-examples/wandb-file-artifact:latest"
+  # dataset stored locally on disk
+  # path: "file:///path/to/hf_dataset_directory"
   # field containing scoring instructions in the json file
   text_field: "instruction"
 
 prometheus:
   inference:
     base_url: "http://your.vllm.server:8000/v1"
+    # if you use llamafile and api_like_OAI.py,
+    # the base url will be the following one
+    # base_url: "http://localhost:8081/v1"
     engine: "hf://kaist-ai/prometheus-13b-v1.0"
   best_of: 1
   max_tokens: 512
@@ -21,12 +27,12 @@ evaluation:
   # max number of retries if a communication error
   # with the server occurs
   max_retries: 5
-  # min and max scores as defined in the scoring rubric
-  min_score: 1
-  max_score: 5
+  # scores as defined in the scoring rubric
+  scores: ["1", "2", "3", "4", "5"]
   # enable/disable tqdm to track eval progress
   enable_tqdm: True
 
+# save evaluation results as a wandb artifact
 tracking:
   project: "lm-buddy-examples"
-  entity: "sample"
+  entity: "sample-entity"
