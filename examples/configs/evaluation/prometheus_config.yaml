@@ -21,12 +21,11 @@ evaluation:
   # max number of retries if a communication error
   # with the server occurs
   max_retries: 5
-  # min and max scores as defined in the scoring rubric
-  min_score: 1
-  max_score: 5
+  # scores as defined in the scoring rubric
+  scores: ["1", "2", "3", "4", "5"]
   # enable/disable tqdm to track eval progress
   enable_tqdm: True
 
 tracking:
   project: "lm-buddy-examples"
-  entity: "sample"
+  entity: "sample-entity"
