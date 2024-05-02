@@ -164,7 +164,7 @@ def run_eval(config: PrometheusJobConfig) -> Path:
     # Save dataset to disk
     storage_path = config.evaluation.storage_path or LM_BUDDY_RESULTS_PATH
     result_dataset_path = Path(storage_path) / config.name / "prometheus"
-    result_dataset.save_to_disk(result_dataset_path)
+    result_dataset.save_to_disk(str(result_dataset_path))
 
     return result_dataset_path
 
