@@ -18,7 +18,11 @@ from tqdm import tqdm
 from lm_buddy.configs.huggingface import AutoTokenizerConfig
 from lm_buddy.configs.jobs.prometheus import PrometheusJobConfig
 from lm_buddy.constants import LM_BUDDY_RESULTS_PATH
-from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
+from lm_buddy.jobs.asset_loader import (
+    HuggingFaceDatasetLoader,
+    HuggingFaceModelLoader,
+    HuggingFaceTokenizerLoader,
+)
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.preprocessing import format_dataset_with_prompt
 from lm_buddy.tracking.artifact_utils import (
@@ -112,19 +116,21 @@ def get_response_with_retries(
 
 def run_eval(config: PrometheusJobConfig) -> Path:
     # Resolve the engine model
-    hf_loader = HuggingFaceAssetLoader()
-    engine_path = hf_loader.resolve_asset_path(config.prometheus.inference.engine)
+    hf_model_loader = HuggingFaceModelLoader()
+    engine_path = hf_model_loader.resolve_asset_path(config.prometheus.inference.engine)
 
     # Load dataset from W&B artifact
-    dataset = hf_loader.load_dataset(config.dataset)
+    hf_dataset_loader = HuggingFaceDatasetLoader()
+    dataset = hf_dataset_loader.load_dataset(config.dataset)
     if config.dataset.prompt_template is not None:
         dataset = format_dataset_with_prompt(
             dataset, config.dataset.prompt_template, config.dataset.text_field
         )
 
     # Get the tokenizer
+    hf_tok_loader = HuggingFaceTokenizerLoader()
     tokenizer_config = AutoTokenizerConfig(path=config.prometheus.inference.engine)
-    tokenizer = hf_loader.load_pretrained_tokenizer(tokenizer_config)
+    tokenizer = hf_tok_loader.load_pretrained_tokenizer(tokenizer_config)
 
     # Enable / disable tqdm
     dataset_iterable = tqdm(dataset) if config.evaluation.enable_tqdm else dataset
