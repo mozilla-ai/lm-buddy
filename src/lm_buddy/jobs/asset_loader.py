@@ -27,8 +27,10 @@ from lm_buddy.tracking.artifact_utils import get_artifact_directory, get_artifac
 class HuggingFaceAssetLoader:
     """Helper class for loading HuggingFace assets from LM Buddy configurations.
 
-    TODO: We can probably move these to standalone functions now that ArtifactLoader is gone.
-          What if we add other deps (e.g, S3 client in the future?)
+    The base class provides implementation for resolving the asset path.
+    Resolution depends both on the source and on the artifact type.
+    TODO: implement resolution for non-dataset artifacts
+
     """
 
     def resolve_asset_path(self, path: AssetPath) -> str:
@@ -43,8 +45,17 @@ class HuggingFaceAssetLoader:
         elif path.startswith(PathPrefix.WANDB):
             artifact = get_artifact_from_api(raw_path)
             return str(get_artifact_directory(artifact))
+        elif path.startswith(PathPrefix.S3):
+            if isinstance(self, HuggingFaceDatasetLoader):
+                return path
+            else:
+                raise ValueError(f"S3 support for {self.__class__} is not available yet")
         else:
             raise ValueError(f"Unable to resolve asset path from {path}.")
+
+
+class HuggingFaceModelLoader(HuggingFaceAssetLoader):
+    """Helper class for loading HuggingFace models from LM Buddy configurations."""
 
     def resolve_peft_and_pretrained(self, path: AssetPath) -> tuple[str, str | None]:
         """Helper method for determining if a path corresponds to a PEFT model.
@@ -117,6 +128,10 @@ class HuggingFaceAssetLoader:
             device_map=device_map,
         )
 
+
+class HuggingFaceTokenizerLoader(HuggingFaceAssetLoader):
+    """Helper class for loading HuggingFace tokenizers from LM Buddy configurations."""
+
     def load_pretrained_tokenizer(self, config: AutoTokenizerConfig) -> PreTrainedTokenizer:
         """Load a `PreTrainedTokenizer` from the model configuration.
 
@@ -132,6 +147,10 @@ class HuggingFaceAssetLoader:
             # Pad token required for generating consistent batch sizes
             tokenizer.pad_token_id = tokenizer.eos_token_id
         return tokenizer
+
+
+class HuggingFaceDatasetLoader(HuggingFaceAssetLoader):
+    """Helper class for loading HuggingFace datasets from LM Buddy configurations."""
 
     def load_dataset(self, config: DatasetConfig) -> Dataset:
         """Load a HuggingFace `Dataset` from the dataset configuration.

@@ -13,6 +13,7 @@ class PathPrefix(str, Enum):
     FILE = "file://"
     HUGGINGFACE = "hf://"
     WANDB = "wandb://"
+    S3 = "s3://"
 
 
 def strip_path_prefix(path: str) -> str:
@@ -46,6 +47,11 @@ def validate_asset_path(path: str) -> "AssetPath":
             raise ValueError(f"'{raw_path}' is not a valid HuggingFace repo ID.")
     elif path.startswith(PathPrefix.WANDB):
         # TODO: Validate the W&B path structure?
+        pass
+    elif path.startswith(PathPrefix.S3):
+        # TODO: Validate the S3 path structure?
+        # e.g. if the assumption is we always want a file or a dir, we could
+        # use https://s3pathlib.readthedocs.io to verify (.is_file() or ._is_dir())
         pass
     else:
         allowed_prefixes = {x.value for x in PathPrefix}

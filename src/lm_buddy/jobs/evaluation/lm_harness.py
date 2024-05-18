@@ -9,7 +9,7 @@ from loguru import logger
 
 from lm_buddy.configs.huggingface import AutoModelConfig
 from lm_buddy.configs.jobs.lm_harness import LMHarnessJobConfig, LocalChatCompletionsConfig
-from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
+from lm_buddy.jobs.asset_loader import HuggingFaceModelLoader
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.tracking.artifact_utils import (
     ArtifactType,
@@ -37,10 +37,10 @@ def get_per_task_dataframes(
 
 def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM:
     # Instantiate the lm-harness LM class based on the provided model config type
-    hf_loader = HuggingFaceAssetLoader()
+    hf_model_loader = HuggingFaceModelLoader()
     match config.model:
         case AutoModelConfig() as model_config:
-            model_path, peft_path = hf_loader.resolve_peft_and_pretrained(model_config.path)
+            model_path, peft_path = hf_model_loader.resolve_peft_and_pretrained(model_config.path)
             quantization_kwargs: dict[str, Any] = (
                 config.quantization.model_dump() if config.quantization else {}
             )
@@ -56,7 +56,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
             )
 
         case LocalChatCompletionsConfig() as local_config:
-            engine_path = hf_loader.resolve_asset_path(local_config.inference.engine)
+            engine_path = hf_model_loader.resolve_asset_path(local_config.inference.engine)
             return OpenaiCompletionsLM(
                 model=engine_path,
                 base_url=local_config.inference.base_url,

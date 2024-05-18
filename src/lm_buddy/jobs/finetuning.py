@@ -11,7 +11,11 @@ from transformers import TrainingArguments
 from trl import SFTTrainer
 
 from lm_buddy.configs.jobs.finetuning import FinetuningJobConfig
-from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
+from lm_buddy.jobs.asset_loader import (
+    HuggingFaceDatasetLoader,
+    HuggingFaceModelLoader,
+    HuggingFaceTokenizerLoader,
+)
 from lm_buddy.jobs.common import FinetuningResult, JobType
 from lm_buddy.preprocessing import format_dataset_with_prompt
 from lm_buddy.tracking.artifact_utils import (
@@ -30,11 +34,13 @@ def is_tracking_enabled(config: FinetuningJobConfig):
 
 def load_and_train(config: FinetuningJobConfig):
     # Load the HF assets from configurations
-    hf_loader = HuggingFaceAssetLoader()
-    model = hf_loader.load_pretrained_model(config.model, config.quantization)
-    tokenizer = hf_loader.load_pretrained_tokenizer(config.tokenizer)
+    hf_model_loader = HuggingFaceModelLoader()
+    hf_tok_loader = HuggingFaceTokenizerLoader()
+    hf_dataset_loader = HuggingFaceDatasetLoader()
+    model = hf_model_loader.load_pretrained_model(config.model, config.quantization)
+    tokenizer = hf_tok_loader.load_pretrained_tokenizer(config.tokenizer)
 
-    datasets = hf_loader.load_and_split_dataset(config.dataset)
+    datasets = hf_dataset_loader.load_and_split_dataset(config.dataset)
     if config.dataset.prompt_template is not None:
         for split, dataset in datasets.items():
             datasets[split] = format_dataset_with_prompt(

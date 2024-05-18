@@ -9,7 +9,7 @@ from ragas.metrics import answer_relevancy, context_precision, context_recall, f
 
 from lm_buddy.configs.jobs.ragas import RagasJobConfig
 from lm_buddy.constants import LM_BUDDY_RESULTS_PATH
-from lm_buddy.jobs.asset_loader import HuggingFaceAssetLoader
+from lm_buddy.jobs.asset_loader import HuggingFaceDatasetLoader, HuggingFaceModelLoader
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.preprocessing import format_dataset_with_prompt
 from lm_buddy.tracking.artifact_utils import (
@@ -28,8 +28,8 @@ RAGAS_METRICS_MAP = {
 
 def run_eval(config: RagasJobConfig) -> Path:
     # load dataset from W&B artifact
-    hf_loader = HuggingFaceAssetLoader()
-    evaluation_dataset = hf_loader.load_dataset(config.dataset)
+    hf_dataset_loader = HuggingFaceDatasetLoader()
+    evaluation_dataset = hf_dataset_loader.load_dataset(config.dataset)
     if config.dataset.prompt_template is not None:
         evaluation_dataset = format_dataset_with_prompt(
             evaluation_dataset, config.dataset.prompt_template, config.dataset.text_field
@@ -39,11 +39,12 @@ def run_eval(config: RagasJobConfig) -> Path:
     ragas_args = {}
 
     # Load embedding model
-    embedding_model = hf_loader.resolve_asset_path(config.evaluation.embedding_model)
+    hf_model_loader = HuggingFaceModelLoader()
+    embedding_model = hf_model_loader.resolve_asset_path(config.evaluation.embedding_model)
     ragas_args["embeddings"] = HuggingFaceEmbeddings(model_name=embedding_model)
 
     # Configure ragas to point to vllm instance for generation
-    inference_engine = hf_loader.resolve_asset_path(config.judge.inference.engine)
+    inference_engine = hf_model_loader.resolve_asset_path(config.judge.inference.engine)
     ragas_args["llm"] = ChatOpenAI(
         model=inference_engine,
         openai_api_key="EMPTY",  # needed to hit custom openai endpoint
