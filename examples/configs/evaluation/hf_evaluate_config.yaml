@@ -1,0 +1,25 @@
+name: "lm-buddy-hf-evaluate"
+
+dataset:
+  path: "s3://platform-storage/datasets/dialogsum"
+
+# Settings specific to hf_evaluate
+evaluation:
+  metrics: ["rouge"]
+  # enable/disable tqdm to track eval progress
+  enable_tqdm: False
+  # rely on HF pipeline for summarization
+  use_pipeline: True
+
+# Model to evaluate
+model:
+  path: "hf://facebook/bart-large-cnn"
+
+quantization:
+  load_in_4bit: True
+  bnb_4bit_quant_type: "fp4"
+
+# # Tracking info for where to log the run results
+# tracking:
+#   project: "lm-buddy-examples"
+#   entity: "sample"

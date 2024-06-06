@@ -8,10 +8,15 @@ from peft import PeftConfig
 from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
+    AutoModelForSeq2SeqLM,
     AutoTokenizer,
     PretrainedConfig,
     PreTrainedModel,
     PreTrainedTokenizer,
+)
+from transformers.models.auto.modeling_auto import (
+    MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
+    MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
 )
 
 from lm_buddy.configs.huggingface import (
@@ -120,7 +125,21 @@ class HuggingFaceModelLoader(HuggingFaceAssetLoader):
         # TODO: HuggingFace has many AutoModel classes with different "language model heads"
         #   Can we abstract this to load with any type of AutoModel class?
         model_path = self.resolve_asset_path(config.path)
-        return AutoModelForCausalLM.from_pretrained(
+
+        # load config first to get the model type
+        model_config = self.load_pretrained_config(config)
+        # print(model_config)
+
+        if getattr(model_config, "model_type") in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES:
+            automodel_class = AutoModelForSeq2SeqLM
+        elif getattr(model_config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
+            automodel_class = AutoModelForCausalLM
+        else:
+            logger.info("Model type not supported. Trying AutoModelForCausalLM")
+            automodel_class = AutoModelForCausalLM
+        # print(automodel_class)
+
+        return automodel_class.from_pretrained(
             pretrained_model_name_or_path=model_path,
             trust_remote_code=config.trust_remote_code,
             torch_dtype=config.torch_dtype,

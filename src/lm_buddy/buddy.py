@@ -3,12 +3,14 @@ import wandb
 from lm_buddy.configs.jobs import (
     EvaluationJobConfig,
     FinetuningJobConfig,
+    HuggingFaceEvalJobConfig,
     JobConfig,
     LMHarnessJobConfig,
     PrometheusJobConfig,
     RagasJobConfig,
 )
 from lm_buddy.jobs.common import EvaluationResult, FinetuningResult, JobType
+from lm_buddy.jobs.evaluation.hf_evaluate import run_hf_evaluation
 from lm_buddy.jobs.evaluation.lm_harness import run_lm_harness
 from lm_buddy.jobs.evaluation.prometheus import run_prometheus
 from lm_buddy.jobs.evaluation.ragas import run_ragas
@@ -66,6 +68,8 @@ class LMBuddy:
                 result = run_prometheus(prometheus_config)
             case RagasJobConfig() as ragas_config:
                 result = run_ragas(ragas_config)
+            case HuggingFaceEvalJobConfig() as hf_eval_config:
+                result = run_hf_evaluation(hf_eval_config)
             case _:
                 raise ValueError(f"Invlid configuration for evaluation: {type(config)}")
         self._generate_artifact_lineage(config, result.artifacts, JobType.EVALUATION)
