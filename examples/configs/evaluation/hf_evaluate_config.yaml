@@ -5,7 +5,7 @@ dataset:
 
 # Settings specific to hf_evaluate
 evaluation:
-  metrics: ["rouge"]
+  metrics: ["rouge", "bertscore", "meteor"]
   # enable/disable tqdm to track eval progress
   enable_tqdm: False
   # rely on HF pipeline for summarization

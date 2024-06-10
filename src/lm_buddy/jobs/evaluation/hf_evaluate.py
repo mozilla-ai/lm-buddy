@@ -21,6 +21,7 @@ from lm_buddy.jobs.asset_loader import (
     HuggingFaceTokenizerLoader,
 )
 from lm_buddy.jobs.common import EvaluationResult
+from lm_buddy.jobs.evaluation.metrics import EvaluationMetrics
 
 
 @dataclass
@@ -42,7 +43,7 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     # Enable / disable tqdm
     input_samples = dataset.select(range(10))["examples"]
     dataset_iterable = tqdm(input_samples) if config.evaluation.enable_tqdm else input_samples
-    results = []
+    predictions = []
 
     # depending on config, use the summarizer pipeline or directly call the model
     # for inference
@@ -55,16 +56,17 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
         )
 
         t = time.time()
-        # for sample_txt in dataset_iterable:
-        #     # summarizer output is a list (1 element in this case) of dict with key = "summary_text"
-        #     results += summarizer(sample_txt, min_length=30, do_sample=False)
+        for sample_txt in dataset_iterable:
+            # summarizer output is a list (1 element in this case) of dict with key = "summary_text"
+            predictions += summarizer(sample_txt, min_length=30, do_sample=False)
 
-        # alternative: run on the whole dataset
-        results = summarizer(dataset.select(range(10))["examples"], min_length=30, do_sample=False)
+        # alternative: run on the whole dataset (does not seem to be faster)
+        # TODO: test on GPU and changing #workers in pipeline definition
+        # results = summarizer(input_samples, min_length=30, do_sample=False)
 
         logger.info(f"Summarization performed in {time.time()-t} seconds")
 
-        results = [r["summary_text"] for r in results]
+        predictions = [r["summary_text"] for r in predictions]
 
     else:
         logger.info("Using direct HF model invocation")
@@ -79,9 +81,15 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
             )
             generated_ids = model.generate(**inputs, max_new_tokens=256)
             output_txt = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-            results += output_txt
+            predictions += output_txt
 
-    print(results)
+    print(predictions)
+
+    # Start evaluation
+    em = EvaluationMetrics(config.evaluation.metrics)
+    evaluation_results = em.run_all(predictions, input_samples)
+
+    print(evaluation_results)
 
     return "/tmp/dataset"
 
