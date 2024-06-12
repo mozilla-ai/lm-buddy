@@ -12,11 +12,17 @@ class InferenceServerConfig(LMBuddyConfig):
 
     Note: This configuration is intended to be generic and not bound to the interface
     of any specific training/evaluation framework. See `LocalChatCompletionConfig`
-    or `vLLMCompleptionsConfig` for intended usage alongside a third-party framework.
+    or `vLLMCompletionsConfig` for intended usage alongside a third-party framework.
     """
 
     base_url: str
     engine: AssetPath
+
+    # optional system prompt to be used by default in chat completions
+    system_prompt: str | None = None
+
+    # max number of retries when communication with server fails
+    max_retries: int | None = None
 
 
 class VLLMCompletionsConfig(LMBuddyConfig):
