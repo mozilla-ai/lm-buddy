@@ -14,6 +14,7 @@ class PathPrefix(str, Enum):
     HUGGINGFACE = "hf://"
     WANDB = "wandb://"
     S3 = "s3://"
+    OPENAI = "oai://"
 
 
 def strip_path_prefix(path: str) -> str:
@@ -52,6 +53,9 @@ def validate_asset_path(path: str) -> "AssetPath":
         # TODO: Validate the S3 path structure?
         # e.g. if the assumption is we always want a file or a dir, we could
         # use https://s3pathlib.readthedocs.io to verify (.is_file() or ._is_dir())
+        pass
+    elif path.startswith(PathPrefix.OPENAI):
+        # TODO: Validate the OAI path structure?
         pass
     else:
         allowed_prefixes = {x.value for x in PathPrefix}
