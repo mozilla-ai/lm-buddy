@@ -1,25 +1,65 @@
 name: "lm-buddy-hf-evaluate"
 
+# Input dataset path
 dataset:
   path: "s3://platform-storage/datasets/dialogsum"
 
-# Settings specific to hf_evaluate
-evaluation:
-  metrics: ["rouge", "bertscore", "meteor"]
-  # enable/disable tqdm to track eval progress
-  enable_tqdm: False
-  # rely on HF pipeline for summarization
-  use_pipeline: True
 
-# Model to evaluate
+# Settings specific to the hf_evaluate entrypoint
+evaluation:
+  # metrics to be used for the evaluation
+  # (you can add "rouge", "meteor", and "bertscore" atm)
+  metrics: ["rouge", "meteor"]
+  # enable/disable tqdm to track eval progress
+  # (useful when running interactively, noisy on ray logs)
+  enable_tqdm: True
+  # rely on HF pipeline for summarization (ignored if using OAI API)
+  use_pipeline: True
+  # perform inference / evaluation on the first max_samples only
+  max_samples: 10
+  # output file path
+  # - if you provide a path complete with a filename, results will be stored in it
+  # - if you provide a dir, results will be stored in <dir>/<config.name>/eval_results.json
+  # - if you don't provide a storage path, results will be stored locally (see ~/.lm-buddy/results)
+  # storage_path: "s3://platform-storage/experiments/results/"
+
+# Model to evaluate. Choose one of the following options by uncommenting it
+
+# 1. Local model
+#    - Provide model path to load the model locally
+#    - Make sure you add quantization details (see below) if the model is too large
+#    - Optionally, add a tokenizer (the one matching the specified model name is the default)
 model:
   path: "hf://facebook/bart-large-cnn"
 
-quantization:
-  load_in_4bit: True
-  bnb_4bit_quant_type: "fp4"
+# # 2. OpenAI
+# #    - The base_url is fixed
+# #    - Choose an engine name (see https://platform.openai.com/docs/models)
+# #    - Customize the system prompt if needed
+# model:
+#   inference:
+#     base_url: "https://api.openai.com/v1"
+#     engine: "oai://gpt-4-turbo"
+#     system_prompt: "You are a helpful assistant, expert in text summarization. For every prompt you receive, provide a summary of its contents in at most two sentences."
+#     max_retries: 3
 
-# # Tracking info for where to log the run results
+# # 3. OpenAI - compatible model
+# #    - Works with local/remote vLLM-served models and llamafiles
+# #    - Provide base_url and engine
+# #    - Customize the system prompt if needed
+# model:
+#   inference:
+#     base_url: "http://localhost:8081/v1"
+#     engine: "hf://mistralai/mistral-7b-instruct-v0.2"
+#     system_prompt: "You are a helpful assistant, expert in text summarization. For every prompt you receive, provide a summary of its contents in at most two sentences."
+#     max_retries: 3
+
+# Quantization (use it if you are dealing with models too large to fit in RAM)
+# quantization:
+#   load_in_4bit: True
+#   bnb_4bit_quant_type: "fp4"
+
+# Tracking info for where to log the run results
 # tracking:
 #   project: "lm-buddy-examples"
 #   entity: "sample"

@@ -2,102 +2,111 @@
 lm-buddy entrypoint to run summary evaluation using huggingface eval
 """
 
+import json
 import time
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
-import torch
-from datasets import Dataset
+import s3fs
 from loguru import logger
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 
 from lm_buddy.configs.jobs.hf_evaluate import HuggingFaceEvalJobConfig
+from lm_buddy.configs.vllm import VLLMCompletionsConfig
 from lm_buddy.constants import LM_BUDDY_RESULTS_PATH
 from lm_buddy.jobs.asset_loader import (
     HuggingFaceDatasetLoader,
     HuggingFaceModelLoader,
-    HuggingFaceTokenizerLoader,
 )
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.jobs.evaluation.metrics import EvaluationMetrics
+from lm_buddy.jobs.model_clients import (
+    HuggingFaceModelClient,
+    OpenAIModelClient,
+    PipelineModelClient,
+)
 
 
-@dataclass
-class BadResponseError(Exception):
-    def __init__(self, message, error=None):
-        self.message = message
-        self.error = error
+def save_outputs(config: HuggingFaceEvalJobConfig, evaluation_results: dict) -> Path:
+    storage_path = config.evaluation.storage_path
+
+    # generate local temp file ANYWAY
+    # (we don't want to lose all eval data if there is an issue wth s3)
+    local_path = Path(LM_BUDDY_RESULTS_PATH) / config.name / "eval_results.json"
+    local_path.parent.mkdir(exist_ok=True, parents=True)
+    with local_path.open("w") as f:
+        json.dump(evaluation_results, f)
+
+    # copy to s3 and return path
+    if storage_path is not None and storage_path.startswith("s3://"):
+        s3 = s3fs.S3FileSystem()
+        if storage_path.endswith("/"):
+            storage_path = "s3://" + str(Path(storage_path[5:]) / config.name / "eval_results.json")
+        logger.info(f"Storing into {storage_path}...")
+        s3.put_file(local_path, storage_path)
+        return storage_path
+    else:
+        return local_path
 
 
 def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     # Init loaders
     hf_dataset_loader = HuggingFaceDatasetLoader()
     hf_model_loader = HuggingFaceModelLoader()
-    hf_tokenizer_loader = HuggingFaceTokenizerLoader()
 
     # Load dataset given its URI
     dataset = hf_dataset_loader.load_dataset(config.dataset)
 
+    # Limit dataset length if max_samples is specified
+    if config.evaluation.max_samples is not None:
+        dataset = dataset.select(range(config.evaluation.max_samples))
+
     # Enable / disable tqdm
-    input_samples = dataset.select(range(10))["examples"]
+    input_samples = dataset["examples"]
     dataset_iterable = tqdm(input_samples) if config.evaluation.enable_tqdm else input_samples
     predictions = []
 
-    # depending on config, use the summarizer pipeline or directly call the model
-    # for inference
-    if config.evaluation.use_pipeline:
-        logger.info("Using summarization pipeline")
-        summarizer = pipeline(
-            "summarization",
-            model=hf_model_loader.resolve_asset_path(config.model.path),
-            device=0 if torch.cuda.is_available() else -1,
-        )
-
-        t = time.time()
-        for sample_txt in dataset_iterable:
-            # summarizer output is a list (1 element in this case) of dict with key = "summary_text"
-            predictions += summarizer(sample_txt, min_length=30, do_sample=False)
-
-        # alternative: run on the whole dataset (does not seem to be faster)
-        # TODO: test on GPU and changing #workers in pipeline definition
-        # results = summarizer(input_samples, min_length=30, do_sample=False)
-
-        logger.info(f"Summarization performed in {time.time()-t} seconds")
-
-        predictions = [r["summary_text"] for r in predictions]
-
+    # Choose which model client to use
+    if type(config.model) == VLLMCompletionsConfig:
+        model_name = config.model.inference.base_url
     else:
-        logger.info("Using direct HF model invocation")
+        model_name = hf_model_loader.resolve_asset_path(config.model.path)
 
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        model = hf_model_loader.load_pretrained_model(config.model).to(device)
-        tokenizer = hf_tokenizer_loader.load_pretrained_tokenizer(config.tokenizer)
+    if model_name.startswith("http"):
+        # run the openai client
+        logger.info(f"Using OAI client. Endpoint: {model_name}")
+        model_client = OpenAIModelClient(model_name, config.model)
+    else:
+        # depending on config, use the summarizer pipeline or directly call the model
+        # for inference
+        if config.evaluation.use_pipeline:
+            logger.info(f"Using summarization pipeline. Model: {model_name}")
+            model_client = PipelineModelClient(model_name, config.model)
+        else:
+            logger.info(f"Using direct HF model invocation. Model: {model_name}")
+            model_client = HuggingFaceModelClient(model_name, config)
 
-        for sample_txt in dataset_iterable:
-            inputs = tokenizer(sample_txt, truncation=True, padding=True, return_tensors="pt").to(
-                device
-            )
-            generated_ids = model.generate(**inputs, max_new_tokens=256)
-            output_txt = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-            predictions += output_txt
+    # run inference
+    t = time.time()
+    for sample_txt in dataset_iterable:
+        predictions.append(model_client.predict(sample_txt))
+    summarization_time = time.time() - t
+    logger.info(f"Summarization performed in {summarization_time} seconds")
 
-    print(predictions)
-
-    # Start evaluation
+    # run evaluation
+    ground_truth = dataset["ground_truth"]
     em = EvaluationMetrics(config.evaluation.metrics)
-    evaluation_results = em.run_all(predictions, input_samples)
+    t = time.time()
+    evaluation_results = em.run_all(predictions, ground_truth)
+    summarization_time = time.time() - t
+    logger.info(f"Summarization performed in {summarization_time} seconds")
 
-    print(evaluation_results)
-
-    return "/tmp/dataset"
+    return save_outputs(config, evaluation_results)
 
 
 def run_hf_evaluation(config: HuggingFaceEvalJobConfig) -> EvaluationResult:
     # Run eval and store output in local filename
     result_dataset_path = run_eval(config)
-    logger.info(f"Prometheus evaluation dataset stored at {result_dataset_path}")
+    logger.info(f"Summarization eval results stored at {result_dataset_path}")
 
     return EvaluationResult(
         artifacts=[],

@@ -18,6 +18,8 @@ class HuggingFaceEvaluationConfig(LMBuddyConfig):
     metrics: conlist(str, min_length=1)
     use_pipeline: bool = False
     enable_tqdm: bool = False
+    max_samples: int | None = None
+    storage_path: str | None = None
 
 
 class HuggingFaceEvalJobConfig(JobConfig):
@@ -40,7 +42,13 @@ class HuggingFaceEvalJobConfig(JobConfig):
                 case str() as model_path:
                     values["tokenizer"]["path"] = model_path
                 case dict() as model_data:
-                    values["tokenizer"]["path"] = model_data["path"]
+                    # if dict we might have model.path specified
+                    # if we don't it is VLLMCompletion and we are ok
+                    # with anything as it will be ignored
+                    if model_data.get("path") is None:
+                        values["tokenizer"]["path"] = "oai://tokenizer"
+                    else:
+                        values["tokenizer"]["path"] = model_data.get("path")
                 case AutoModelConfig() as model_config:
                     values["tokenizer"]["path"] = model_config.path
                 # No fallback necessary, downstream validation will flag invalid model types
@@ -63,8 +71,13 @@ class HuggingFaceEvalJobConfig(JobConfig):
     def asset_paths(self) -> list[AssetPath]:
         match self.model:
             case AutoModelConfig() as config:
-                return {self.dataset.path, config.path, self.tokenizer.path}
+                return {
+                    self.dataset.path,
+                    self.evaluation.output_path,
+                    config.path,
+                    self.tokenizer.path,
+                }
             case VLLMCompletionsConfig() as config if config.inference.engine is not None:
-                return {self.dataset.path, config.inference.engine, self.tokenizer.path}
+                return {self.dataset.path, self.evaluation.output_path, config.inference.engine}
             case _:
                 return {}
