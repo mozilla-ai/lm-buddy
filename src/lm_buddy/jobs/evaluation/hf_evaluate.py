@@ -109,7 +109,6 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
 
     # run evaluation
     ground_truth = dataset["ground_truth"]
-    print(type(ground_truth))
     evaluation_results, evaluation_time = evaluate(
         predictions, ground_truth, config.evaluation.metrics
     )

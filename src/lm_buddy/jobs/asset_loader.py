@@ -128,7 +128,6 @@ class HuggingFaceModelLoader(HuggingFaceAssetLoader):
 
         # load config first to get the model type
         model_config = self.load_pretrained_config(config)
-        # print(model_config)
 
         if getattr(model_config, "model_type") in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES:
             automodel_class = AutoModelForSeq2SeqLM
@@ -137,7 +136,6 @@ class HuggingFaceModelLoader(HuggingFaceAssetLoader):
         else:
             logger.info("Model type not supported. Trying AutoModelForCausalLM")
             automodel_class = AutoModelForCausalLM
-        # print(automodel_class)
 
         return automodel_class.from_pretrained(
             pretrained_model_name_or_path=model_path,
