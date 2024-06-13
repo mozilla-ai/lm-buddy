@@ -49,23 +49,35 @@ def evaluate(predictions: list, ground_truth: list, evaluation_metrics: list):
 def save_outputs(config: HuggingFaceEvalJobConfig, evaluation_results: dict) -> Path:
     storage_path = config.evaluation.storage_path
 
-    # generate local temp file ANYWAY
-    # (we don't want to lose all eval data if there is an issue wth s3)
-    local_path = Path(LM_BUDDY_RESULTS_PATH) / config.name / "eval_results.json"
-    local_path.parent.mkdir(exist_ok=True, parents=True)
-    with local_path.open("w") as f:
-        json.dump(evaluation_results, f)
+    def save_to_disk(local_path: Path):
+        logger.info(f"Storing into {local_path}...")
+        local_path.parent.mkdir(exist_ok=True, parents=True)
+        with local_path.open("w") as f:
+            json.dump(evaluation_results, f)
 
-    # copy to s3 and return path
-    if storage_path is not None and storage_path.startswith("s3://"):
+    def save_to_s3(local_path: Path, storage_path: str):
         s3 = s3fs.S3FileSystem()
         if storage_path.endswith("/"):
             storage_path = "s3://" + str(Path(storage_path[5:]) / config.name / "eval_results.json")
         logger.info(f"Storing into {storage_path}...")
         s3.put_file(local_path, storage_path)
-        return storage_path
-    else:
+
+    # generate local temp file ANYWAY
+    # (we don't want to lose all eval data if there is an issue wth s3)
+    local_path = Path(LM_BUDDY_RESULTS_PATH) / config.name / "eval_results.json"
+
+    try:
+        save_to_disk(local_path)
+
+        # copy to s3 and return path
+        if storage_path is not None and storage_path.startswith("s3://"):
+            save_to_s3(local_path, storage_path)
+            return storage_path
+
         return local_path
+
+    except Exception as e:
+        logger.error(e)
 
 
 def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
@@ -117,7 +129,8 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     evaluation_results["summarization_time"] = summarization_time
     evaluation_results["evaluation_time"] = evaluation_time
 
-    return save_outputs(config, evaluation_results)
+    output_path = save_outputs(config, evaluation_results)
+    return output_path
 
 
 def run_hf_evaluation(config: HuggingFaceEvalJobConfig) -> EvaluationResult:
