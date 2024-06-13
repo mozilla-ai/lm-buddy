@@ -138,7 +138,7 @@ class OpenAIModelClient(BaseModelClient):
                 )
                 break
             except OpenAIError as e:
-                logger.warning(f"{e.message}: " f"Retrying ({current_retry_attempt}/{max_retries})")
+                logger.warning(f"{e.message}: Retrying ({current_retry_attempt}/{max_retries})")
                 current_retry_attempt += 1
                 if current_retry_attempt > max_retries:
                     raise e
