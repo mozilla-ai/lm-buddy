@@ -23,7 +23,7 @@ from lm_buddy.jobs.model_clients import (
     BaseModelClient,
     HuggingFaceModelClient,
     OpenAIModelClient,
-    PipelineModelClient,
+    SummarizationPipelineModelClient,
 )
 from lm_buddy.jobs.utils import timer
 
@@ -99,7 +99,7 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
         # for inference
         if config.evaluation.use_pipeline:
             logger.info(f"Using summarization pipeline. Model: {model_name}")
-            model_client = PipelineModelClient(model_name, config.model)
+            model_client = SummarizationPipelineModelClient(model_name, config.model)
         else:
             logger.info(f"Using direct HF model invocation. Model: {model_name}")
             model_client = HuggingFaceModelClient(model_name, config)

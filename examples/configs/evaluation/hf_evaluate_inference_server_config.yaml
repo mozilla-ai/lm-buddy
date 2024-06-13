@@ -1,4 +1,4 @@
-name: "lm-buddy-hf-evaluate"
+name: "lm-buddy-hf-evaluate-is"
 
 # Input dataset path
 dataset:
@@ -22,14 +22,13 @@ evaluation:
   # - if you don't provide a storage path, results will be stored locally (see ~/.lm-buddy/results)
   # storage_path: "s3://platform-storage/experiments/results/"
 
-# Model to evaluate (local).
-# - Provide model path to load the model locally
-# - Make sure you add quantization details (see below) if the model is too large
-# - Optionally, add a tokenizer (the one matching the specified model name is the default)
+# Model to evaluate (OpenAI-compatible API)
+# - Works with local/remote vLLM-served models and llamafiles
+# - Provide base_url and engine
+# - Customize the system prompt if needed
 model:
-  path: "hf://facebook/bart-large-cnn"
-
-# Quantization (use it if you are dealing with models too large to fit in RAM)
-# quantization:
-#   load_in_4bit: True
-#   bnb_4bit_quant_type: "fp4"
+  inference:
+    base_url: "http://localhost:8081/v1"
+    engine: "hf://mistralai/mistral-7b-instruct-v0.2"
+    system_prompt: "You are a helpful assistant, expert in text summarization. For every prompt you receive, provide a summary of its contents in at most two sentences."
+    max_retries: 3
