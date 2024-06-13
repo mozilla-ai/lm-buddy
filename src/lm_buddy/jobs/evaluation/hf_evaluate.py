@@ -3,7 +3,7 @@ lm-buddy entrypoint to run summary evaluation using huggingface eval
 """
 
 import json
-import time
+from collections.abc import Iterable
 from pathlib import Path
 
 import s3fs
@@ -20,10 +20,30 @@ from lm_buddy.jobs.asset_loader import (
 from lm_buddy.jobs.common import EvaluationResult
 from lm_buddy.jobs.evaluation.metrics import EvaluationMetrics
 from lm_buddy.jobs.model_clients import (
+    BaseModelClient,
     HuggingFaceModelClient,
     OpenAIModelClient,
     PipelineModelClient,
 )
+from lm_buddy.jobs.utils import timer
+
+
+@timer
+def predict(dataset_iterable: Iterable, model_client: BaseModelClient) -> list:
+    predictions = []
+
+    for sample_txt in dataset_iterable:
+        predictions.append(model_client.predict(sample_txt))
+
+    return predictions
+
+
+@timer
+def evaluate(predictions: list, ground_truth: list, evaluation_metrics: list):
+    em = EvaluationMetrics(evaluation_metrics)
+    evaluation_results = em.run_all(predictions, ground_truth)
+
+    return evaluation_results
 
 
 def save_outputs(config: HuggingFaceEvalJobConfig, evaluation_results: dict) -> Path:
@@ -63,7 +83,6 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     # Enable / disable tqdm
     input_samples = dataset["examples"]
     dataset_iterable = tqdm(input_samples) if config.evaluation.enable_tqdm else input_samples
-    predictions = []
 
     # Choose which model client to use
     if type(config.model) == VLLMCompletionsConfig:
@@ -86,19 +105,18 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
             model_client = HuggingFaceModelClient(model_name, config)
 
     # run inference
-    t = time.time()
-    for sample_txt in dataset_iterable:
-        predictions.append(model_client.predict(sample_txt))
-    summarization_time = time.time() - t
-    logger.info(f"Summarization performed in {summarization_time} seconds")
+    predictions, summarization_time = predict(dataset_iterable, model_client)
 
     # run evaluation
     ground_truth = dataset["ground_truth"]
-    em = EvaluationMetrics(config.evaluation.metrics)
-    t = time.time()
-    evaluation_results = em.run_all(predictions, ground_truth)
-    summarization_time = time.time() - t
-    logger.info(f"Summarization performed in {summarization_time} seconds")
+    print(type(ground_truth))
+    evaluation_results, evaluation_time = evaluate(
+        predictions, ground_truth, config.evaluation.metrics
+    )
+
+    # add timing to results dict
+    evaluation_results["summarization_time"] = summarization_time
+    evaluation_results["evaluation_time"] = evaluation_time
 
     return save_outputs(config, evaluation_results)
 
