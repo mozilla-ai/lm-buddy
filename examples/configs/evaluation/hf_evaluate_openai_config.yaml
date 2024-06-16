@@ -21,6 +21,10 @@ evaluation:
   # - if you provide a dir, results will be stored in <dir>/<config.name>/eval_results.json
   # - if you don't provide a storage path, results will be stored locally (see ~/.lm-buddy/results)
   # storage_path: "s3://platform-storage/experiments/results/"
+  # return input data in the output file
+  return_input_data: True
+  # return predictions in the output file
+  return_predictions: True
 
 # Model to evaluate (OpenAI)
 # - The base_url is fixed

@@ -20,6 +20,8 @@ class HuggingFaceEvaluationConfig(LMBuddyConfig):
     enable_tqdm: bool = False
     max_samples: int | None = None
     storage_path: str | None = None
+    return_input_data: bool = False
+    return_predictions: bool = False
 
 
 class HuggingFaceEvalJobConfig(JobConfig):
