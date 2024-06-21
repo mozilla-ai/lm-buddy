@@ -129,6 +129,15 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     evaluation_results["summarization_time"] = summarization_time
     evaluation_results["evaluation_time"] = evaluation_time
 
+    # add input data to results dict
+    if config.evaluation.return_input_data:
+        evaluation_results["examples"] = dataset["examples"]
+        evaluation_results["ground_truth"] = dataset["ground_truth"]
+
+    # add predictions to results dict
+    if config.evaluation.return_predictions:
+        evaluation_results["predictions"] = predictions
+
     output_path = save_outputs(config, evaluation_results)
     return output_path
 
