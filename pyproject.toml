@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm-buddy"
-version = "0.10.6"
+version = "0.10.7"
 authors = [
     { name = "Sean Friedowitz", email = "sean@mozilla.ai" },
     { name = "Aaron Gonzales", email = "aaron@mozilla.ai" },
@@ -28,7 +28,7 @@ dependencies = [
     "urllib3>=1.26.18,<2",
     "pydantic==2.6.0",
     "pydantic-yaml==1.2.0",
-    "ray[default]==2.9.3",
+    "ray[default]==2.30.0",
     "loguru==0.7.2",
     "s3fs",
     # HuggingFace
