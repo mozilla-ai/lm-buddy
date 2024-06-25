@@ -4,13 +4,20 @@ import torch
 from loguru import logger
 from openai import OpenAI, OpenAIError
 from openai.types import Completion
-from transformers import pipeline
+from transformers import SummarizationPipeline
 
 from lm_buddy.configs.common import LMBuddyConfig
 from lm_buddy.configs.huggingface import AutoModelConfig
 from lm_buddy.configs.jobs.hf_evaluate import HuggingFaceEvalJobConfig
 from lm_buddy.configs.vllm import VLLMCompletionsConfig
 from lm_buddy.jobs.asset_loader import HuggingFaceModelLoader, HuggingFaceTokenizerLoader
+
+
+class SummarizationEvaluationPipeline(SummarizationPipeline):
+    def preprocess(self, prompt):
+        return self.tokenizer(
+            prompt, truncation=True, padding="max_length", return_tensors="pt"
+        ).to(self.device)
 
 
 class BaseModelClient:
@@ -43,8 +50,7 @@ class SummarizationPipelineModelClient(BaseModelClient):
     """
 
     def __init__(self, model: str, config: AutoModelConfig):
-        self._summarizer = pipeline(
-            "summarization",
+        self._summarizer = SummarizationEvaluationPipeline(
             model=model,
             device=0 if torch.cuda.is_available() else -1,
         )
