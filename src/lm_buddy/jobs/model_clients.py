@@ -75,9 +75,9 @@ class HuggingFaceModelClient(BaseModelClient):
         self._tokenizer = hf_tokenizer_loader.load_pretrained_tokenizer(config.tokenizer)
 
     def predict(self, prompt):
-        inputs = self._tokenizer(prompt, truncation=True, padding=True, return_tensors="pt").to(
-            self._device
-        )
+        inputs = self._tokenizer(
+            prompt, truncation=True, padding="max_length", return_tensors="pt"
+        ).to(self._device)
         generated_ids = self._model.generate(**inputs, max_new_tokens=256)
         return self._tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
