@@ -28,7 +28,7 @@ dependencies = [
     "urllib3>=1.26.18,<2",
     "pydantic==2.6.0",
     "pydantic-yaml==1.2.0",
-    "ray[default]==2.9.3",
+    "ray[default]==2.30.0",
     "loguru==0.7.2",
     "s3fs",
     # HuggingFace
