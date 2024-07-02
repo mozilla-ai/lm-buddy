@@ -1,3 +1,4 @@
+# ruff: noqa
 """
 Conversation prompt templates.
 
@@ -15,8 +16,8 @@ the code without a dependency on fastchat.
 """
 
 import dataclasses
-from enum import auto, IntEnum
-from typing import List, Any, Dict, Union, Tuple
+from enum import IntEnum, auto
+from typing import Any, Dict, List, Tuple, Union
 
 
 class SeparatorStyle(IntEnum):
@@ -124,11 +125,7 @@ class Conversation:
             ret = system_prompt
             for i, (role, message) in enumerate(self.messages):
                 if message:
-                    ret += (
-                        role
-                        + ": "
-                        + message.replace("\r\n", "\n").replace("\n\n", "\n")
-                    )
+                    ret += role + ": " + message.replace("\r\n", "\n").replace("\n\n", "\n")
                     ret += "\n\n"
                 else:
                     ret += role + ":"
@@ -330,9 +327,7 @@ conv_templates: Dict[str, Conversation] = {}
 def register_conv_template(template: Conversation, override: bool = False):
     """Register a new conversation template."""
     if not override:
-        assert (
-            template.name not in conv_templates
-        ), f"{template.name} has been registered."
+        assert template.name not in conv_templates, f"{template.name} has been registered."
 
     conv_templates[template.name] = template
 
