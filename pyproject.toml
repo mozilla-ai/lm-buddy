@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm-buddy"
-version = "0.10.9"
+version = "0.10.10"
 authors = [
     { name = "Sean Friedowitz", email = "sean@mozilla.ai" },
     { name = "Aaron Gonzales", email = "aaron@mozilla.ai" },
@@ -42,7 +42,6 @@ dependencies = [
     # Evaluation frameworks
     "lm-eval==0.4.2",
     "einops==0.7.0",
-    "fschat==0.2.36",
     "openai==1.14.3",
     "ragas==0.1.5",
     "langchain-community==0.0.29",
