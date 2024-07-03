@@ -9,7 +9,10 @@ from lm_buddy.paths import format_file_path
 
 @pytest.fixture
 def job_config(llm_model_path) -> LMHarnessJobConfig:
-    model_config = AutoModelConfig(path=format_file_path(llm_model_path))
+    # adding trust remote code to address issues in huggingface's env var
+    # https://github.com/EleutherAI/lm-evaluation-harness/pull/1998
+
+    model_config = AutoModelConfig(path=format_file_path(llm_model_path), trust_remote_code=True)
     tracking_config = WandbRunConfig(project="test-project")
     evaluation_config = LMHarnessEvaluationConfig(tasks=["hellaswag"], limit=5)
     return LMHarnessJobConfig(
