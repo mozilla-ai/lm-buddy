@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm-buddy"
-version = "0.10.10"
+version = "0.11.0"
 authors = [
     { name = "Sean Friedowitz", email = "sean@mozilla.ai" },
     { name = "Aaron Gonzales", email = "aaron@mozilla.ai" },
@@ -20,18 +20,25 @@ requires-python = ">=3.11,<3.12"
 
 dependencies = [
     # Core
-    "click==8.1.7",
-    "torch==2.1.2",
-    "scipy==1.10.1",
-    "wandb==0.16.3",
-    "protobuf==3.20.2",
+    "click>=8.1.7",
+    "scipy>=1.10.1",
+    "wandb>=0.16.3",
+    "protobuf>=3.20.2",
     "urllib3>=1.26.18,<2",
+    "pydantic>=2.6.4",
+    "pydantic-yaml>=1.2.0",
     "pydantic==2.6.4",
     "pydantic-yaml==1.2.0",
     "ray[default]==2.30.0",
     "loguru==0.7.2",
     "s3fs",
-    # HuggingFace
+]
+
+[project.optional-dependencies]
+ruff = ["ruff==0.2.1"]
+jobs = [
+    # HuggingFace / pytorch
+    "torch==2.3.1",
     "datasets>=2.17.1",
     "transformers==4.38.0",
     "accelerate==0.26.1",
@@ -47,11 +54,8 @@ dependencies = [
     "langchain-community==0.0.29",
     "langchain_openai==0.1.1",
     "sentencepiece==0.2.0",
-    "evaluate==0.4.2"
+    "evaluate==0.4.2",
 ]
-
-[project.optional-dependencies]
-ruff = ["ruff==0.2.1"]
 test = ["pytest==7.4.3", "pytest-cov==4.1.0"]
 docs = [
     "Sphinx==7.2.6",
@@ -60,7 +64,7 @@ docs = [
     "myst-parser==2.0.0",
     "furo==2024.1.29",
 ]
-dev = ["lm-buddy[ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
+dev = ["lm-buddy[jobs,ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
 
 [project.scripts]
 lm-buddy = "lm_buddy.cli:cli"
