@@ -36,7 +36,7 @@ dependencies = [
 
 [project.optional-dependencies]
 ruff = ["ruff==0.2.1"]
-torchy = [
+jobs = [
     # HuggingFace / pytorch
     "torch==2.3.1",
     "datasets>=2.17.1",
@@ -64,7 +64,7 @@ docs = [
     "myst-parser==2.0.0",
     "furo==2024.1.29",
 ]
-dev = ["lm-buddy[torchy,ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
+dev = ["lm-buddy[jobs,ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
 
 [project.scripts]
 lm-buddy = "lm_buddy.cli:cli"
