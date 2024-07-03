@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm-buddy"
-version = "0.10.8"
+version = "0.11.0"
 authors = [
     { name = "Sean Friedowitz", email = "sean@mozilla.ai" },
     { name = "Aaron Gonzales", email = "aaron@mozilla.ai" },
@@ -16,22 +16,27 @@ description = "Ray-centric library for finetuning and evaluation of (large) lang
 readme = "README.md"
 license = { file = "LICENSE.md" }
 
-requires-python = ">=3.10,<3.11"
+requires-python = ">=3.10,<=3.12"
 
 dependencies = [
     # Core
-    "click==8.1.7",
-    "torch==2.1.2",
-    "scipy==1.10.1",
-    "wandb==0.16.3",
-    "protobuf==3.20.2",
+    "click>=8.1.7",
+    "scipy>=1.10.1",
+    "wandb>=0.16.3",
+    "protobuf>=3.20.2",
     "urllib3>=1.26.18,<2",
-    "pydantic==2.6.0",
-    "pydantic-yaml==1.2.0",
+    "pydantic>=2.6.0",
+    "pydantic-yaml>=1.2.0",
     "ray[default]==2.30.0",
     "loguru==0.7.2",
     "s3fs",
-    # HuggingFace
+]
+
+[project.optional-dependencies]
+ruff = ["ruff==0.2.1"]
+torchy = [
+    # HuggingFace / pytorch
+    "torch==2.3.1",
     "datasets>=2.17.1",
     "transformers==4.36.2",
     "accelerate==0.26.1",
@@ -42,17 +47,13 @@ dependencies = [
     # Evaluation frameworks
     "lm-eval==0.4.2",
     "einops==0.7.0",
-    "fschat==0.2.36",
     "openai==1.14.3",
     "ragas==0.1.5",
     "langchain-community==0.0.29",
     "langchain_openai==0.1.1",
     "sentencepiece==0.2.0",
-    "evaluate==0.4.2"
+    "evaluate==0.4.2",
 ]
-
-[project.optional-dependencies]
-ruff = ["ruff==0.2.1"]
 test = ["pytest==7.4.3", "pytest-cov==4.1.0"]
 docs = [
     "Sphinx==7.2.6",
@@ -61,7 +62,7 @@ docs = [
     "myst-parser==2.0.0",
     "furo==2024.1.29",
 ]
-dev = ["lm-buddy[ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
+dev = ["lm-buddy[torchy,ruff,test,docs]", "pre-commit==3.6.0", "jupyter==1.0.0"]
 
 [project.scripts]
 lm-buddy = "lm_buddy.cli:cli"
