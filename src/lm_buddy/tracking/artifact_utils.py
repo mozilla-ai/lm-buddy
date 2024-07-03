@@ -79,7 +79,7 @@ def build_directory_artifact(
         # Right now, we are assuming a fixed "file" URI scheme
         # We can pass the URI scheme if necessary later
         artifact.add_reference(
-            uri=f"{PathPrefix.FILE}{dir_path}",
+            uri=f"{PathPrefix.FILE.value}{dir_path}",
             max_objects=max_objects,
             name=entry_name,
         )

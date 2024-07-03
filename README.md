@@ -32,9 +32,9 @@ pip install lm-buddy
 
 LM Buddy is intended to be used in production on a Ray cluster 
 (see section below on [Ray job submission](#ray-job-submission)).
-Currently, we are utilizing Ray clusters running Python 3.10.8.
+Currently, we are utilizing Ray clusters running Python 3.11.9.
 In order to avoid dependency/syntax errors when executing LM Buddy on Ray,
-installation of this package requires Python between `[3.10, 3.11)`.
+installation of this package requires Python between `[3.11, 3.12)`.
 
 ## CLI usage
 

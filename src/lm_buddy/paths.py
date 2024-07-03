@@ -68,16 +68,16 @@ AssetPath = Annotated[str, AfterValidator(lambda x: validate_asset_path(x))]
 
 def format_file_path(path: str | Path) -> AssetPath:
     path = Path(path).absolute()
-    return f"{PathPrefix.FILE}{path}"
+    return f"{PathPrefix.FILE.value}{path}"
 
 
 def format_huggingface_path(repo_id: str) -> AssetPath:
-    return f"{PathPrefix.HUGGINGFACE}{repo_id}"
+    return f"{PathPrefix.HUGGINGFACE.value}{repo_id}"
 
 
 def format_artifact_path(artifact: wandb.Artifact) -> AssetPath:
     try:
-        return f"{PathPrefix.WANDB}{artifact.qualified_name}"
+        return f"{PathPrefix.WANDB.value}{artifact.qualified_name}"
     except ArtifactNotLoggedError as e:
         msg = (
             "Unable to construct an `AssetPath` from artifact missing project/entity fields. "

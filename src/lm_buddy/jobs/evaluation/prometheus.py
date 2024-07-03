@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 from datasets import Dataset
-from fastchat.conversation import get_conv_template
 from loguru import logger
 from openai import OpenAI, OpenAIError
 from openai.types import Completion
@@ -24,6 +23,7 @@ from lm_buddy.jobs.asset_loader import (
     HuggingFaceTokenizerLoader,
 )
 from lm_buddy.jobs.common import EvaluationResult
+from lm_buddy.jobs.evaluation.conversation import get_conv_template
 from lm_buddy.preprocessing import format_dataset_with_prompt
 from lm_buddy.tracking.artifact_utils import (
     ArtifactType,

@@ -16,7 +16,7 @@ description = "Ray-centric library for finetuning and evaluation of (large) lang
 readme = "README.md"
 license = { file = "LICENSE.md" }
 
-requires-python = ">=3.10,<=3.12"
+requires-python = ">=3.11,<3.12"
 
 dependencies = [
     # Core
@@ -25,8 +25,10 @@ dependencies = [
     "wandb>=0.16.3",
     "protobuf>=3.20.2",
     "urllib3>=1.26.18,<2",
-    "pydantic>=2.6.0",
+    "pydantic>=2.6.4",
     "pydantic-yaml>=1.2.0",
+    "pydantic==2.6.4",
+    "pydantic-yaml==1.2.0",
     "ray[default]==2.30.0",
     "loguru==0.7.2",
     "s3fs",
@@ -38,7 +40,7 @@ torchy = [
     # HuggingFace / pytorch
     "torch==2.3.1",
     "datasets>=2.17.1",
-    "transformers==4.36.2",
+    "transformers==4.38.0",
     "accelerate==0.26.1",
     "peft==0.7.1",
     "trl==0.7.10",

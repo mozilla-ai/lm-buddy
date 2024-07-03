@@ -10,7 +10,7 @@ pip install -e ".[dev]"
 
 This will install an editable version of the package and all of its development requirements
 in your active virtual environment.
-Note that installation currently requires a Python version between `[3.10, 3.11)`.
+Note that installation currently requires a Python version between `[3.11, 3.12)`.
 
 ## Code style
 
