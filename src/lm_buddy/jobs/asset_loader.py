@@ -45,7 +45,9 @@ class HuggingFaceAssetLoader:
         The returned string has its `PathPrefix` stripped away..
         """
         raw_path = strip_path_prefix(path)
-        if path.startswith((PathPrefix.FILE, PathPrefix.HUGGINGFACE, PathPrefix.OPENAI)):
+        if path.startswith(
+            (PathPrefix.FILE, PathPrefix.HUGGINGFACE, PathPrefix.OPENAI, PathPrefix.MISTRAL)
+        ):
             return raw_path
         elif path.startswith(PathPrefix.WANDB):
             artifact = get_artifact_from_api(raw_path)

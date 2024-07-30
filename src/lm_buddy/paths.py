@@ -15,6 +15,7 @@ class PathPrefix(str, Enum):
     WANDB = "wandb://"
     S3 = "s3://"
     OPENAI = "oai://"
+    MISTRAL = "mistral://"
 
 
 def strip_path_prefix(path: str) -> str:
@@ -55,7 +56,10 @@ def validate_asset_path(path: str) -> "AssetPath":
         # use https://s3pathlib.readthedocs.io to verify (.is_file() or ._is_dir())
         pass
     elif path.startswith(PathPrefix.OPENAI):
-        # TODO: Validate the OAI path structure?
+        # TODO: Validate the OAI model name?
+        pass
+    elif path.startswith(PathPrefix.MISTRAL):
+        # TODO: Validate the mistral model name?
         pass
     else:
         allowed_prefixes = {x.value for x in PathPrefix}
