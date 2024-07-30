@@ -97,7 +97,9 @@ class HuggingFaceModelLoader(HuggingFaceAssetLoader):
         An exception is raised if the HuggingFace repo does not contain a `config.json` file.
         """
         config_path = self.resolve_asset_path(config.path)
-        return AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path)
+        return AutoConfig.from_pretrained(
+            pretrained_model_name_or_path=config_path, trust_remote_code=config.trust_remote_code
+        )
 
     def load_pretrained_model(
         self,
