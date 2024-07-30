@@ -91,7 +91,7 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
 
     # Limit dataset length if max_samples is specified
     max_samples = config.evaluation.max_samples
-    if max_samples is not None and max_samples > 0:
+    if max_samples and max_samples > 0:
         if max_samples > len(dataset):
             logger.info(f"max_samples ({max_samples}) resized to dataset size ({len(dataset)})")
             max_samples = len(dataset)
