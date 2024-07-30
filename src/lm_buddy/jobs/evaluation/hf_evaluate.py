@@ -22,6 +22,7 @@ from lm_buddy.jobs.evaluation.metrics import EvaluationMetrics
 from lm_buddy.jobs.model_clients import (
     BaseModelClient,
     HuggingFaceModelClient,
+    MistralModelClient,
     OpenAIModelClient,
     SummarizationPipelineModelClient,
 )
@@ -103,14 +104,18 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     # Choose which model client to use
     if type(config.model) == VLLMCompletionsConfig:
         model_name = config.model.inference.base_url
+        output_model_name = config.model.inference.engine
+        if "mistral" in model_name:
+            # run the mistral client
+            logger.info(f"Using Mistral client. Endpoint: {model_name}")
+            model_client = MistralModelClient(model_name, config.model)
+        else:
+            # run the openai client
+            logger.info(f"Using OAI client. Endpoint: {model_name}")
+            model_client = OpenAIModelClient(model_name, config.model)
     else:
         model_name = hf_model_loader.resolve_asset_path(config.model.path)
-
-    if model_name.startswith("http"):
-        # run the openai client
-        logger.info(f"Using OAI client. Endpoint: {model_name}")
-        model_client = OpenAIModelClient(model_name, config.model)
-    else:
+        output_model_name = config.model.path
         # depending on config, use the summarizer pipeline or directly call the model
         # for inference
         if config.evaluation.use_pipeline:
@@ -141,6 +146,9 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     # add predictions to results dict
     if config.evaluation.return_predictions:
         evaluation_results["predictions"] = predictions
+
+    # add model name to results dict
+    evaluation_results["model"] = output_model_name
 
     output_path = save_outputs(config, evaluation_results)
     return output_path

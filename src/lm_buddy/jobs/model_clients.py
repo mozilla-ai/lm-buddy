@@ -1,7 +1,9 @@
+import os
 from abc import abstractmethod
 
 import torch
 from loguru import logger
+from mistralai.client import MistralClient
 from openai import OpenAI, OpenAIError
 from openai.types import Completion
 from transformers import pipeline
@@ -82,7 +84,52 @@ class HuggingFaceModelClient(BaseModelClient):
         return self._tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
 
-class OpenAIModelClient(BaseModelClient):
+class APIModelClient(BaseModelClient):
+    """General model client for APIs."""
+
+    def __init__(self, config: VLLMCompletionsConfig):
+        self._config = config
+
+        hf_model_loader = HuggingFaceModelLoader()
+        self._engine = hf_model_loader.resolve_asset_path(config.inference.engine)
+        self._system = config.inference.system_prompt
+
+    @abstractmethod
+    def _chat_completion(
+        self,
+        config: VLLMCompletionsConfig,
+        client: OpenAI | MistralClient,
+        prompt: str,
+        system: str = "You are a helpful assisant.",
+    ) -> Completion:
+        """Connects to the API and returns a chat completion holding the model's response."""
+        pass
+
+    def _get_response_with_retries(
+        self,
+        config: VLLMCompletionsConfig,
+        prompt: str,
+    ) -> tuple[str, str]:
+        current_retry_attempt = 1
+        max_retries = 1 if config.inference.max_retries is None else config.inference.max_retries
+        while current_retry_attempt <= max_retries:
+            try:
+                response = self._chat_completion(self._config, self._client, prompt, self._system)
+                break
+            except OpenAIError as e:
+                logger.warning(f"{e.message}: Retrying ({current_retry_attempt}/{max_retries})")
+                current_retry_attempt += 1
+                if current_retry_attempt > max_retries:
+                    raise e
+        return response
+
+    def predict(self, prompt):
+        response = self._get_response_with_retries(self._config, prompt)
+
+        return response.choices[0].message.content
+
+
+class OpenAIModelClient(APIModelClient):
     """
     Model client for models served via openai-compatible API.
     For OpenAI models:
@@ -97,14 +144,10 @@ class OpenAIModelClient(BaseModelClient):
     """
 
     def __init__(self, model: str, config: VLLMCompletionsConfig):
-        self._config = config
-
-        hf_model_loader = HuggingFaceModelLoader()
-        self._engine = hf_model_loader.resolve_asset_path(config.inference.engine)
-        self._system = config.inference.system_prompt
+        super().__init__(config)
         self._client = OpenAI(base_url=model)
 
-    def _openai_chat_completion(
+    def _chat_completion(
         self,
         config: VLLMCompletionsConfig,
         client: OpenAI,
@@ -115,7 +158,7 @@ class OpenAIModelClient(BaseModelClient):
         and returns a chat completion holding the model's response.
         """
 
-        return self._client.chat.completions.create(
+        return client.chat.completions.create(
             model=self._engine,
             messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
             max_tokens=config.max_tokens,
@@ -124,27 +167,34 @@ class OpenAIModelClient(BaseModelClient):
             top_p=config.top_p,
         )
 
-    def _get_response_with_retries(
+
+class MistralModelClient(APIModelClient):
+    """
+    Model client for models served via Mistral API.
+    - The base_url is fixed
+    - Choose an engine name (see https://docs.mistral.ai/getting-started/models/)
+    - Customize the system prompt if needed
+    """
+
+    def __init__(self, model: str, config: VLLMCompletionsConfig):
+        super().__init__(config)
+        self._client = MistralClient(api_key=os.environ["MISTRAL_API_KEY"])
+
+    def _chat_completion(
         self,
         config: VLLMCompletionsConfig,
+        client: MistralClient,
         prompt: str,
-    ) -> tuple[str, str]:
-        current_retry_attempt = 1
-        max_retries = 1 if config.inference.max_retries is None else config.inference.max_retries
-        while current_retry_attempt <= max_retries:
-            try:
-                response = self._openai_chat_completion(
-                    self._config, self._client, prompt, self._system
-                )
-                break
-            except OpenAIError as e:
-                logger.warning(f"{e.message}: Retrying ({current_retry_attempt}/{max_retries})")
-                current_retry_attempt += 1
-                if current_retry_attempt > max_retries:
-                    raise e
-        return response
+        system: str = "You are a helpful assisant.",
+    ) -> Completion:
+        """Connects to a Mistral endpoint
+        and returns a chat completion holding the model's response.
+        """
 
-    def predict(self, prompt):
-        response = self._get_response_with_retries(self._config, prompt)
-
-        return response.choices[0].message.content
+        return client.chat(
+            model=self._engine,
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+            max_tokens=config.max_tokens,
+            temperature=config.temperature,
+            top_p=config.top_p,
+        )
