@@ -100,7 +100,7 @@ class APIModelClient(BaseModelClient):
         config: VLLMCompletionsConfig,
         client: OpenAI | MistralClient,
         prompt: str,
-        system: str = "You are a helpful assisant.",
+        system: str,
     ) -> Completion:
         """Connects to the API and returns a chat completion holding the model's response."""
         pass
