@@ -89,8 +89,12 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     dataset = hf_dataset_loader.load_dataset(config.dataset)
 
     # Limit dataset length if max_samples is specified
-    if config.evaluation.max_samples is not None:
-        dataset = dataset.select(range(config.evaluation.max_samples))
+    max_samples = config.evaluation.max_samples
+    if max_samples is not None and max_samples > 0:
+        if max_samples > len(dataset):
+            logger.info(f"max_samples ({max_samples}) resized to dataset size ({len(dataset)})")
+            max_samples = len(dataset)
+        dataset = dataset.select(range(max_samples))
 
     # Enable / disable tqdm
     input_samples = dataset["examples"]
