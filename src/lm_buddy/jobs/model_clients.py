@@ -49,6 +49,7 @@ class SummarizationPipelineModelClient(BaseModelClient):
             "summarization",
             model=model,
             device=0 if torch.cuda.is_available() else -1,
+            truncation=True,
         )
 
     def predict(self, prompt):
