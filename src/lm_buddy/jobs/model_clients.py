@@ -9,7 +9,6 @@ from openai.types import Completion
 from transformers import pipeline
 
 from lm_buddy.configs.common import LMBuddyConfig
-from lm_buddy.configs.huggingface import AutoModelConfig
 from lm_buddy.configs.jobs.hf_evaluate import HuggingFaceEvalJobConfig
 from lm_buddy.configs.vllm import VLLMCompletionsConfig
 from lm_buddy.jobs.asset_loader import HuggingFaceModelLoader, HuggingFaceTokenizerLoader
