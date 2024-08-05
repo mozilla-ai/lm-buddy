@@ -28,6 +28,7 @@ class AutoTokenizerConfig(LMBuddyConfig):
     path: AssetPath
     trust_remote_code: bool | None = None
     use_fast: bool | None = None
+    mod_max_length: int | None = None
 
 
 class DatasetConfig(LMBuddyConfig):

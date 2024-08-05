@@ -44,10 +44,16 @@ class SummarizationPipelineModelClient(BaseModelClient):
     (model is loaded locally).
     """
 
-    def __init__(self, model: str, config: AutoModelConfig):
+    def __init__(self, model: str, config: HuggingFaceEvalJobConfig):
+        self._config = config
+
+        hf_tokenizer_loader = HuggingFaceTokenizerLoader()
+        self._tokenizer = hf_tokenizer_loader.load_pretrained_tokenizer(config.tokenizer)
+
         self._summarizer = pipeline(
             "summarization",
             model=model,
+            tokenizer=self._tokenizer,
             device=0 if torch.cuda.is_available() else -1,
             truncation=True,
         )

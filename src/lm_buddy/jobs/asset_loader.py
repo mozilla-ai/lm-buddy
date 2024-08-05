@@ -163,6 +163,7 @@ class HuggingFaceTokenizerLoader(HuggingFaceAssetLoader):
             pretrained_model_name_or_path=tokenizer_path,
             trust_remote_code=config.trust_remote_code,
             use_fast=config.use_fast,
+            model_max_length=config.mod_max_length,
         )
         if tokenizer.pad_token_id is None:
             # Pad token required for generating consistent batch sizes

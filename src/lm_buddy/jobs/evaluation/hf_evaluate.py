@@ -120,7 +120,7 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
         # for inference
         if config.evaluation.use_pipeline:
             logger.info(f"Using summarization pipeline. Model: {model_name}")
-            model_client = SummarizationPipelineModelClient(model_name, config.model)
+            model_client = SummarizationPipelineModelClient(model_name, config)
         else:
             logger.info(f"Using direct HF model invocation. Model: {model_name}")
             model_client = HuggingFaceModelClient(model_name, config)
