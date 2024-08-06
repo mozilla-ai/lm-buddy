@@ -102,7 +102,7 @@ def run_eval(config: HuggingFaceEvalJobConfig) -> Path:
     dataset_iterable = tqdm(input_samples) if config.evaluation.enable_tqdm else input_samples
 
     # Choose which model client to use
-    if type(config.model) == VLLMCompletionsConfig:
+    if isinstance(config.model, VLLMCompletionsConfig):
         model_name = config.model.inference.base_url
         output_model_name = config.model.inference.engine
         if "mistral" in model_name:
