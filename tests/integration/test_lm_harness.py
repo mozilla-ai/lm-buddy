@@ -11,7 +11,7 @@ from lm_buddy.paths import format_file_path
 def job_config(llm_model_path) -> LMHarnessJobConfig:
     model_config = AutoModelConfig(path=format_file_path(llm_model_path))
     tracking_config = WandbRunConfig(project="test-project")
-    evaluation_config = LMHarnessEvaluationConfig(tasks=["hellaswag"], limit=5)
+    evaluation_config = LMHarnessEvaluationConfig(tasks=["glue"], limit=5)
     return LMHarnessJobConfig(
         name="test-job",
         model=model_config,
@@ -23,5 +23,5 @@ def job_config(llm_model_path) -> LMHarnessJobConfig:
 def test_lm_harness_job(job_config):
     buddy = LMBuddy()
     result = buddy.evaluate(job_config)
-    assert len(result.tables) == 1  # One table for hellaswag
+    assert len(result.tables) == 10
     assert len(result.artifacts) == 1  # One table artifact
