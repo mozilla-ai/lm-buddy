@@ -47,6 +47,7 @@ class LMHarnessJobConfig(JobConfig):
     model: AutoModelConfig | LocalChatCompletionsConfig
     evaluation: LMHarnessEvaluationConfig
     quantization: QuantizationConfig | None = None
+    trust_remote_code: bool = False
 
     def asset_paths(self) -> list[AssetPath]:
         match self.model:
