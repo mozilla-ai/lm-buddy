@@ -100,7 +100,7 @@ class AdapterConfig(LMBuddyConfig, extra="allow"):
         # Filter fields to those found on the PeftConfig
         extra_fields = config.model_fields_set.difference(allowed_fields)
         if extra_fields:
-            raise ValueError(f"Unknowon arguments for {peft_type} adapter: {extra_fields}")
+            raise ValueError(f"Unknown arguments for {peft_type} adapter: {extra_fields}")
 
         return config
 

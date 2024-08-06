@@ -50,7 +50,7 @@ def load_harness_model(config: LMHarnessJobConfig) -> HFLM | OpenaiCompletionsLM
                 tokenizer=model_path,
                 peft=peft_path,
                 device="cuda" if torch.cuda.device_count() > 0 else "cpu",
-                trust_remote_code=config.trust_remote_code,
+                trust_remote_code=model_config.trust_remote_code,
                 dtype=config.model.torch_dtype if config.model.torch_dtype else "auto",
                 **quantization_kwargs,
             )
