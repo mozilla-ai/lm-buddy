@@ -40,7 +40,7 @@ jobs:
         id: ruff
         run: |
           . .venv/bin/activate
-          ruff --output-format=github check .
+          ruff check --output-format=github .
         continue-on-error: false
 
   tests:
