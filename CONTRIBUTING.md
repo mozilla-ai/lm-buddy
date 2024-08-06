@@ -21,6 +21,23 @@ development dependencies.
 You can execute Ruff by calling `ruff --fix .` or `ruff format .` from the workspace root.
 Ruff will pick up the configuration defined in the `pyproject.toml` file automatically.
 
+
+## Updating deps
+Update deps in `pyproject.toml` and ensure you can `pip-compile` them as follows:
+
+pip-tools:
+```
+pip install pip-tools
+pip-compile -o requirements.lock --all-extras pyproject.toml
+```
+
+uv:
+```
+pip install uv
+uv pip compile --python-version=3.11.9 --all-extras --universal -o requirements.lock pyproject.toml
+```
+
+
 ## Testing a development branch on Ray
 
 LM Buddy is intended to be installed as a pip requirement in the runtime environment of a Ray job.
@@ -40,11 +57,11 @@ as shown below:
     ```
     # pip-tools
     pip install pip-tools
-    pip-compile -o requirements.txt pyproject.toml
+    pip-compile -o requirements.txt --all-extras pyproject.toml
     
     # uv
     pip install uv
-    uv pip compile -o requirements.txt pyproject.toml
+    uv pip compile --python-version=3.11.9 --all-extras --universal -o requirements.txt pyproject.toml
     ```
 
 2. When submitting a job to a Ray cluster, specify in the Ray runtime environment the following:
