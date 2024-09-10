@@ -85,7 +85,7 @@ runtime_env = {
 
 # Assuming 'config.yaml' is present in the working directory
 client.submit_job(
-    entrypoint="lm_buddy run <job-name> --config config.yaml", 
+    entrypoint="lm_buddy finetune <job-name> --config config.yaml", 
     runtime_env=runtime_env,
     entrypoint_num_gpus=1
 )
