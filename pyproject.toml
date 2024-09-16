@@ -23,7 +23,7 @@ dependencies = [
     "click>=8.1.7",
     "scipy==1.13.1",
     "numpy<2.0.0",
-    "wandb>=0.16.3",
+    "wandb==0.16.3",
     "protobuf>=3.20.2",
     "urllib3>=1.26.18,<2",
     "pydantic>=2.6.4",
@@ -38,7 +38,7 @@ ruff = ["ruff==0.5.5"]
 jobs = [
     # HuggingFace / pytorch
     "torch==2.4.0",
-    "datasets>=2.20.0",
+    "datasets==2.20.0",
     "transformers==4.43.4",
     "accelerate==0.33.0",
     "peft==0.12.0",
